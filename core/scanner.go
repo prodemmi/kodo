@@ -533,9 +533,5 @@ func (s *Scanner) LoadExistingStats() {
 		return
 	}
 
-	stats := s.tracker.LoadStats()
-	if stats != nil {
-		fmt.Printf("Loaded project stats: %d items from %s (branch: %s)\n",
-			stats.TotalItems, stats.LastScanAt.Format("2006-01-02 15:04"), stats.GitBranch)
-	}
+	s.tracker.LoadStats()
 }

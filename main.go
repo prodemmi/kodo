@@ -12,7 +12,7 @@ import (
 var staticFiles embed.FS
 
 // TODO: this is a test todo
-// DONE 2025-08-18 01:00 by prodemmi
+// IN PROGRESS from 2025-08-18 01:16 by prodemmi
 func main() {
 	var logger *zap.Logger
 	if true {

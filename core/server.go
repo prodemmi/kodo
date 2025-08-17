@@ -116,6 +116,10 @@ func (s *Server) StartServer() {
 	http.Handle("/api/stats/history", cors(http.HandlerFunc(s.handleStatsHistory)))
 	http.Handle("/api/stats/compare", cors(http.HandlerFunc(s.handleStatsCompare)))
 	http.Handle("/api/stats/cleanup", cors(http.HandlerFunc(s.handleStatsCleanup)))
+	http.Handle("/api/stats/items", cors(http.HandlerFunc(s.handleStatsItems)))
+	http.Handle("/api/stats/items/by-file", cors(http.HandlerFunc(s.handleStatsItemsByFile)))
+	http.Handle("/api/stats/trends", cors(http.HandlerFunc(s.handleStatsTrends)))
+	http.Handle("/api/stats/changes", cors(http.HandlerFunc(s.handleStatsChanges)))
 
 	port := 8080
 	url := fmt.Sprintf("http://localhost:%d", port)
@@ -501,4 +505,58 @@ func (s *Server) handleProjectInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(response)
+}
+
+func (s *Server) handleStatsItems(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	tracker := s.scanner.GetTracker()
+	analysis := tracker.GetTaskItemsAnalysis()
+	json.NewEncoder(w).Encode(analysis)
+}
+
+func (s *Server) handleStatsItemsByFile(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	tracker := s.scanner.GetTracker()
+	fileGroups := tracker.GetItemsByFile()
+	json.NewEncoder(w).Encode(fileGroups)
+}
+
+// Handler for item trends over time
+func (s *Server) handleStatsTrends(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	tracker := s.scanner.GetTracker()
+	trends := tracker.GetItemTrends()
+	json.NewEncoder(w).Encode(trends)
+}
+
+// Handler for recent item changes
+func (s *Server) handleStatsChanges(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	tracker := s.scanner.GetTracker()
+	changes := tracker.getRecentItemChanges()
+	json.NewEncoder(w).Encode(changes)
 }

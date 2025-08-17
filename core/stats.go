@@ -23,6 +23,7 @@ type ProjectStats struct {
 	ItemsByStatus  map[string]int   `json:"items_by_status"`
 	ItemsByType    map[string]int   `json:"items_by_type"`
 	ItemsByFile    map[string]int   `json:"items_by_file"`
+	CurrentItems   []TaskItem       `json:"current_items"`
 	BranchHistory  []BranchSnapshot `json:"branch_history,omitempty"`
 	CreatedAt      time.Time        `json:"created_at"`
 	UpdatedAt      time.Time        `json:"updated_at"`
@@ -38,7 +39,7 @@ type BranchSnapshot struct {
 	Stats         ItemStats `json:"stats"`
 }
 
-// ItemStats represents count statistics
+// ItemStats represents count statistics and detailed items
 type ItemStats struct {
 	Total      int            `json:"total"`
 	Todo       int            `json:"todo"`
@@ -46,6 +47,19 @@ type ItemStats struct {
 	Done       int            `json:"done"`
 	ByType     map[string]int `json:"by_type"`
 	ByPriority map[string]int `json:"by_priority"`
+	Items      []TaskItem     `json:"items"`
+}
+
+// TaskItem represents a simplified version of Item for stats tracking
+type TaskItem struct {
+	ID       int          `json:"id"`
+	Type     ItemType     `json:"type"`
+	Title    string       `json:"title"`
+	File     string       `json:"file"`
+	Line     int          `json:"line"`
+	Status   ItemStatus   `json:"status"`
+	Priority ItemPriority `json:"priority"`
+	Hash     string       `json:"hash"` // For tracking item identity across commits
 }
 
 // ProjectTracker handles project statistics and persistence
@@ -96,6 +110,238 @@ func (pt *ProjectTracker) Initialize() error {
 
 	pt.logger.Info("Project tracker initialized", zap.String("kodo_dir", pt.kodoDir))
 	return nil
+}
+
+// generateItemHash creates a unique hash for tracking item identity across commits
+func (pt *ProjectTracker) generateItemHash(item *Item) string {
+	// Create hash based on file, line, type, and title (content that shouldn't change)
+	content := fmt.Sprintf("%s:%d:%s:%s", item.File, item.Line, item.Type, item.Title)
+	// Simple hash - in production you might want to use crypto/sha256
+	hash := 0
+	for _, char := range content {
+		hash = hash*31 + int(char)
+	}
+	return fmt.Sprintf("%x", hash)
+}
+
+// GetTaskItemsAnalysis provides detailed analysis of task items
+func (pt *ProjectTracker) GetTaskItemsAnalysis() map[string]interface{} {
+	stats := pt.LoadStats()
+	if stats == nil {
+		return map[string]interface{}{
+			"error": "No stats available",
+		}
+	}
+
+	analysis := map[string]interface{}{
+		"total_items":     len(stats.CurrentItems),
+		"items_by_file":   make(map[string][]TaskItem),
+		"items_by_type":   make(map[string][]TaskItem),
+		"items_by_status": make(map[string][]TaskItem),
+		"high_priority":   []TaskItem{},
+		"recent_changes":  pt.getRecentItemChanges(),
+	}
+
+	// Group items by various criteria
+	itemsByFile := make(map[string][]TaskItem)
+	itemsByType := make(map[string][]TaskItem)
+	itemsByStatus := make(map[string][]TaskItem)
+	var highPriority []TaskItem
+
+	for _, item := range stats.CurrentItems {
+		// Group by file
+		itemsByFile[item.File] = append(itemsByFile[item.File], item)
+
+		// Group by type
+		itemsByType[string(item.Type)] = append(itemsByType[string(item.Type)], item)
+
+		// Group by status
+		itemsByStatus[string(item.Status)] = append(itemsByStatus[string(item.Status)], item)
+
+		// Collect high priority items
+		if item.Priority == PriorityHigh {
+			highPriority = append(highPriority, item)
+		}
+	}
+
+	analysis["items_by_file"] = itemsByFile
+	analysis["items_by_type"] = itemsByType
+	analysis["items_by_status"] = itemsByStatus
+	analysis["high_priority"] = highPriority
+
+	return analysis
+}
+
+// getRecentItemChanges compares current items with previous snapshot
+func (pt *ProjectTracker) getRecentItemChanges() map[string]interface{} {
+	history := pt.GetBranchHistory()
+	if len(history) < 2 {
+		return map[string]interface{}{
+			"message": "Not enough history for comparison",
+		}
+	}
+
+	current := history[len(history)-1]
+	previous := history[len(history)-2]
+
+	// Create maps for easier lookup
+	currentItems := make(map[string]TaskItem)
+	previousItems := make(map[string]TaskItem)
+
+	for _, item := range current.Stats.Items {
+		currentItems[item.Hash] = item
+	}
+
+	for _, item := range previous.Stats.Items {
+		previousItems[item.Hash] = item
+	}
+
+	var added []TaskItem
+	var removed []TaskItem
+	var statusChanged []map[string]interface{}
+
+	// Find added items
+	for hash, item := range currentItems {
+		if _, exists := previousItems[hash]; !exists {
+			added = append(added, item)
+		} else {
+			// Check for status changes
+			prevItem := previousItems[hash]
+			if item.Status != prevItem.Status {
+				statusChanged = append(statusChanged, map[string]interface{}{
+					"item":       item,
+					"old_status": prevItem.Status,
+					"new_status": item.Status,
+				})
+			}
+		}
+	}
+
+	// Find removed items
+	for hash, item := range previousItems {
+		if _, exists := currentItems[hash]; !exists {
+			removed = append(removed, item)
+		}
+	}
+
+	return map[string]interface{}{
+		"added":          added,
+		"removed":        removed,
+		"status_changed": statusChanged,
+		"summary": map[string]int{
+			"added":          len(added),
+			"removed":        len(removed),
+			"status_changed": len(statusChanged),
+		},
+	}
+}
+
+// GetItemsByFile returns items grouped by file with additional metadata
+func (pt *ProjectTracker) GetItemsByFile() map[string]interface{} {
+	stats := pt.LoadStats()
+	if stats == nil {
+		return map[string]interface{}{
+			"error": "No stats available",
+		}
+	}
+
+	fileGroups := make(map[string]map[string]interface{})
+
+	for _, item := range stats.CurrentItems {
+		if _, exists := fileGroups[item.File]; !exists {
+			fileGroups[item.File] = map[string]interface{}{
+				"items":         []TaskItem{},
+				"total":         0,
+				"todo":          0,
+				"in_progress":   0,
+				"done":          0,
+				"high_priority": 0,
+			}
+		}
+
+		group := fileGroups[item.File]
+		group["items"] = append(group["items"].([]TaskItem), item)
+		group["total"] = group["total"].(int) + 1
+
+		switch item.Status {
+		case StatusTodo:
+			group["todo"] = group["todo"].(int) + 1
+		case StatusInProgress:
+			group["in_progress"] = group["in_progress"].(int) + 1
+		case StatusDone:
+			group["done"] = group["done"].(int) + 1
+		}
+
+		if item.Priority == PriorityHigh {
+			group["high_priority"] = group["high_priority"].(int) + 1
+		}
+	}
+
+	return map[string]interface{}{
+		"files":       fileGroups,
+		"total_files": len(fileGroups),
+	}
+}
+
+// GetItemTrends analyzes trends over time
+func (pt *ProjectTracker) GetItemTrends() map[string]interface{} {
+	history := pt.GetBranchHistory()
+	if len(history) < 2 {
+		return map[string]interface{}{
+			"error": "Not enough history for trend analysis",
+		}
+	}
+
+	trends := map[string]interface{}{
+		"timeline":        []map[string]interface{}{},
+		"completion_rate": []map[string]interface{}{},
+		"type_trends":     make(map[string][]map[string]interface{}),
+	}
+
+	for _, snapshot := range history {
+		timelineEntry := map[string]interface{}{
+			"timestamp":   snapshot.Timestamp,
+			"commit":      snapshot.CommitShort,
+			"branch":      snapshot.Branch,
+			"total":       snapshot.Stats.Total,
+			"todo":        snapshot.Stats.Todo,
+			"in_progress": snapshot.Stats.InProgress,
+			"done":        snapshot.Stats.Done,
+		}
+		trends["timeline"] = append(trends["timeline"].([]map[string]interface{}), timelineEntry)
+
+		// Calculate completion rate
+		completionRate := float64(0)
+		if snapshot.Stats.Total > 0 {
+			completionRate = float64(snapshot.Stats.Done) / float64(snapshot.Stats.Total) * 100
+		}
+
+		completionEntry := map[string]interface{}{
+			"timestamp": snapshot.Timestamp,
+			"commit":    snapshot.CommitShort,
+			"rate":      completionRate,
+		}
+		trends["completion_rate"] = append(trends["completion_rate"].([]map[string]interface{}), completionEntry)
+
+		// Track type trends
+		for itemType, count := range snapshot.Stats.ByType {
+			if trends["type_trends"].(map[string][]map[string]interface{})[itemType] == nil {
+				trends["type_trends"].(map[string][]map[string]interface{})[itemType] = []map[string]interface{}{}
+			}
+
+			typeEntry := map[string]interface{}{
+				"timestamp": snapshot.Timestamp,
+				"commit":    snapshot.CommitShort,
+				"count":     count,
+			}
+			trends["type_trends"].(map[string][]map[string]interface{})[itemType] = append(
+				trends["type_trends"].(map[string][]map[string]interface{})[itemType],
+				typeEntry,
+			)
+		}
+	}
+
+	return trends
 }
 
 // SaveStats saves current project statistics
@@ -194,6 +440,7 @@ func (pt *ProjectTracker) generateStats() (*ProjectStats, error) {
 	itemsByStatus := make(map[string]int)
 	itemsByType := make(map[string]int)
 	itemsByFile := make(map[string]int)
+	var taskItems []TaskItem
 
 	for _, item := range items {
 		// Count by status
@@ -204,6 +451,19 @@ func (pt *ProjectTracker) generateStats() (*ProjectStats, error) {
 
 		// Count by file
 		itemsByFile[item.File]++
+
+		// Create TaskItem for detailed tracking
+		taskItem := TaskItem{
+			ID:       item.ID,
+			Type:     item.Type,
+			Title:    item.Title,
+			File:     item.File,
+			Line:     item.Line,
+			Status:   item.Status,
+			Priority: item.Priority,
+			Hash:     pt.generateItemHash(item),
+		}
+		taskItems = append(taskItems, taskItem)
 	}
 
 	return &ProjectStats{
@@ -216,6 +476,7 @@ func (pt *ProjectTracker) generateStats() (*ProjectStats, error) {
 		ItemsByStatus:  itemsByStatus,
 		ItemsByType:    itemsByType,
 		ItemsByFile:    itemsByFile,
+		CurrentItems:   taskItems,
 	}, nil
 }
 
@@ -226,6 +487,7 @@ func (pt *ProjectTracker) generateItemStats() ItemStats {
 		Total:      len(items),
 		ByType:     make(map[string]int),
 		ByPriority: make(map[string]int),
+		Items:      make([]TaskItem, 0, len(items)),
 	}
 
 	for _, item := range items {
@@ -240,6 +502,19 @@ func (pt *ProjectTracker) generateItemStats() ItemStats {
 
 		stats.ByType[string(item.Type)]++
 		stats.ByPriority[string(item.Priority)]++
+
+		// Add detailed task item
+		taskItem := TaskItem{
+			ID:       item.ID,
+			Type:     item.Type,
+			Title:    item.Title,
+			File:     item.File,
+			Line:     item.Line,
+			Status:   item.Status,
+			Priority: item.Priority,
+			Hash:     pt.generateItemHash(item),
+		}
+		stats.Items = append(stats.Items, taskItem)
 	}
 
 	return stats
