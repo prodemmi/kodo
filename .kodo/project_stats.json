@@ -1,0 +1,45 @@
+{
+  "project_path": "/mnt/projects/Projects/Programming/KodoBoard",
+  "last_scan_at": "2025-08-18T01:06:40.552480259+03:30",
+  "git_branch": "unknown",
+  "git_commit": "unknown",
+  "git_commit_short": "unknown",
+  "total_items": 2,
+  "items_by_status": {
+    "done": 1,
+    "todo": 1
+  },
+  "items_by_type": {
+    "BUG": 1,
+    "TODO": 1
+  },
+  "items_by_file": {
+    "frontend/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx": 1,
+    "main.go": 1
+  },
+  "branch_history": [
+    {
+      "branch": "unknown",
+      "commit": "unknown",
+      "commit_short": "unknown",
+      "commit_message": "",
+      "timestamp": "2025-08-18T01:06:39.516646578+03:30",
+      "stats": {
+        "total": 2,
+        "todo": 1,
+        "in_progress": 0,
+        "done": 1,
+        "by_type": {
+          "BUG": 1,
+          "TODO": 1
+        },
+        "by_priority": {
+          "high": 1,
+          "medium": 1
+        }
+      }
+    }
+  ],
+  "created_at": "2025-08-18T01:06:39.516646427+03:30",
+  "updated_at": "2025-08-18T01:06:40.552811971+03:30"
+}

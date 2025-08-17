@@ -1,0 +1,306 @@
+import { useState, useEffect } from "react";
+import {
+  DndContext,
+  closestCenter,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import {
+  Group,
+  Text,
+  Badge,
+  Title,
+  Container,
+  Paper,
+  Loader,
+  Alert,
+} from "@mantine/core";
+import { IconAlertCircle } from "@tabler/icons-react";
+import { Item } from "../../../../types/item";
+import { useItems, useUpdateItem } from "../../../../hooks/use-items";
+import ItemDetailDrawer from "./sections/ItemDetailDrawer";
+import SortableTask from "./sections/SortableTask";
+import DroppableColumn from "./sections/DroppableColumn";
+
+// Define column structure
+interface Column {
+  title: string;
+  tasks: Item[];
+}
+
+export default function Board() {
+  const { data } = useItems();
+  const [columns, setColumns] = useState<Record<string, Column>>({});
+  const [columnOrder, setColumnOrder] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [drawerOpened, setDrawerOpened] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [activeItem, setActiveItem] = useState<Item | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3,
+      },
+    })
+  );
+
+  const { mutate } = useUpdateItem();
+
+  // Fetch items and organize into columns
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const newColumns: Record<string, Column> = {
+          todo: { title: "To Do", tasks: [] },
+          "in-progress": { title: "In Progress", tasks: [] },
+          done: { title: "Done", tasks: [] },
+        };
+
+        data?.forEach((item) => {
+          if (newColumns[item.status]) {
+            newColumns[item.status].tasks.push(item);
+          }
+        });
+        setColumns(newColumns);
+        setColumnOrder(["todo", "in-progress", "done"]);
+      } catch (err) {
+        setError("Failed to fetch items");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [data]);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const activeId = active.id.toString();
+
+    // Find the active item
+    const activeColumnId = Object.keys(columns).find((colId) =>
+      columns[colId].tasks.some((item) => item.id.toString() === activeId)
+    );
+
+    if (activeColumnId) {
+      const item = columns[activeColumnId].tasks.find(
+        (item) => item.id.toString() === activeId
+      );
+      setActiveItem(item || null);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveItem(null);
+
+    if (!over) return;
+
+    const activeId = active.id.toString();
+    const overId = over.id.toString();
+
+    // Find which column contains the active item
+    const activeColumnId = Object.keys(columns).find((colId) =>
+      columns[colId].tasks.some((item) => item.id.toString() === activeId)
+    );
+
+    if (!activeColumnId) return;
+
+    // Determine the target column
+    let overColumnId: string | undefined;
+
+    // Check if overId is a column ID directly
+    if (columnOrder.includes(overId)) {
+      overColumnId = overId;
+    } else {
+      // Check if overId is an item ID, find its column
+      overColumnId = Object.keys(columns).find((colId) =>
+        columns[colId].tasks.some((item) => item.id.toString() === overId)
+      );
+    }
+
+    if (!overColumnId) return;
+
+    if (activeColumnId === overColumnId) {
+      // Reordering within the same column
+      const tasks = columns[activeColumnId].tasks;
+      const activeIndex = tasks.findIndex(
+        (item) => item.id.toString() === activeId
+      );
+      const overIndex = tasks.findIndex(
+        (item) => item.id.toString() === overId
+      );
+
+      if (activeIndex !== overIndex) {
+        const newTasks = arrayMove(tasks, activeIndex, overIndex);
+        setColumns({
+          ...columns,
+          [activeColumnId]: { ...columns[activeColumnId], tasks: newTasks },
+        });
+      }
+      return;
+    }
+
+    // Moving between columns
+    const sourceTasks = [...columns[activeColumnId].tasks];
+    const destTasks = [...columns[overColumnId].tasks];
+
+    const activeIndex = sourceTasks.findIndex(
+      (item) => item.id.toString() === activeId
+    );
+
+    if (activeIndex === -1) return;
+
+    const [movedTask] = sourceTasks.splice(activeIndex, 1);
+    const updatedTask = {
+      ...movedTask,
+      status: overColumnId as Item["status"],
+    };
+
+    // Add to destination at the end
+    destTasks.push(updatedTask);
+
+    // Update state
+    setColumns({
+      ...columns,
+      [activeColumnId]: { ...columns[activeColumnId], tasks: sourceTasks },
+      [overColumnId]: { ...columns[overColumnId], tasks: destTasks },
+    });
+
+    // Call the API update
+    updateItemStatus(Number(updatedTask.id), updatedTask.status);
+  };
+
+  function updateItemStatus(itemId: number, status: string) {
+    console.log("Calling API - itemId:", itemId, "status:", status);
+    mutate({ id: itemId, status });
+  }
+
+  const handleItemClick = (item: Item) => {
+    setSelectedItem(item);
+    setDrawerOpened(true);
+  };
+
+  if (loading) {
+    return (
+      <Container size="xl" py="md">
+        <Loader />
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container size="xl" py="md">
+        <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red">
+          {error}
+        </Alert>
+      </Container>
+    );
+  }
+
+  return (
+    <>
+      <Container size="xl" py="md">
+        <Title order={2} mb="md">
+          Kanban Board
+        </Title>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <Group align="start" gap="lg">
+            {columnOrder.map((columnId) => {
+              const column = columns[columnId];
+              return (
+                <Paper
+                  shadow="sm"
+                  p="md"
+                  style={{
+                    width: 300,
+                    borderRadius: 8,
+                  }}
+                  withBorder
+                  key={columnId}
+                >
+                  <Group mb="md" justify="space-between">
+                    <Text fw={600} size="sm" c="dark.3">
+                      {column.title}
+                    </Text>
+                    <Badge variant="light" size="sm" color="gray">
+                      {column.tasks.length}
+                    </Badge>
+                  </Group>
+
+                  <DroppableColumn columnId={columnId}>
+                    <SortableContext
+                      items={column.tasks.map((item) => item.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div style={{ minHeight: 300 }}>
+                        {column.tasks.map((item) => (
+                          <SortableTask
+                            key={item.id}
+                            item={item}
+                            onItemClick={handleItemClick}
+                          />
+                        ))}
+                        {column.tasks.length === 0 && (
+                          <div
+                            style={{
+                              height: 200,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "#adb5bd",
+                              fontSize: "14px",
+                              borderRadius: 8,
+                            }}
+                          >
+                            Drop items here
+                          </div>
+                        )}
+                      </div>
+                    </SortableContext>
+                  </DroppableColumn>
+                </Paper>
+              );
+            })}
+          </Group>
+
+          <DragOverlay>
+            {activeItem ? (
+              <div
+                style={{
+                  transform: "rotate(5deg)",
+                  opacity: 0.9,
+                  transition: "all 0.4 ease",
+                }}
+              >
+                <SortableTask item={activeItem} onItemClick={() => {}} />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      </Container>
+      <ItemDetailDrawer
+        drawerOpened={drawerOpened}
+        selectedItem={selectedItem}
+        setDrawerOpened={setDrawerOpened}
+      />
+    </>
+  );
+}

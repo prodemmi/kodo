@@ -1,0 +1,7 @@
+# Kodo temporary files
+*.tmp
+*.log
+
+# Keep the stats but ignore temporary data
+!project_stats.json
+!branch_history.json

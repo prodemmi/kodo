@@ -1,0 +1,17 @@
+[build]
+cmd = "./build.sh"
+bin = "kodo"
+include_ext = ["go", "ts", "tsx", "css", "html"]
+
+exclude_dir = [
+    "tmp",
+    "frontend/node_modules/",
+    "frontend/dist/",
+    "frontend/tmp/"
+]
+
+[build.color]
+main = "blue"
+watcher = "green"
+build = "yellow"
+runner = "magenta"
