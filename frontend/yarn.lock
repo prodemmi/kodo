@@ -1043,6 +1043,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/react-query@npm:^5.85.3":
+  version: 5.85.3
+  resolution: "@tanstack/react-query@npm:5.85.3"
+  dependencies:
+    "@tanstack/query-core": "npm:5.85.3"
+  peerDependencies:
+    react: ^18 || ^19
+  checksum: 10c0/3588a6997c5f5302d999f98230894ad3ed5d24b0b063b62c34300e2cd3a715afc7edd97eb8a99408f2f7f85e76812fa87d035dbbc340c95adecade80d1e44ae0
+  languageName: node
+  linkType: hard
+
 "@types/babel__core@npm:^7.20.5":
   version: 7.20.5
   resolution: "@types/babel__core@npm:7.20.5"
@@ -3113,6 +3124,7 @@ __metadata:
     "@mantine/hooks": "npm:8.2.5"
     "@tabler/icons-react": "npm:^3.34.1"
     "@tanstack/query-async-storage-persister": "npm:^5.85.3"
+    "@tanstack/react-query": "npm:^5.85.3"
     "@tanstack/react-query-persist-client": "npm:^5.85.3"
     "@types/react": "npm:18"
     "@types/react-dom": "npm:18"

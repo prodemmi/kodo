@@ -184,31 +184,23 @@ export default function SortableTask({
                   color: isDragging ? "#228be6" : "#868e96",
                 }}
               />
-              <Text size="sm" style={{ pointerEvents: "none" }}>
+              <Text size="sm" onClick={() => onItemClick(item)}>
                 {item.title}
               </Text>
             </Group>
 
-            <Stack gap="4" mt="4">
-              <ActionIcon
-                size="xs"
-                variant="subtle"
-                style={{ pointerEvents: "auto" }}
-              >
+            <Stack gap="4" mt="2">
+              <ActionIcon size="xs" variant="subtle">
                 <IconEye onClick={() => onItemClick(item)} />
               </ActionIcon>
-              <ActionIcon
-                size="xs"
-                variant="subtle"
-                style={{ pointerEvents: "auto" }}
-              >
+              <ActionIcon size="xs" variant="subtle">
                 <IconCode onClick={() => goToFile(item)} />
               </ActionIcon>
             </Stack>
           </Group>
         </Group>
         {item.description && (
-          <Box bd="1px solid gray" bdrs="sm" p="xs">
+          <Box bd="1px solid gray" bdrs="sm" p="xs" onClick={() => onItemClick(item)}>
             <Text
               size="xs"
               c="dimmed"
@@ -225,7 +217,6 @@ export default function SortableTask({
           value={item.status}
           data={statusOptions}
           size="xs"
-          style={{ pointerEvents: "auto" }}
         />
 
         <Group gap="4" align="center" py="4">

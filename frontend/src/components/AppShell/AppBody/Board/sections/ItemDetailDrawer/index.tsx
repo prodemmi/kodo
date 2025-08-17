@@ -181,12 +181,12 @@ export default function ItemDetailDrawer({
                   Priority: {selectedItem.priority}
                 </Badge>
                 <Badge color="gray" variant="outline" size="sm">
-                  Line: {selectedItem.line}
+                  Type: {selectedItem.type}
                 </Badge>
               </Group>
-              <Group align="center">
+              <Group align="center" justify="space-between">
                 <Text size="xs" c="dimmed" style={{ fontFamily: "monospace" }}>
-                  📁 {selectedItem.file}
+                  📁 {selectedItem.file}:{selectedItem.line}
                 </Text>
                 <Button
                   size="compact-sm"
