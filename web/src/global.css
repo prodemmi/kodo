@@ -2,3 +2,13 @@
   background-color: rgba(255, 0, 0, 0.1) !important;
   border-left: 2px solid #ff4444 !important;
 }
+
+.resizer {
+  cursor: col-resize;
+  z-index: 10;
+  background: transparent;
+}
+
+.resizer:hover {
+  background: var(--mantine-color-blue-5);
+}

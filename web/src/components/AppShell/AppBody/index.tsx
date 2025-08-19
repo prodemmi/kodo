@@ -4,8 +4,9 @@ import Board from "./Board";
 import Chat from "./Chat";
 import History from "./History";
 import Settings from "./Settings";
+import Notes from "./Notes";
 
-const tabs = [<Board />, <Chat />, <History />, <Settings />];
+const tabs = [<Board />, <Chat />, <Notes />, <History />, <Settings />];
 
 export default function AppBody() {
   const activeTab = useAppState((state) => state.activeTab);

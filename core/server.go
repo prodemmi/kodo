@@ -121,6 +121,8 @@ func (s *Server) StartServer() {
 	http.Handle("/api/stats/trends", cors(http.HandlerFunc(s.handleStatsTrends)))
 	http.Handle("/api/stats/changes", cors(http.HandlerFunc(s.handleStatsChanges)))
 
+	http.Handle("/api/chat/project-files", cors(http.HandlerFunc(s.handleProjectFiles)))
+
 	port := 8080
 	url := fmt.Sprintf("http://localhost:%d", port)
 	fmt.Println("Server running at", url)
@@ -559,4 +561,40 @@ func (s *Server) handleStatsChanges(w http.ResponseWriter, r *http.Request) {
 	tracker := s.scanner.GetTracker()
 	changes := tracker.getRecentItemChanges()
 	json.NewEncoder(w).Encode(changes)
+}
+
+func (s *Server) handleProjectFiles(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	dir := r.URL.Query().Get("dir")
+	if dir == "" {
+		var err error
+		dir, err = os.Getwd()
+		if err != nil {
+			http.Error(w, "Cannot get working directory: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	search := r.URL.Query().Get("search")
+
+	var files []ProjectFile
+	var err error
+	if search != "" {
+		files, err = searchFilesRecursive(dir, search)
+	} else {
+		files, err = scanDirOneLevel(dir)
+	}
+	if err != nil {
+		http.Error(w, "Cannot read directory: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(files); err != nil {
+		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
+	}
 }

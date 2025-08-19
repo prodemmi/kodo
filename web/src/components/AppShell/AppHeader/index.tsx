@@ -27,13 +27,19 @@ export default function AppHeader({}: Props) {
             variant={activeTab === 2 ? "light" : "subtle"}
             onClick={() => setActiveTab(2)}
           >
+            Notes
+          </Button>
+          <Button
+            variant={activeTab === 3 ? "light" : "subtle"}
+            onClick={() => setActiveTab(3)}
+          >
             History
           </Button>
         </ButtonGroup>
 
         <ActionIcon
-          variant={activeTab === 3 ? "light" : "subtle"}
-          onClick={() => setActiveTab(3)}
+          variant={activeTab === 4 ? "light" : "subtle"}
+          onClick={() => setActiveTab(4)}
         >
           <IconSettings />
         </ActionIcon>
