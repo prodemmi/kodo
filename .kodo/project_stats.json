@@ -1,9 +1,9 @@
 {
   "project_path": "/mnt/projects/Projects/Programming/KodoBoard",
-  "last_scan_at": "2025-08-19T10:41:16.342651233Z",
+  "last_scan_at": "2025-08-19T10:50:46.358550427Z",
   "git_branch": "main",
-  "git_commit": "30c350f4dd4e042b372d06b140b5663e6c9c1460",
-  "git_commit_short": "30c350f",
+  "git_commit": "857bf907174533d2929ba1dce30f09b8e7509f8d",
+  "git_commit_short": "857bf90",
   "total_items": 2,
   "items_by_status": {
     "done": 1,
@@ -169,8 +169,51 @@
           }
         ]
       }
+    },
+    {
+      "branch": "main",
+      "commit": "857bf907174533d2929ba1dce30f09b8e7509f8d",
+      "commit_short": "857bf90",
+      "commit_message": "implement history",
+      "timestamp": "2025-08-19T10:46:16.509596991Z",
+      "stats": {
+        "total": 2,
+        "todo": 0,
+        "in_progress": 1,
+        "done": 1,
+        "by_type": {
+          "BUG": 1,
+          "TODO": 1
+        },
+        "by_priority": {
+          "high": 1,
+          "medium": 1
+        },
+        "items": [
+          {
+            "id": 1,
+            "type": "TODO",
+            "title": "this is a test todo",
+            "file": "main.go",
+            "line": 14,
+            "status": "done",
+            "priority": "medium",
+            "hash": "-1741add25431a699"
+          },
+          {
+            "id": 2,
+            "type": "BUG",
+            "title": "Hi",
+            "file": "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
+            "line": 10,
+            "status": "in-progress",
+            "priority": "high",
+            "hash": "2c6b16e7e1b65228"
+          }
+        ]
+      }
     }
   ],
   "created_at": "2025-08-18T01:06:39.516646427+03:30",
-  "updated_at": "2025-08-19T10:41:16.345501621Z"
+  "updated_at": "2025-08-19T10:50:46.358813033Z"
 }
