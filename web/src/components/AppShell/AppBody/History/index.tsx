@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from "react";
 import {
   Container,
   Title,
@@ -22,8 +22,10 @@ import {
   ThemeIcon,
   Accordion,
   Select,
-  Switch
-} from '@mantine/core';
+  Switch,
+  LoadingOverlay,
+  Box,
+} from "@mantine/core";
 import {
   IconHistory,
   IconTrendingUp,
@@ -37,198 +39,80 @@ import {
   IconInfoCircle,
   IconTrash,
   IconChartLine,
-  IconCalendar
-} from '@tabler/icons-react';
+  IconCalendar,
+} from "@tabler/icons-react";
+import {
+  useChanges,
+  useCleanupStats,
+  useComparison,
+  useHistory,
+  useRefreshStats,
+  useTrends,
+} from "../../../../hooks/use-stats";
 
-interface BranchSnapshot {
-  branch: string;
-  commit: string;
-  commit_short: string;
-  commit_message: string;
-  timestamp: string;
-  stats: {
-    total: number;
-    todo: number;
-    in_progress: number;
-    done: number;
-    by_type: Record<string, number>;
-    by_priority: Record<string, number>;
-    items: TaskItem[];
-  };
-}
-
-interface TaskItem {
-  id: number;
-  type: string;
-  title: string;
-  file: string;
-  line: number;
-  status: string;
-  priority: string;
-  hash: string;
-}
-
-interface ItemChange {
-  item: TaskItem;
-  old_status?: string;
-  new_status?: string;
-}
-
-interface TrendData {
-  timeline: Array<{
-    timestamp: string;
-    commit: string;
-    branch: string;
-    total: number;
-    todo: number;
-    in_progress: number;
-    done: number;
-  }>;
-  completion_rate: Array<{
-    timestamp: string;
-    commit: string;
-    rate: number;
-  }>;
-  type_trends: Record<string, Array<{
-    timestamp: string;
-    commit: string;
-    count: number;
-  }>>;
-}
-
-interface RecentChanges {
-  added: TaskItem[];
-  removed: TaskItem[];
-  status_changed: ItemChange[];
-  summary: {
-    added: number;
-    removed: number;
-    status_changed: number;
-  };
-}
-
+// TODO: test todo!
 export default function History() {
-  const [history, setHistory] = useState<BranchSnapshot[]>([]);
-  const [trends, setTrends] = useState<TrendData | null>(null);
-  const [changes, setChanges] = useState<RecentChanges | null>(null);
-  const [comparison, setComparison] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('timeline');
-  const [selectedBranch, setSelectedBranch] = useState<string>('all');
-  const [showOnlyRecent, setShowOnlyRecent] = useState(true);
+  const [activeTab, setActiveTab] = useState("timeline");
+  const [selectedBranch, setSelectedBranch] = useState<string>("all");
 
-  useEffect(() => {
-    loadAllData();
-  }, []);
+  const { data: history, isLoading: isLoadingHistory } = useHistory(true);
+  const { data: trends, isLoading: isLoadingTrends } = useTrends(
+    activeTab === "trends"
+  );
+  const { data: changes, isLoading: isLoadingChanges } = useChanges(
+    activeTab === "changes"
+  );
+  const { data: comparison, isLoading: isLoadingComparison } = useComparison(
+    activeTab === "comparison"
+  );
+  const { mutate: refreshStats, isPending: refreshing } = useRefreshStats();
+  const { mutate: cleanupStats } = useCleanupStats();
 
-  const loadAllData = async () => {
-    setLoading(true);
-    try {
-      await Promise.all([
-        loadHistory(),
-        loadTrends(),
-        loadChanges(),
-        loadComparison()
-      ]);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadHistory = async () => {
-    try {
-      const response = await fetch('/api/stats/history');
-      const data = await response.json();
-      setHistory(data.history || []);
-    } catch (error) {
-      console.error('Failed to load history:', error);
-    }
-  };
-
-  const loadTrends = async () => {
-    try {
-      const response = await fetch('/api/stats/trends');
-      const data = await response.json();
-      if (!data.error) {
-        setTrends(data);
-      }
-    } catch (error) {
-      console.error('Failed to load trends:', error);
-    }
-  };
-
-  const loadChanges = async () => {
-    try {
-      const response = await fetch('/api/stats/changes');
-      const data = await response.json();
-      if (!data.message) {
-        setChanges(data);
-      }
-    } catch (error) {
-      console.error('Failed to load changes:', error);
-    }
-  };
-
-  const loadComparison = async () => {
-    try {
-      const response = await fetch('/api/stats/compare');
-      const data = await response.json();
-      if (!data.error) {
-        setComparison(data);
-      }
-    } catch (error) {
-      console.error('Failed to load comparison:', error);
-    }
-  };
-
-  const refreshStats = async () => {
-    setRefreshing(true);
-    try {
-      await fetch('/api/stats', { method: 'POST' });
-      await loadAllData();
-    } catch (error) {
-      console.error('Failed to refresh stats:', error);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  const cleanupStats = async () => {
-    try {
-      await fetch('/api/stats/cleanup', { method: 'POST' });
-      await loadHistory();
-    } catch (error) {
-      console.error('Failed to cleanup stats:', error);
-    }
-  };
+  const loading = useMemo(
+    () =>
+      isLoadingHistory ||
+      isLoadingTrends ||
+      isLoadingChanges ||
+      isLoadingComparison,
+    [isLoadingHistory, isLoadingTrends, isLoadingChanges, isLoadingComparison]
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'done': return 'green';
-      case 'in-progress': return 'blue';
-      case 'todo': return 'gray';
-      default: return 'gray';
+      case "done":
+        return "green";
+      case "in-progress":
+        return "blue";
+      case "todo":
+        return "gray";
+      default:
+        return "gray";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'done': return IconCheck;
-      case 'in-progress': return IconProgress;
-      case 'todo': return IconClock;
-      default: return IconClock;
+      case "done":
+        return IconCheck;
+      case "in-progress":
+        return IconProgress;
+      case "todo":
+        return IconClock;
+      default:
+        return IconClock;
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'red';
-      case 'medium': return 'yellow';
-      case 'low': return 'green';
-      default: return 'gray';
+      case "high":
+        return "red";
+      case "medium":
+        return "yellow";
+      case "low":
+        return "green";
+      default:
+        return "gray";
     }
   };
 
@@ -237,32 +121,31 @@ export default function History() {
   };
 
   const getFilteredHistory = () => {
-    let filtered = history;
-    
-    if (selectedBranch !== 'all') {
-      filtered = filtered.filter(h => h.branch === selectedBranch);
+    let filtered = history?.history || [];
+
+    if (selectedBranch !== "all") {
+      filtered = filtered.filter((h) => h.branch === selectedBranch);
     }
-    
-    if (showOnlyRecent) {
-      filtered = filtered.slice(-20);
-    }
-    
+
     return filtered.reverse();
   };
 
   const getUniqueBranches = () => {
-    const branches = [...new Set(history.map(h => h.branch))];
-    return branches.map(branch => ({ value: branch, label: branch }));
+    const branches = [
+      ...new Set((history?.history || []).map((h) => h.branch)),
+    ];
+    return branches
+      .filter((b) => b !== "unknown")
+      .map((branch) => ({ value: branch, label: branch }));
   };
 
   if (loading) {
     return (
-      <Center h={400}>
-        <Stack align="center">
-          <Loader size="lg" />
-          <Text>Loading project history...</Text>
-        </Stack>
-      </Center>
+      <LoadingOverlay
+        visible={loading}
+        zIndex={1000}
+        overlayProps={{ radius: "sm", blur: 2 }}
+      />
     );
   }
 
@@ -272,13 +155,14 @@ export default function History() {
         <Title order={1}>
           <Group>
             <IconHistory size={32} />
-            Project History
+            Board History
           </Group>
         </Title>
+
         <Group>
           <Button
             leftSection={<IconRefresh size={16} />}
-            onClick={refreshStats}
+            onClick={() => refreshStats()}
             loading={refreshing}
             variant="light"
           >
@@ -286,7 +170,7 @@ export default function History() {
           </Button>
           <Button
             leftSection={<IconTrash size={16} />}
-            onClick={cleanupStats}
+            onClick={() => cleanupStats()}
             variant="light"
             color="orange"
           >
@@ -303,24 +187,32 @@ export default function History() {
               <ThemeIcon size="xl" variant="light">
                 <IconHistory />
               </ThemeIcon>
-              <Text size="xl" fw={700}>{history.length}</Text>
-              <Text c="dimmed" ta="center">Total Snapshots</Text>
+              <Text size="xl" fw={700}>
+                {history?.count || 0}
+              </Text>
+              <Text c="dimmed" ta="center">
+                Total Snapshots
+              </Text>
             </Stack>
           </Card>
         </Grid.Col>
-        
+
         <Grid.Col span={{ base: 12, md: 3 }}>
           <Card withBorder>
             <Stack align="center">
               <ThemeIcon size="xl" variant="light" color="blue">
                 <IconGitBranch />
               </ThemeIcon>
-              <Text size="xl" fw={700}>{getUniqueBranches().length}</Text>
-              <Text c="dimmed" ta="center">Branches Tracked</Text>
+              <Text size="xl" fw={700}>
+                {getUniqueBranches().length}
+              </Text>
+              <Text c="dimmed" ta="center">
+                Branches Tracked
+              </Text>
             </Stack>
           </Card>
         </Grid.Col>
-        
+
         {changes && (
           <>
             <Grid.Col span={{ base: 12, md: 3 }}>
@@ -332,45 +224,31 @@ export default function History() {
                   <Text size="xl" fw={700}>
                     {changes.summary.added - changes.summary.removed}
                   </Text>
-                  <Text c="dimmed" ta="center">Net Change</Text>
+                  <Text c="dimmed" ta="center">
+                    Net Change
+                  </Text>
                 </Stack>
               </Card>
             </Grid.Col>
-            
+
             <Grid.Col span={{ base: 12, md: 3 }}>
               <Card withBorder>
                 <Stack align="center">
                   <ThemeIcon size="xl" variant="light" color="orange">
                     <IconCheck />
                   </ThemeIcon>
-                  <Text size="xl" fw={700}>{changes.summary.status_changed}</Text>
-                  <Text c="dimmed" ta="center">Status Changes</Text>
+                  <Text size="xl" fw={700}>
+                    {changes.summary.status_changed}
+                  </Text>
+                  <Text c="dimmed" ta="center">
+                    Status Changes
+                  </Text>
                 </Stack>
               </Card>
             </Grid.Col>
           </>
         )}
       </Grid>
-
-      {/* Filters */}
-      <Card withBorder mb="xl">
-        <Group>
-          <Select
-            label="Branch"
-            placeholder="All branches"
-            value={selectedBranch}
-            onChange={(value) => setSelectedBranch(value || 'all')}
-            data={[{ value: 'all', label: 'All Branches' }, ...getUniqueBranches()]}
-            leftSection={<IconGitBranch size={16} />}
-            w={200}
-          />
-          <Switch
-            label="Show only recent (20 items)"
-            checked={showOnlyRecent}
-            onChange={(event) => setShowOnlyRecent(event.currentTarget.checked)}
-          />
-        </Group>
-      </Card>
 
       <Tabs value={activeTab} onChange={(value) => setActiveTab(value!)}>
         <Tabs.List>
@@ -383,27 +261,46 @@ export default function History() {
           <Tabs.Tab value="changes" leftSection={<IconTrendingUp size={16} />}>
             Recent Changes
           </Tabs.Tab>
-          <Tabs.Tab value="comparison" leftSection={<IconGitCommit size={16} />}>
+          <Tabs.Tab
+            value="comparison"
+            leftSection={<IconGitCommit size={16} />}
+          >
             Comparison
           </Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="timeline" pt="xl">
           <Card withBorder>
-            <ScrollArea h={600}>
-              <Timeline active={-1} bulletSize={24} lineWidth={2}>
+            <Select
+              mb="lg"
+              placeholder="All branches"
+              value={selectedBranch}
+              onChange={(value) => setSelectedBranch(value || "all")}
+              data={[
+                { value: "all", label: "All Branches" },
+                ...getUniqueBranches(),
+              ]}
+              leftSection={<IconGitBranch size={16} />}
+              w={200}
+            />
+            <Card.Section p="md">
+              <Timeline active={-1} bulletSize={24} lineWidth={2} pr="md">
                 {getFilteredHistory().map((snapshot, index) => {
-                  const completionRate = snapshot.stats.total > 0 
-                    ? (snapshot.stats.done / snapshot.stats.total) * 100 
-                    : 0;
-                    
+                  const completionRate =
+                    snapshot.stats.total > 0
+                      ? (snapshot.stats.done / snapshot.stats.total) * 100
+                      : 0;
+
                   return (
                     <Timeline.Item
                       key={`${snapshot.commit}-${index}`}
                       bullet={<IconGitCommit size={12} />}
                       title={
                         <Group>
-                          <Badge variant="light" leftSection={<IconGitBranch size={12} />}>
+                          <Badge
+                            variant="light"
+                            leftSection={<IconGitBranch size={12} />}
+                          >
                             {snapshot.branch}
                           </Badge>
                           <Badge variant="outline" c="dimmed">
@@ -417,18 +314,21 @@ export default function History() {
                           {formatDate(snapshot.timestamp)}
                         </Text>
                         {snapshot.commit_message && (
-                          <Text size="sm" fs="italic">
-                            {snapshot.commit_message}
-                          </Text>
+                          <Group gap="2">
+                            <Text fw="bold">Commit:</Text>{" "}
+                            <Text size="sm">{snapshot.commit_message}</Text>
+                          </Group>
                         )}
-                        
+
                         <Grid>
                           <Grid.Col span={6}>
                             <Paper p="xs" withBorder>
-                              <Text size="xs" c="dimmed" mb={4}>Progress</Text>
-                              <Progress 
-                                value={completionRate} 
-                                size="sm" 
+                              <Text size="xs" c="dimmed" mb={4}>
+                                Progress
+                              </Text>
+                              <Progress
+                                value={completionRate}
+                                size="sm"
                                 color="green"
                               />
                               <Text size="xs" mt={2}>
@@ -436,7 +336,7 @@ export default function History() {
                               </Text>
                             </Paper>
                           </Grid.Col>
-                          
+
                           <Grid.Col span={6}>
                             <Group gap="xs">
                               <Badge color="gray" size="sm">
@@ -454,7 +354,7 @@ export default function History() {
                             </Group>
                           </Grid.Col>
                         </Grid>
-                        
+
                         {Object.keys(snapshot.stats.by_type).length > 0 && (
                           <Accordion variant="contained">
                             <Accordion.Item value="details">
@@ -463,11 +363,17 @@ export default function History() {
                               </Accordion.Control>
                               <Accordion.Panel>
                                 <Group gap="xs">
-                                  {Object.entries(snapshot.stats.by_type).map(([type, count]) => (
-                                    <Badge key={type} variant="outline" size="sm">
-                                      {type}: {count}
-                                    </Badge>
-                                  ))}
+                                  {Object.entries(snapshot.stats.by_type).map(
+                                    ([type, count]) => (
+                                      <Badge
+                                        key={type}
+                                        variant="outline"
+                                        size="sm"
+                                      >
+                                        {type}: {count}
+                                      </Badge>
+                                    )
+                                  )}
                                 </Group>
                               </Accordion.Panel>
                             </Accordion.Item>
@@ -478,7 +384,7 @@ export default function History() {
                   );
                 })}
               </Timeline>
-            </ScrollArea>
+            </Card.Section>
           </Card>
         </Tabs.Panel>
 
@@ -487,7 +393,9 @@ export default function History() {
             <Stack>
               {/* Completion Rate Trend */}
               <Card withBorder>
-                <Title order={3} mb="md">Completion Rate Over Time</Title>
+                <Title order={3} mb="md">
+                  Completion Rate Over Time
+                </Title>
                 <ScrollArea>
                   <Table>
                     <Table.Thead>
@@ -522,7 +430,9 @@ export default function History() {
 
               {/* Type Trends */}
               <Card withBorder>
-                <Title order={3} mb="md">Item Type Trends</Title>
+                <Title order={3} mb="md">
+                  Item Type Trends
+                </Title>
                 <Accordion>
                   {Object.entries(trends.type_trends).map(([type, data]) => (
                     <Accordion.Item key={type} value={type}>
@@ -546,10 +456,14 @@ export default function History() {
                               {data.slice(-5).map((entry, index) => (
                                 <Table.Tr key={index}>
                                   <Table.Td>
-                                    <Badge variant="outline">{entry.commit}</Badge>
+                                    <Badge variant="outline">
+                                      {entry.commit}
+                                    </Badge>
                                   </Table.Td>
                                   <Table.Td>
-                                    <Text size="sm">{formatDate(entry.timestamp)}</Text>
+                                    <Text size="sm">
+                                      {formatDate(entry.timestamp)}
+                                    </Text>
                                   </Table.Td>
                                   <Table.Td>
                                     <Badge>{entry.count}</Badge>
@@ -567,8 +481,8 @@ export default function History() {
             </Stack>
           ) : (
             <Alert icon={<IconInfoCircle />} title="No trend data available">
-              Not enough history snapshots to generate trend analysis. 
-              Trends require at least 2 snapshots.
+              Not enough history snapshots to generate trend analysis. Trends
+              require at least 2 snapshots.
             </Alert>
           )}
         </Tabs.Panel>
@@ -584,31 +498,37 @@ export default function History() {
                       <ThemeIcon color="green" size="lg">
                         <IconTrendingUp />
                       </ThemeIcon>
-                      <Text size="xl" fw={700}>{changes.summary.added}</Text>
+                      <Text size="xl" fw={700}>
+                        {changes.summary.added}
+                      </Text>
                       <Text c="green">Items Added</Text>
                     </Stack>
                   </Card>
                 </Grid.Col>
-                
+
                 <Grid.Col span={4}>
                   <Card withBorder p="md" bg="red.0">
                     <Stack align="center">
                       <ThemeIcon color="red" size="lg">
                         <IconTrash />
                       </ThemeIcon>
-                      <Text size="xl" fw={700}>{changes.summary.removed}</Text>
+                      <Text size="xl" fw={700}>
+                        {changes.summary.removed}
+                      </Text>
                       <Text c="red">Items Removed</Text>
                     </Stack>
                   </Card>
                 </Grid.Col>
-                
+
                 <Grid.Col span={4}>
                   <Card withBorder p="md" bg="blue.0">
                     <Stack align="center">
                       <ThemeIcon color="blue" size="lg">
                         <IconCheck />
                       </ThemeIcon>
-                      <Text size="xl" fw={700}>{changes.summary.status_changed}</Text>
+                      <Text size="xl" fw={700}>
+                        {changes.summary.status_changed}
+                      </Text>
                       <Text c="blue">Status Changes</Text>
                     </Stack>
                   </Card>
@@ -617,7 +537,7 @@ export default function History() {
 
               {/* Detailed Changes */}
               <Accordion>
-                {changes.added.length > 0 && (
+                {changes.added && changes.added.length > 0 && (
                   <Accordion.Item value="added">
                     <Accordion.Control>
                       <Group>
@@ -637,7 +557,10 @@ export default function History() {
                                 <Text>{item.title}</Text>
                               </Group>
                               <Group gap="xs">
-                                <Badge color={getPriorityColor(item.priority)} size="sm">
+                                <Badge
+                                  color={getPriorityColor(item.priority)}
+                                  size="sm"
+                                >
                                   {item.priority}
                                 </Badge>
                                 <Text size="sm" c="dimmed">
@@ -652,7 +575,7 @@ export default function History() {
                   </Accordion.Item>
                 )}
 
-                {changes.removed.length > 0 && (
+                {changes.removed && changes.removed.length > 0 && (
                   <Accordion.Item value="removed">
                     <Accordion.Control>
                       <Group>
@@ -672,7 +595,10 @@ export default function History() {
                                 <Text>{item.title}</Text>
                               </Group>
                               <Group gap="xs">
-                                <Badge color={getPriorityColor(item.priority)} size="sm">
+                                <Badge
+                                  color={getPriorityColor(item.priority)}
+                                  size="sm"
+                                >
                                   {item.priority}
                                 </Badge>
                                 <Text size="sm" c="dimmed">
@@ -687,49 +613,65 @@ export default function History() {
                   </Accordion.Item>
                 )}
 
-                {changes.status_changed.length > 0 && (
-                  <Accordion.Item value="status-changed">
-                    <Accordion.Control>
-                      <Group>
-                        <ThemeIcon color="blue" size="sm">
-                          <IconCheck size={12} />
-                        </ThemeIcon>
-                        <Text>Status Changes ({changes.status_changed.length})</Text>
-                      </Group>
-                    </Accordion.Control>
-                    <Accordion.Panel>
-                      <Stack gap="xs">
-                        {changes.status_changed.map((change, index) => (
-                          <Paper key={index} p="sm" withBorder>
-                            <Group justify="space-between">
-                              <Group>
-                                <Badge variant="light">{change.item.type}</Badge>
-                                <Text>{change.item.title}</Text>
+                {changes.status_changed &&
+                  changes.status_changed.length > 0 && (
+                    <Accordion.Item value="status-changed">
+                      <Accordion.Control>
+                        <Group>
+                          <ThemeIcon color="blue" size="sm">
+                            <IconCheck size={12} />
+                          </ThemeIcon>
+                          <Text>
+                            Status Changes ({changes.status_changed.length})
+                          </Text>
+                        </Group>
+                      </Accordion.Control>
+                      <Accordion.Panel>
+                        <Stack gap="xs">
+                          {changes.status_changed.map((change, index) => (
+                            <Paper key={index} p="sm" withBorder>
+                              <Group justify="space-between">
+                                <Group>
+                                  <Badge variant="light">
+                                    {change.item.type}
+                                  </Badge>
+                                  <Text>{change.item.title}</Text>
+                                </Group>
+                                <Group gap="xs">
+                                  <Badge
+                                    color={getStatusColor(
+                                      change.old_status || ""
+                                    )}
+                                    size="sm"
+                                  >
+                                    {change.old_status}
+                                  </Badge>
+                                  <IconChevronRight size={12} />
+                                  <Badge
+                                    color={getStatusColor(
+                                      change.new_status || ""
+                                    )}
+                                    size="sm"
+                                  >
+                                    {change.new_status}
+                                  </Badge>
+                                  <Text size="sm" c="dimmed">
+                                    {change.item.file}:{change.item.line}
+                                  </Text>
+                                </Group>
                               </Group>
-                              <Group gap="xs">
-                                <Badge color={getStatusColor(change.old_status || '')} size="sm">
-                                  {change.old_status}
-                                </Badge>
-                                <IconChevronRight size={12} />
-                                <Badge color={getStatusColor(change.new_status || '')} size="sm">
-                                  {change.new_status}
-                                </Badge>
-                                <Text size="sm" c="dimmed">
-                                  {change.item.file}:{change.item.line}
-                                </Text>
-                              </Group>
-                            </Group>
-                          </Paper>
-                        ))}
-                      </Stack>
-                    </Accordion.Panel>
-                  </Accordion.Item>
-                )}
+                            </Paper>
+                          ))}
+                        </Stack>
+                      </Accordion.Panel>
+                    </Accordion.Item>
+                  )}
               </Accordion>
             </Stack>
           ) : (
             <Alert icon={<IconInfoCircle />} title="No recent changes">
-              No recent changes detected. This requires at least 2 history snapshots to compare.
+              No recent changes detected. This requires at least 2 history
+              snapshots to compare.
             </Alert>
           )}
         </Tabs.Panel>
@@ -747,34 +689,56 @@ export default function History() {
                         </ThemeIcon>
                         <div>
                           <Text fw={500}>Current Commit</Text>
-                          <Text size="sm" c="dimmed">{comparison.current.commit}</Text>
+                          <Text size="sm" c="dimmed">
+                            {comparison.current.commit}
+                          </Text>
                         </div>
                       </Group>
-                      
+
                       <Divider />
-                      
+
                       <Group justify="space-around">
                         <Stack align="center">
-                          <Text size="xl" fw={700}>{comparison.current.stats.total}</Text>
-                          <Text size="sm" c="dimmed">Total</Text>
+                          <Text size="xl" fw={700}>
+                            {comparison.current.stats.total}
+                          </Text>
+                          <Text size="sm" c="dimmed">
+                            Total
+                          </Text>
                         </Stack>
                         <Stack align="center">
-                          <Text size="xl" fw={700} c="green">{comparison.current.stats.done}</Text>
-                          <Text size="sm" c="dimmed">Done</Text>
+                          <Text size="xl" fw={700} c="green">
+                            {comparison.current.stats.done}
+                          </Text>
+                          <Text size="sm" c="dimmed">
+                            Done
+                          </Text>
                         </Stack>
                         <Stack align="center">
-                          <Text size="xl" fw={700} c="blue">{comparison.current.stats.in_progress}</Text>
-                          <Text size="sm" c="dimmed">In Progress</Text>
+                          <Text size="xl" fw={700} c="blue">
+                            {comparison.current.stats.in_progress}
+                          </Text>
+                          <Text size="sm" c="dimmed">
+                            In Progress
+                          </Text>
                         </Stack>
                         <Stack align="center">
-                          <Text size="xl" fw={700} c="orange">{comparison.current.stats.todo}</Text>
-                          <Text size="sm" c="dimmed">Todo</Text>
+                          <Text size="xl" fw={700} c="orange">
+                            {comparison.current.stats.todo}
+                          </Text>
+                          <Text size="sm" c="dimmed">
+                            Todo
+                          </Text>
                         </Stack>
                       </Group>
-                      
+
                       <Progress
-                        value={comparison.current.stats.total > 0 ? 
-                          (comparison.current.stats.done / comparison.current.stats.total) * 100 : 0
+                        value={
+                          comparison.current.stats.total > 0
+                            ? (comparison.current.stats.done /
+                                comparison.current.stats.total) *
+                              100
+                            : 0
                         }
                         color="green"
                         size="md"
@@ -792,34 +756,56 @@ export default function History() {
                         </ThemeIcon>
                         <div>
                           <Text fw={500}>Previous Commit</Text>
-                          <Text size="sm" c="dimmed">{comparison.previous.commit}</Text>
+                          <Text size="sm" c="dimmed">
+                            {comparison.previous.commit}
+                          </Text>
                         </div>
                       </Group>
-                      
+
                       <Divider />
-                      
+
                       <Group justify="space-around">
                         <Stack align="center">
-                          <Text size="xl" fw={700}>{comparison.previous.stats.total}</Text>
-                          <Text size="sm" c="dimmed">Total</Text>
+                          <Text size="xl" fw={700}>
+                            {comparison.previous.stats.total}
+                          </Text>
+                          <Text size="sm" c="dimmed">
+                            Total
+                          </Text>
                         </Stack>
                         <Stack align="center">
-                          <Text size="xl" fw={700} c="green">{comparison.previous.stats.done}</Text>
-                          <Text size="sm" c="dimmed">Done</Text>
+                          <Text size="xl" fw={700} c="green">
+                            {comparison.previous.stats.done}
+                          </Text>
+                          <Text size="sm" c="dimmed">
+                            Done
+                          </Text>
                         </Stack>
                         <Stack align="center">
-                          <Text size="xl" fw={700} c="blue">{comparison.previous.stats.in_progress}</Text>
-                          <Text size="sm" c="dimmed">In Progress</Text>
+                          <Text size="xl" fw={700} c="blue">
+                            {comparison.previous.stats.in_progress}
+                          </Text>
+                          <Text size="sm" c="dimmed">
+                            In Progress
+                          </Text>
                         </Stack>
                         <Stack align="center">
-                          <Text size="xl" fw={700} c="orange">{comparison.previous.stats.todo}</Text>
-                          <Text size="sm" c="dimmed">Todo</Text>
+                          <Text size="xl" fw={700} c="orange">
+                            {comparison.previous.stats.todo}
+                          </Text>
+                          <Text size="sm" c="dimmed">
+                            Todo
+                          </Text>
                         </Stack>
                       </Group>
-                      
+
                       <Progress
-                        value={comparison.previous.stats.total > 0 ? 
-                          (comparison.previous.stats.done / comparison.previous.stats.total) * 100 : 0
+                        value={
+                          comparison.previous.stats.total > 0
+                            ? (comparison.previous.stats.done /
+                                comparison.previous.stats.total) *
+                              100
+                            : 0
                         }
                         color="green"
                         size="md"
@@ -831,32 +817,86 @@ export default function History() {
 
               {/* Changes Summary */}
               <Card withBorder>
-                <Title order={3} mb="md">Changes Summary</Title>
+                <Title order={3} mb="md">
+                  Changes Summary
+                </Title>
                 <Group grow>
-                  <Paper p="md" bg={comparison.changes.total > 0 ? 'green.0' : comparison.changes.total < 0 ? 'red.0' : 'gray.0'}>
+                  <Paper
+                    p="md"
+                    bg={
+                      comparison.changes.total > 0
+                        ? "green.0"
+                        : comparison.changes.total < 0
+                        ? "red.0"
+                        : "gray.0"
+                    }
+                  >
                     <Stack align="center">
-                      <Text size="xl" fw={700}>{comparison.changes.total > 0 ? `+${comparison.changes.total}` : comparison.changes.total}</Text>
+                      <Text size="xl" fw={700}>
+                        {comparison.changes.total > 0
+                          ? `+${comparison.changes.total}`
+                          : comparison.changes.total}
+                      </Text>
                       <Text c="dimmed">Total Items</Text>
                     </Stack>
                   </Paper>
-                  
-                  <Paper p="md" bg={comparison.changes.done > 0 ? 'green.0' : comparison.changes.done < 0 ? 'red.0' : 'gray.0'}>
+
+                  <Paper
+                    p="md"
+                    bg={
+                      comparison.changes.done > 0
+                        ? "green.0"
+                        : comparison.changes.done < 0
+                        ? "red.0"
+                        : "gray.0"
+                    }
+                  >
                     <Stack align="center">
-                      <Text size="xl" fw={700}>{comparison.changes.done > 0 ? `+${comparison.changes.done}` : comparison.changes.done}</Text>
+                      <Text size="xl" fw={700}>
+                        {comparison.changes.done > 0
+                          ? `+${comparison.changes.done}`
+                          : comparison.changes.done}
+                      </Text>
                       <Text c="dimmed">Done Items</Text>
                     </Stack>
                   </Paper>
-                  
-                  <Paper p="md" bg={comparison.changes.in_progress > 0 ? 'blue.0' : comparison.changes.in_progress < 0 ? 'red.0' : 'gray.0'}>
+
+                  <Paper
+                    p="md"
+                    bg={
+                      comparison.changes.in_progress > 0
+                        ? "blue.0"
+                        : comparison.changes.in_progress < 0
+                        ? "red.0"
+                        : "gray.0"
+                    }
+                  >
                     <Stack align="center">
-                      <Text size="xl" fw={700}>{comparison.changes.in_progress > 0 ? `+${comparison.changes.in_progress}` : comparison.changes.in_progress}</Text>
+                      <Text size="xl" fw={700}>
+                        {comparison.changes.in_progress > 0
+                          ? `+${comparison.changes.in_progress}`
+                          : comparison.changes.in_progress}
+                      </Text>
                       <Text c="dimmed">In Progress</Text>
                     </Stack>
                   </Paper>
-                  
-                  <Paper p="md" bg={comparison.changes.todo > 0 ? 'orange.0' : comparison.changes.todo < 0 ? 'green.0' : 'gray.0'}>
+
+                  <Paper
+                    p="md"
+                    bg={
+                      comparison.changes.todo > 0
+                        ? "orange.0"
+                        : comparison.changes.todo < 0
+                        ? "green.0"
+                        : "gray.0"
+                    }
+                  >
                     <Stack align="center">
-                      <Text size="xl" fw={700}>{comparison.changes.todo > 0 ? `+${comparison.changes.todo}` : comparison.changes.todo}</Text>
+                      <Text size="xl" fw={700}>
+                        {comparison.changes.todo > 0
+                          ? `+${comparison.changes.todo}`
+                          : comparison.changes.todo}
+                      </Text>
                       <Text c="dimmed">Todo Items</Text>
                     </Stack>
                   </Paper>
@@ -865,26 +905,28 @@ export default function History() {
             </Stack>
           ) : (
             <Alert icon={<IconInfoCircle />} title="No comparison data">
-              Not enough history to compare commits. Comparison requires at least 2 snapshots.
+              Not enough history to compare commits. Comparison requires at
+              least 2 snapshots.
             </Alert>
           )}
         </Tabs.Panel>
       </Tabs>
 
       {/* Footer Stats */}
-      {history.length > 0 && (
+      {history?.count && (
         <Card withBorder mt="xl">
           <Group justify="space-between">
             <Group>
               <IconCalendar size={16} />
               <Text size="sm" c="dimmed">
-                First snapshot: {formatDate(history[0].timestamp)}
+                First snapshot: {formatDate(history.history[0].timestamp)}
               </Text>
             </Group>
             <Group>
               <IconHistory size={16} />
               <Text size="sm" c="dimmed">
-                Last updated: {formatDate(history[history.length - 1].timestamp)}
+                Last updated:{" "}
+                {formatDate(history.history[history.count - 1].timestamp)}
               </Text>
             </Group>
           </Group>

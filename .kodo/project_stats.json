@@ -1,21 +1,23 @@
 {
   "project_path": "/mnt/projects/Projects/Programming/KodoBoard",
-  "last_scan_at": "2025-08-19T10:50:46.358550427Z",
+  "last_scan_at": "2025-08-19T11:53:02.491005883Z",
   "git_branch": "main",
-  "git_commit": "857bf907174533d2929ba1dce30f09b8e7509f8d",
-  "git_commit_short": "857bf90",
-  "total_items": 2,
+  "git_commit": "6af092f15846d55f93b79908a874018d6d9781be",
+  "git_commit_short": "6af092f",
+  "total_items": 3,
   "items_by_status": {
     "done": 1,
-    "in-progress": 1
+    "in-progress": 1,
+    "todo": 1
   },
   "items_by_type": {
     "BUG": 1,
-    "TODO": 1
+    "TODO": 2
   },
   "items_by_file": {
     "main.go": 1,
-    "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx": 1
+    "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx": 1,
+    "web/src/components/AppShell/AppBody/History/index.tsx": 1
   },
   "current_items": [
     {
@@ -37,6 +39,16 @@
       "status": "in-progress",
       "priority": "high",
       "hash": "2c6b16e7e1b65228"
+    },
+    {
+      "id": 3,
+      "type": "TODO",
+      "title": "fuck!",
+      "file": "web/src/components/AppShell/AppBody/History/index.tsx",
+      "line": 53,
+      "status": "todo",
+      "priority": "medium",
+      "hash": "-5c87ca9e7939819f"
     }
   ],
   "branch_history": [
@@ -212,8 +224,51 @@
           }
         ]
       }
+    },
+    {
+      "branch": "main",
+      "commit": "6af092f15846d55f93b79908a874018d6d9781be",
+      "commit_short": "6af092f",
+      "commit_message": "test",
+      "timestamp": "2025-08-19T10:58:22.53766043Z",
+      "stats": {
+        "total": 2,
+        "todo": 0,
+        "in_progress": 1,
+        "done": 1,
+        "by_type": {
+          "BUG": 1,
+          "TODO": 1
+        },
+        "by_priority": {
+          "high": 1,
+          "medium": 1
+        },
+        "items": [
+          {
+            "id": 1,
+            "type": "TODO",
+            "title": "this is a test todo",
+            "file": "main.go",
+            "line": 14,
+            "status": "done",
+            "priority": "medium",
+            "hash": "-1741add25431a699"
+          },
+          {
+            "id": 2,
+            "type": "BUG",
+            "title": "Hi",
+            "file": "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
+            "line": 10,
+            "status": "in-progress",
+            "priority": "high",
+            "hash": "2c6b16e7e1b65228"
+          }
+        ]
+      }
     }
   ],
   "created_at": "2025-08-18T01:06:39.516646427+03:30",
-  "updated_at": "2025-08-19T10:50:46.358813033Z"
+  "updated_at": "2025-08-19T11:53:02.491404739Z"
 }
