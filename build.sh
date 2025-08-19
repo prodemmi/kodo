@@ -1,12 +1,12 @@
 #!/bin/bash
-cd frontend
+cd web
 
 # Install dependencies if node_modules doesn't exist
 if [ ! -d "node_modules" ]; then
     yarn install
 fi
 
-# Compute checksum of frontend source files
+# Compute checksum of web source files
 NEW_HASH=$(find src -type f -exec md5sum {} + | sort -k 2 | md5sum | awk '{print $1}')
 HASH_FILE=".build_hash"
 

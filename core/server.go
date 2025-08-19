@@ -54,7 +54,7 @@ func (s *Server) StartServer() {
 			path = "index.html"
 		}
 
-		filePath := "frontend/dist/" + path
+		filePath := "web/dist/" + path
 		s.logger.Debug("trying to read file", zap.String("filename", filePath))
 		data, err := s.staticFiles.ReadFile(filePath)
 		if err != nil {

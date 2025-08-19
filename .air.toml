@@ -5,9 +5,9 @@ include_ext = ["go", "ts", "tsx", "css", "html"]
 
 exclude_dir = [
     "tmp",
-    "frontend/node_modules/",
-    "frontend/dist/",
-    "frontend/tmp/"
+    "web/node_modules/",
+    "web/dist/",
+    "web/tmp/"
 ]
 
 [build.color]

@@ -1,42 +1,42 @@
 {
   "project_path": "/mnt/projects/Projects/Programming/KodoBoard",
-  "last_scan_at": "2025-08-18T01:30:17.75721329+03:30",
+  "last_scan_at": "2025-08-19T10:41:16.342651233Z",
   "git_branch": "main",
-  "git_commit": "5fe277d7d43773d96436de26e57f157097e953a9",
-  "git_commit_short": "5fe277d",
+  "git_commit": "30c350f4dd4e042b372d06b140b5663e6c9c1460",
+  "git_commit_short": "30c350f",
   "total_items": 2,
   "items_by_status": {
-    "in-progress": 1,
-    "todo": 1
+    "done": 1,
+    "in-progress": 1
   },
   "items_by_type": {
     "BUG": 1,
     "TODO": 1
   },
   "items_by_file": {
-    "frontend/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx": 1,
-    "main.go": 1
+    "main.go": 1,
+    "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx": 1
   },
   "current_items": [
     {
       "id": 1,
-      "type": "BUG",
-      "title": "Hi",
-      "file": "frontend/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
-      "line": 10,
-      "status": "todo",
-      "priority": "high",
-      "hash": "-1b66625abb67a556"
-    },
-    {
-      "id": 2,
       "type": "TODO",
       "title": "this is a test todo",
       "file": "main.go",
       "line": 14,
-      "status": "in-progress",
+      "status": "done",
       "priority": "medium",
       "hash": "-1741add25431a699"
+    },
+    {
+      "id": 2,
+      "type": "BUG",
+      "title": "Hi",
+      "file": "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
+      "line": 10,
+      "status": "in-progress",
+      "priority": "high",
+      "hash": "2c6b16e7e1b65228"
     }
   ],
   "branch_history": [
@@ -108,7 +108,7 @@
             "id": 1,
             "type": "BUG",
             "title": "Hi",
-            "file": "frontend/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
+            "file": "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
             "line": 10,
             "status": "todo",
             "priority": "high",
@@ -126,8 +126,51 @@
           }
         ]
       }
+    },
+    {
+      "branch": "main",
+      "commit": "30c350f4dd4e042b372d06b140b5663e6c9c1460",
+      "commit_short": "30c350f",
+      "commit_message": "better item and drawer design",
+      "timestamp": "2025-08-18T01:34:24.580028309+03:30",
+      "stats": {
+        "total": 2,
+        "todo": 1,
+        "in_progress": 1,
+        "done": 0,
+        "by_type": {
+          "BUG": 1,
+          "TODO": 1
+        },
+        "by_priority": {
+          "high": 1,
+          "medium": 1
+        },
+        "items": [
+          {
+            "id": 1,
+            "type": "TODO",
+            "title": "this is a test todo",
+            "file": "main.go",
+            "line": 13,
+            "status": "in-progress",
+            "priority": "medium",
+            "hash": "79d956a4a9f50648"
+          },
+          {
+            "id": 2,
+            "type": "BUG",
+            "title": "Hi",
+            "file": "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
+            "line": 10,
+            "status": "todo",
+            "priority": "high",
+            "hash": "2c6b16e7e1b65228"
+          }
+        ]
+      }
     }
   ],
   "created_at": "2025-08-18T01:06:39.516646427+03:30",
-  "updated_at": "2025-08-18T01:30:17.75761275+03:30"
+  "updated_at": "2025-08-19T10:41:16.345501621Z"
 }

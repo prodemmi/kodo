@@ -1,0 +1,4 @@
+.highlighted-line {
+  background-color: rgba(255, 0, 0, 0.1) !important;
+  border-left: 2px solid #ff4444 !important;
+}
