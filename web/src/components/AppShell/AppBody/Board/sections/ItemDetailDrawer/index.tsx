@@ -116,8 +116,7 @@ export default function ItemDetailDrawer({
       const codeElements = document.querySelectorAll(
         "code.mantine-CodeHighlight-code .line"
       );
-      console.log('codeElements ===>', codeElements);
-      
+      console.log("codeElements ===>", codeElements);
 
       codeElements.forEach((element) => {
         element.classList.remove("highlighted-line");
@@ -131,25 +130,6 @@ export default function ItemDetailDrawer({
     return () => clearTimeout(timer);
   }, [targetLineNumber, plainCode]);
 
-  // Inject CSS for highlighted lines
-  useEffect(() => {
-    const style = document.createElement("style");
-    style.textContent = `
-      .highlighted-line {
-        background-color: rgba(255, 0, 0, 0.1) !important;
-        border-left: 3px solid #ff4444 !important;
-      }
-      .highlighted-line td {
-        background-color: rgba(255, 0, 0, 0.1) !important;
-      }
-    `;
-    document.head.appendChild(style);
-
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
-
   return (
     <Drawer
       opened={drawerOpened}
@@ -159,7 +139,7 @@ export default function ItemDetailDrawer({
       size="xl"
     >
       {selectedItem && (
-        <Stack gap="md">
+        <Stack gap="md" mr="6">
           {/* TODO Item Information */}
           <Card withBorder p="md">
             <Stack gap="xs">
@@ -186,19 +166,6 @@ export default function ItemDetailDrawer({
                   Type: {selectedItem.type}
                 </Badge>
               </Group>
-              <Group align="center" justify="space-between">
-                <Text size="xs" c="dimmed" style={{ fontFamily: "monospace" }}>
-                  📁 {selectedItem.file}:{selectedItem.line}
-                </Text>
-                <Button
-                  size="compact-sm"
-                  variant="light"
-                  leftSection={<IconCode size={16} />}
-                  onClick={() => gotoFile(selectedItem)}
-                >
-                  Go to file
-                </Button>
-              </Group>
             </Stack>
           </Card>
 
@@ -215,20 +182,31 @@ export default function ItemDetailDrawer({
                       {data.file}
                     </Text>
                   </Group>
-                  <Button
-                    variant="subtle"
-                    size="xs"
-                    rightSection={
-                      showCodeContext ? (
-                        <IconChevronDown size={12} />
-                      ) : (
-                        <IconChevronRight size={12} />
-                      )
-                    }
-                    onClick={() => setShowCodeContext(!showCodeContext)}
-                  >
-                    {showCodeContext ? "Hide" : "Show"} Code
-                  </Button>
+                  <Group justify="space-between" w="100%">
+                    <Button
+                      variant="subtle"
+                      size="xs"
+                      rightSection={
+                        showCodeContext ? (
+                          <IconChevronDown size={12} />
+                        ) : (
+                          <IconChevronRight size={12} />
+                        )
+                      }
+                      onClick={() => setShowCodeContext(!showCodeContext)}
+                    >
+                      {showCodeContext ? "Hide" : "Show"} Code
+                    </Button>
+
+                    <Button
+                      size="compact-sm"
+                      variant="light"
+                      leftSection={<IconCode size={16} />}
+                      onClick={() => gotoFile(selectedItem)}
+                    >
+                      Go to Line
+                    </Button>
+                  </Group>
                 </Group>
 
                 <Collapse in={showCodeContext}>

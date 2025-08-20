@@ -1,9 +1,9 @@
 {
   "project_path": "/mnt/projects/Projects/Programming/KodoBoard",
-  "last_scan_at": "2025-08-19T20:12:10.580640947Z",
+  "last_scan_at": "2025-08-20T12:28:31.922538678Z",
   "git_branch": "main",
-  "git_commit": "1fcffc0924222fdcb76f48d615a87ecb31979962",
-  "git_commit_short": "1fcffc0",
+  "git_commit": "3957fe395ff1953ac499f10e6980127f6b68c17e",
+  "git_commit_short": "3957fe3",
   "total_items": 3,
   "items_by_status": {
     "done": 1,
@@ -45,10 +45,10 @@
       "type": "TODO",
       "title": "test todo!",
       "file": "web/src/components/AppShell/AppBody/History/index.tsx",
-      "line": 53,
+      "line": 54,
       "status": "todo",
       "priority": "medium",
-      "hash": "-2131c0001c17beea"
+      "hash": "-7176d7cfcb6de0e9"
     }
   ],
   "branch_history": [
@@ -320,8 +320,61 @@
           }
         ]
       }
+    },
+    {
+      "branch": "main",
+      "commit": "3957fe395ff1953ac499f10e6980127f6b68c17e",
+      "commit_short": "3957fe3",
+      "commit_message": "initial notes",
+      "timestamp": "2025-08-19T20:26:49.280058621Z",
+      "stats": {
+        "total": 3,
+        "todo": 1,
+        "in_progress": 1,
+        "done": 1,
+        "by_type": {
+          "BUG": 1,
+          "TODO": 2
+        },
+        "by_priority": {
+          "high": 1,
+          "medium": 2
+        },
+        "items": [
+          {
+            "id": 1,
+            "type": "TODO",
+            "title": "this is a test todo",
+            "file": "main.go",
+            "line": 14,
+            "status": "done",
+            "priority": "medium",
+            "hash": "-1741add25431a699"
+          },
+          {
+            "id": 2,
+            "type": "BUG",
+            "title": "Hi",
+            "file": "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
+            "line": 10,
+            "status": "in-progress",
+            "priority": "high",
+            "hash": "2c6b16e7e1b65228"
+          },
+          {
+            "id": 3,
+            "type": "TODO",
+            "title": "test todo!",
+            "file": "web/src/components/AppShell/AppBody/History/index.tsx",
+            "line": 53,
+            "status": "todo",
+            "priority": "medium",
+            "hash": "-2131c0001c17beea"
+          }
+        ]
+      }
     }
   ],
   "created_at": "2025-08-18T01:06:39.516646427+03:30",
-  "updated_at": "2025-08-19T20:12:10.5814576Z"
+  "updated_at": "2025-08-20T12:28:31.923690102Z"
 }

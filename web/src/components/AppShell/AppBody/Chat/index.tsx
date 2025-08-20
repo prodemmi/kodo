@@ -5,14 +5,12 @@ import {
   AppShellHeader,
   AppShellMain,
   Text,
-  UnstyledButton,
   Group,
   ActionIcon,
   TextInput,
   ScrollArea,
   Stack,
   Paper,
-  Avatar,
   Flex,
   Textarea,
   Modal,
@@ -20,52 +18,26 @@ import {
   Button,
   Tabs,
   Title,
-  HoverCard,
-  Collapse,
   Box,
-  Loader,
-  HoverCardDropdown,
-  HoverCardTarget,
+  MultiSelect,
 } from "@mantine/core";
 import {
-  IconFile,
-  IconFolder,
-  IconFolderOpen,
   IconChevronRight,
-  IconChevronDown,
   IconSend,
-  IconUser,
   IconRobot,
   IconSearch,
   IconSettings,
   IconMessage,
   IconChevronLeft,
+  IconContainer,
 } from "@tabler/icons-react";
 import { useChatFiles } from "../../../../hooks/use-chat";
-import { ProjectFile } from "../../../../types/chat";
-
-// Mock API for chat messages
-const mockFetchMessages = async () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          id: "1",
-          type: "user",
-          content: "Hello! Can you help me with my React project?",
-          timestamp: new Date(),
-        },
-        {
-          id: "2",
-          type: "assistant",
-          content:
-            "Hello! I'd be happy to help with your React project. What's the specific issue or feature you need assistance with?",
-          timestamp: new Date(),
-        },
-      ]);
-    }, 500);
-  });
-};
+import { Message, ProjectFile } from "../../../../types/chat";
+import { FileItem } from "./sections/FileItem";
+import ContextManager from "./sections/ContextManager";
+import { useContextStore } from "../../../../states/context.state";
+import DirectoryItem from "./sections/DirectoryItem";
+import MessageBubble from "./sections/MessageBubble";
 
 // Mock API for sending message
 const mockSendMessage = async (content: string) => {
@@ -80,191 +52,6 @@ const mockSendMessage = async (content: string) => {
     }, 1000);
   });
 };
-
-interface Message {
-  id: string;
-  type: "user" | "assistant";
-  content: string;
-  timestamp: Date;
-}
-
-function FileItem({
-  item,
-  level = 0,
-  onClickItem,
-}: {
-  item: ProjectFile;
-  level?: number;
-  onClickItem: (item: ProjectFile) => void;
-}) {
-  return (
-    <HoverCard shadow="md" openDelay={1000} position="top">
-      <HoverCardTarget>
-        <UnstyledButton
-          onClick={() => onClickItem(item)}
-          w="100%"
-          p="4"
-          pl={4 + level * 16}
-        >
-          <Group gap="xs" wrap="nowrap">
-            <Box w={14} />
-            <IconFile size={16} />
-            <Text size="sm" truncate>
-              {item.name}
-            </Text>
-          </Group>
-        </UnstyledButton>
-      </HoverCardTarget>
-      <HoverCardDropdown>
-        <Text size="xs">{item.path}</Text>
-      </HoverCardDropdown>
-    </HoverCard>
-  );
-}
-
-function DirectoryItem({
-  item,
-  isOpened,
-  level = 0,
-  searchMode = false,
-  onClickItem,
-}: {
-  item: ProjectFile;
-  isOpened: boolean;
-  searchMode: boolean;
-  level?: number;
-  onClickItem: (item: ProjectFile) => void;
-}) {
-  const [files, setFiles] = useState<ProjectFile[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [opened, setOpened] = useState(isOpened);
-
-  const {
-    data: directoryFiles,
-    isLoading,
-    isError,
-  } = useChatFiles(item.path, null, !searchMode && loading);
-
-  useEffect(() => {
-    if (!isError && !isLoading && loading) {
-      const timeout = setTimeout(() => {
-        setFiles(directoryFiles || []);
-        setOpened(true); // open after loading
-        setLoading(false); // reset loading trigger
-      }, 120);
-
-      return () => clearTimeout(timeout); // cancel previous timeout if effect re-runs
-    }
-  }, [directoryFiles, isLoading, isError, loading]);
-
-  return (
-    <>
-      <HoverCard shadow="md" openDelay={1000} position="top">
-        <HoverCardTarget>
-          <UnstyledButton
-            onClick={() => {
-              if (!opened && files.length === 0) {
-                // first click on unopened folder → load
-                setLoading(true);
-              } else {
-                // toggle open/close freely
-                setOpened((o) => !o);
-              }
-            }}
-            w="100%"
-            p="4"
-            pl={4 + level * 16}
-          >
-            <Group gap="xs" wrap="nowrap">
-              {opened ? (
-                <IconChevronDown size={14} />
-              ) : (
-                <IconChevronRight size={14} />
-              )}
-              {opened ? <IconFolderOpen size={16} /> : <IconFolder size={16} />}
-              <Text size="sm" truncate>
-                {item.name}
-              </Text>
-              {loading && <Loader size="8" ml="auto" mr="sm" />}
-            </Group>
-          </UnstyledButton>
-        </HoverCardTarget>
-        <HoverCardDropdown>
-          <Text size="xs">{item.path}</Text>
-        </HoverCardDropdown>
-      </HoverCard>
-
-      <Collapse in={opened}>
-        {isLoading ? (
-          <Text size="sm" c="dimmed" pl={4 + (level + 1) * 16}>
-            Loading files...
-          </Text>
-        ) : (
-          files?.map((child) =>
-            child.type === "folder" ? (
-              <DirectoryItem
-                key={child.id}
-                item={child}
-                isOpened={false}
-                level={level + 1}
-                searchMode={searchMode}
-                onClickItem={onClickItem}
-              />
-            ) : (
-              <FileItem
-                key={child.id}
-                item={child}
-                level={level + 1}
-                onClickItem={onClickItem}
-              />
-            )
-          )
-        )}
-      </Collapse>
-    </>
-  );
-}
-
-function MessageBubble({ message }: { message: Message }) {
-  const isUser = message.type === "user";
-
-  return (
-    <Flex justify={isUser ? "flex-end" : "flex-start"} mb="sm">
-      <Paper
-        p="sm"
-        radius="md"
-        shadow="sm"
-        withBorder
-        style={{
-          maxWidth: "80%",
-          borderColor: isUser
-            ? "var(--mantine-color-blue-5)"
-            : "var(--mantine-color-gray-3)",
-        }}
-      >
-        <Group gap="xs" mb="xs" align="center">
-          <Avatar
-            size="sm"
-            radius="xl"
-            variant="filled"
-            color={isUser ? "blue" : "gray"}
-          >
-            {isUser ? <IconUser size={14} /> : <IconRobot size={14} />}
-          </Avatar>
-          <Text size="xs" fw={500}>
-            {isUser ? "You" : "Assistant"}
-          </Text>
-          <Text size="xs" c="dimmed">
-            {message.timestamp.toLocaleTimeString()}
-          </Text>
-        </Group>
-        <Text size="sm" style={{ lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
-          {message.content}
-        </Text>
-      </Paper>
-    </Flex>
-  );
-}
 
 export default function ProjectChat() {
   const [sidebarOpened, setSidebarOpened] = useState(true);
@@ -282,6 +69,18 @@ export default function ProjectChat() {
     error,
   } = useChatFiles(null, searchValue, true);
   const [navbarSize, setNavbarSize] = useState(250);
+  const [isContextManagerOpened, setIsContextManagerOpened] = useState(false);
+  const contexts = useContextStore((s) => s.contexts);
+  const selectedContexts = useContextStore((s) => s.selectedContexts);
+  const toggleContexts = useContextStore((s) => s.toggleContexts);
+
+  const contextOptionsData = useMemo(() => {
+    return contexts.map((ctx) => ({
+      value: ctx.id,
+      label: ctx.name,
+    }));
+  }, [contexts]);
+  console.log("contextOptionsData ===>", contextOptionsData);
 
   useEffect(() => {
     if (selectedFiles) {
@@ -440,8 +239,34 @@ export default function ProjectChat() {
               <Text fw={600} size="lg">
                 Project AI Assistant
               </Text>
+              <MultiSelect
+                size="xs"
+                placeholder={
+                  selectedContexts.length === 0 ? "Pick a Context" : undefined
+                }
+                data={contextOptionsData}
+                value={selectedContexts} // Changed from defaultValue to value
+                onChange={(val) => toggleContexts(val)}
+                searchable
+              />
             </Group>
             <Group gap="xs">
+              <Button
+                size="sm"
+                variant="subtle"
+                leftSection={<IconContainer size={16} />}
+                onClick={() => setIsContextManagerOpened(true)}
+              >
+                Context Manager
+              </Button>
+              <Button
+                size="sm"
+                variant="subtle"
+                leftSection={<IconMessage size={16} />}
+                onClick={() => setMessages([])}
+              >
+                New Chat
+              </Button>
               <ActionIcon
                 variant="subtle"
                 onClick={() => setSettingsOpened(true)}
@@ -449,14 +274,6 @@ export default function ProjectChat() {
               >
                 <IconSettings size={18} />
               </ActionIcon>
-              <Button
-                variant="subtle"
-                size="compact-md"
-                leftSection={<IconMessage size={16} />}
-                onClick={() => setMessages([])}
-              >
-                New Chat
-              </Button>
             </Group>
           </Flex>
         </AppShellHeader>
@@ -492,25 +309,33 @@ export default function ProjectChat() {
                 {isLoading && <Text>Loading...</Text>}
                 {error && <Text color="red">Error loading files</Text>}
                 {!isLoading && files && files.length > 0 ? (
-                  files.map((item) =>
-                    item.type === "folder" ? (
-                      <DirectoryItem
-                        key={item.id}
-                        item={item}
-                        isOpened={!!openedDirs[item.id]}
-                        searchMode={!!searchValue}
-                        level={0}
-                        onClickItem={toggleDir}
-                      />
-                    ) : (
-                      <FileItem
-                        key={item.id}
-                        item={item}
-                        level={0}
-                        onClickItem={toggleDir}
-                      />
-                    )
-                  )
+                  files.map((item) => (
+                    <Group justify="space-between" m="0" p="0">
+                      {item.type === "folder" ? (
+                        <DirectoryItem
+                          key={item.id}
+                          item={item}
+                          isOpened={!!openedDirs[item.id]}
+                          searchMode={!!searchValue}
+                          level={0}
+                          onClickItem={toggleDir}
+                        />
+                      ) : (
+                        <FileItem
+                          key={item.id}
+                          item={item}
+                          level={0}
+                          onClickItem={toggleDir}
+                          onAddToContext={() => alert("added to context")}
+                          onCopyPath={() => alert("added to context")}
+                          onDelete={() => alert("added to context")}
+                          onDownload={() => alert("added to context")}
+                          onPreview={() => alert("added to context")}
+                          onSelectCode={() => alert("added to context")}
+                        />
+                      )}
+                    </Group>
+                  ))
                 ) : (
                   <Text size="sm" c="dimmed">
                     No files found
@@ -586,6 +411,10 @@ export default function ProjectChat() {
           </Flex>
         </AppShellMain>
       </AppShell>
+      <ContextManager
+        opened={isContextManagerOpened}
+        onClose={() => setIsContextManagerOpened(false)}
+      />
     </>
   );
 }

@@ -59,6 +59,7 @@ import {
 } from "@tabler/icons-react";
 import debounce from "lodash.debounce";
 import "@mantine/tiptap/styles.css";
+import { RoleGuard } from "../../../Investor";
 
 // Mock data with folders
 const mockFolders = [
@@ -484,21 +485,23 @@ export default function Notes() {
                 clearable
               />
             </Group>
-            <Button
-              variant="light"
-              size="sm"
-              leftSection={<IconFolderPlus size={16} />}
-              onClick={() => setIsFolderModalOpen(true)}
-            >
-              New Folder
-            </Button>
-            <Button
-              size="sm"
-              leftSection={<IconPlus size={16} />}
-              onClick={() => setIsModalOpen(true)}
-            >
-              New Note
-            </Button>
+            <RoleGuard.Consumer>
+              <Button
+                variant="light"
+                size="sm"
+                leftSection={<IconFolderPlus size={16} />}
+                onClick={() => setIsFolderModalOpen(true)}
+              >
+                New Folder
+              </Button>
+              <Button
+                size="sm"
+                leftSection={<IconPlus size={16} />}
+                onClick={() => setIsModalOpen(true)}
+              >
+                New Note
+              </Button>
+            </RoleGuard.Consumer>
           </Group>
         </Group>
       </Box>
@@ -524,13 +527,15 @@ export default function Notes() {
               <Text size="sm" fw={600} c="dimmed">
                 FOLDERS
               </Text>
-              <ActionIcon
-                variant="subtle"
-                size="sm"
-                onClick={() => setIsFolderModalOpen(true)}
-              >
-                <IconFolderPlus size={14} />
-              </ActionIcon>
+              <RoleGuard.Consumer>
+                <ActionIcon
+                  variant="subtle"
+                  size="sm"
+                  onClick={() => setIsFolderModalOpen(true)}
+                >
+                  <IconFolderPlus size={14} />
+                </ActionIcon>
+              </RoleGuard.Consumer>
             </Group>
 
             <UnstyledButton
@@ -583,40 +588,42 @@ export default function Notes() {
                     <Text fw={500} size="sm" style={{ flex: 1 }} truncate>
                       {note.title}
                     </Text>
-                    <Menu>
-                      <Menu.Target>
-                        <ActionIcon
-                          variant="subtle"
-                          size="sm"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <IconDotsVertical size={14} />
-                        </ActionIcon>
-                      </Menu.Target>
-                      <Menu.Dropdown>
-                        <Menu.Item
-                          leftSection={<IconEdit size={14} />}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedNote(note);
-                            setIsEditing(true);
-                          }}
-                        >
-                          Edit
-                        </Menu.Item>
-                        <Menu.Item
-                          leftSection={<IconTrash size={14} />}
-                          color="red"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setNoteToDelete(note);
-                            setIsDeleteModalOpen(true);
-                          }}
-                        >
-                          Delete
-                        </Menu.Item>
-                      </Menu.Dropdown>
-                    </Menu>
+                    <RoleGuard.Consumer>
+                      <Menu>
+                        <Menu.Target>
+                          <ActionIcon
+                            variant="subtle"
+                            size="sm"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <IconDotsVertical size={14} />
+                          </ActionIcon>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                          <Menu.Item
+                            leftSection={<IconEdit size={14} />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedNote(note);
+                              setIsEditing(true);
+                            }}
+                          >
+                            Edit
+                          </Menu.Item>
+                          <Menu.Item
+                            leftSection={<IconTrash size={14} />}
+                            color="red"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setNoteToDelete(note);
+                              setIsDeleteModalOpen(true);
+                            }}
+                          >
+                            Delete
+                          </Menu.Item>
+                        </Menu.Dropdown>
+                      </Menu>
+                    </RoleGuard.Consumer>
                   </Group>
 
                   <Text
@@ -759,37 +766,39 @@ export default function Notes() {
                     </Group>
                   </div>
 
-                  <Group gap="sm">
-                    {!isEditing ? (
-                      <Button
-                        leftSection={<IconEdit size={16} />}
-                        onClick={() => setIsEditing(true)}
-                      >
-                        Edit
-                      </Button>
-                    ) : (
-                      <Group gap="sm">
+                  <RoleGuard.Consumer>
+                    <Group gap="sm">
+                      {!isEditing ? (
                         <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setIsEditing(false);
-                            editor?.commands.setContent(selectedNote.content);
-                            setError("");
-                          }}
+                          leftSection={<IconEdit size={16} />}
+                          onClick={() => setIsEditing(true)}
                         >
-                          Cancel
+                          Edit
                         </Button>
-                        <Button
-                          size="sm"
-                          onClick={handleSaveNote}
-                          loading={loading}
-                        >
-                          Save
-                        </Button>
-                      </Group>
-                    )}
-                  </Group>
+                      ) : (
+                        <Group gap="sm">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setIsEditing(false);
+                              editor?.commands.setContent(selectedNote.content);
+                              setError("");
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={handleSaveNote}
+                            loading={loading}
+                          >
+                            Save
+                          </Button>
+                        </Group>
+                      )}
+                    </Group>
+                  </RoleGuard.Consumer>
                 </Group>
 
                 {/* Tags and Category */}
@@ -813,13 +822,15 @@ export default function Notes() {
                           {tag}
                         </Badge>
                       ))}
-                      <ActionIcon
-                        variant="subtle"
-                        size="sm"
-                        onClick={handleTagsEdit}
-                      >
-                        <IconEdit size={12} />
-                      </ActionIcon>
+                      <RoleGuard.Consumer>
+                        <ActionIcon
+                          variant="subtle"
+                          size="sm"
+                          onClick={handleTagsEdit}
+                        >
+                          <IconEdit size={12} />
+                        </ActionIcon>
+                      </RoleGuard.Consumer>
                     </Group>
                   ) : (
                     <Group gap="xs" style={{ flex: 1 }}>
@@ -879,64 +890,66 @@ export default function Notes() {
                     height: "100%",
                   }}
                 >
-                  {isEditing && (
-                    <RichTextEditor.Toolbar
-                      sticky
-                      stickyOffset={0}
-                      style={{
-                        borderBottom: "1px solid var(--mantine-color-gray-8)",
-                        zIndex: 99,
-                        padding: "8px 16px",
-                      }}
-                    >
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Bold />
-                        <RichTextEditor.Italic />
-                        <RichTextEditor.Underline />
-                        <RichTextEditor.Strikethrough />
-                        <RichTextEditor.ClearFormatting />
-                        <RichTextEditor.Highlight />
-                        <RichTextEditor.Code />
-                      </RichTextEditor.ControlsGroup>
+                  <RoleGuard.Consumer>
+                    {isEditing && (
+                      <RichTextEditor.Toolbar
+                        sticky
+                        stickyOffset={0}
+                        style={{
+                          borderBottom: "1px solid var(--mantine-color-gray-8)",
+                          zIndex: 99,
+                          padding: "8px 16px",
+                        }}
+                      >
+                        <RichTextEditor.ControlsGroup>
+                          <RichTextEditor.Bold />
+                          <RichTextEditor.Italic />
+                          <RichTextEditor.Underline />
+                          <RichTextEditor.Strikethrough />
+                          <RichTextEditor.ClearFormatting />
+                          <RichTextEditor.Highlight />
+                          <RichTextEditor.Code />
+                        </RichTextEditor.ControlsGroup>
 
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.H1 />
-                        <RichTextEditor.H2 />
-                        <RichTextEditor.H3 />
-                        <RichTextEditor.H4 />
-                      </RichTextEditor.ControlsGroup>
+                        <RichTextEditor.ControlsGroup>
+                          <RichTextEditor.H1 />
+                          <RichTextEditor.H2 />
+                          <RichTextEditor.H3 />
+                          <RichTextEditor.H4 />
+                        </RichTextEditor.ControlsGroup>
 
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Blockquote />
-                        <RichTextEditor.Hr />
-                        <RichTextEditor.BulletList />
-                        <RichTextEditor.OrderedList />
-                        <RichTextEditor.Subscript />
-                        <RichTextEditor.Superscript />
-                      </RichTextEditor.ControlsGroup>
+                        <RichTextEditor.ControlsGroup>
+                          <RichTextEditor.Blockquote />
+                          <RichTextEditor.Hr />
+                          <RichTextEditor.BulletList />
+                          <RichTextEditor.OrderedList />
+                          <RichTextEditor.Subscript />
+                          <RichTextEditor.Superscript />
+                        </RichTextEditor.ControlsGroup>
 
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Link />
-                        <RichTextEditor.Unlink />
-                      </RichTextEditor.ControlsGroup>
+                        <RichTextEditor.ControlsGroup>
+                          <RichTextEditor.Link />
+                          <RichTextEditor.Unlink />
+                        </RichTextEditor.ControlsGroup>
 
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.AlignLeft />
-                        <RichTextEditor.AlignCenter />
-                        <RichTextEditor.AlignJustify />
-                        <RichTextEditor.AlignRight />
-                      </RichTextEditor.ControlsGroup>
+                        <RichTextEditor.ControlsGroup>
+                          <RichTextEditor.AlignLeft />
+                          <RichTextEditor.AlignCenter />
+                          <RichTextEditor.AlignJustify />
+                          <RichTextEditor.AlignRight />
+                        </RichTextEditor.ControlsGroup>
 
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Undo />
-                        <RichTextEditor.Redo />
-                      </RichTextEditor.ControlsGroup>
+                        <RichTextEditor.ControlsGroup>
+                          <RichTextEditor.Undo />
+                          <RichTextEditor.Redo />
+                        </RichTextEditor.ControlsGroup>
 
-                      <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.CodeBlock />
-                      </RichTextEditor.ControlsGroup>
-                    </RichTextEditor.Toolbar>
-                  )}
+                        <RichTextEditor.ControlsGroup>
+                          <RichTextEditor.CodeBlock />
+                        </RichTextEditor.ControlsGroup>
+                      </RichTextEditor.Toolbar>
+                    )}
+                  </RoleGuard.Consumer>
 
                   <RichTextEditor.Content
                     style={{
@@ -963,21 +976,34 @@ export default function Notes() {
               <Stack align="center" gap="xs">
                 <IconFileText size={46} color="#ced4da" />
                 <div style={{ textAlign: "center" }}>
-                  <Title order={2} c="dimmed" mb="sm">
-                    Select a note to view or edit
-                  </Title>
-                  <Text c="dimmed" size="sm">
-                    Choose a note from the sidebar or create a new one to get
-                    started
-                  </Text>
+                  <RoleGuard.Consumer>
+                    <Title order={2} c="dimmed" mb="sm">
+                      Select a note to view or edit
+                    </Title>
+                  </RoleGuard.Consumer>
+
+                  <RoleGuard.Investor>
+                    <Title order={2} c="dimmed" mb="sm">
+                      Select a note to view
+                    </Title>
+                  </RoleGuard.Investor>
+
+                  <RoleGuard.Consumer>
+                    <Text c="dimmed" size="sm">
+                      Choose a note from the sidebar or create a new one to get
+                      started
+                    </Text>
+                  </RoleGuard.Consumer>
                 </div>
-                <Button
-                  size="sm"
-                  leftSection={<IconPlus size={20} />}
-                  onClick={() => setIsModalOpen(true)}
-                >
-                  Create New Note
-                </Button>
+                <RoleGuard.Consumer>
+                  <Button
+                    size="sm"
+                    leftSection={<IconPlus size={20} />}
+                    onClick={() => setIsModalOpen(true)}
+                  >
+                    Create New Note
+                  </Button>
+                </RoleGuard.Consumer>
               </Stack>
             </div>
           )}

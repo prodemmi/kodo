@@ -8,14 +8,15 @@ import {
   Select,
   ActionIcon,
   Stack,
-  Box,
   Divider,
   Container,
+  Box,
 } from "@mantine/core";
 import { CSS } from "@dnd-kit/utilities";
 import { IconCode, IconEye, IconGripVertical } from "@tabler/icons-react";
 import { useOpenFile, useUpdateItem } from "../../../../../../hooks/use-items";
 import { useCallback } from "react";
+import { RoleGuard } from "../../../../../Investor";
 
 export default function SortableTask({
   item,
@@ -174,34 +175,36 @@ export default function SortableTask({
         <Group>
           <Group justify="space-between" align="flex-start" w="100%">
             <Group align="center" gap="xs">
-              <IconGripVertical
-                size={18}
-                {...attributes}
-                {...listeners}
-                style={{
-                  outline: "unset",
-                  marginLeft: -4,
-                  cursor: isDragging ? "grabbing" : "grab",
-                  color: isDragging ? "#228be6" : "#868e96",
-                }}
-              />
+              <RoleGuard.Consumer>
+                <IconGripVertical
+                  size={18}
+                  {...attributes}
+                  {...listeners}
+                  style={{
+                    outline: "unset",
+                    marginLeft: -4,
+                    cursor: isDragging ? "grabbing" : "grab",
+                    color: isDragging ? "#228be6" : "#868e96",
+                  }}
+                />
+              </RoleGuard.Consumer>
               <Text size="sm" onClick={() => onItemClick(item)}>
                 {item.title}
               </Text>
             </Group>
 
-            <Stack gap="4" mt="2">
+            <Group gap="4" mt="2">
               <ActionIcon size="xs" variant="subtle">
                 <IconEye onClick={() => onItemClick(item)} />
               </ActionIcon>
               <ActionIcon size="xs" variant="subtle">
                 <IconCode onClick={() => goToFile(item)} />
               </ActionIcon>
-            </Stack>
+            </Group>
           </Group>
         </Group>
         {item.description && (
-          <Container
+          <Box
             bd="1px solid gray"
             bdrs="sm"
             p="xs"
@@ -222,14 +225,17 @@ export default function SortableTask({
             >
               {item.description}
             </Text>
-          </Container>
+          </Box>
         )}
-        <Select
-          onChange={(value) => updateItemStatus(item.id, value!)}
-          value={item.status}
-          data={statusOptions}
-          size="xs"
-        />
+
+        <RoleGuard.Consumer>
+          <Select
+            onChange={(value) => updateItemStatus(item.id, value!)}
+            value={item.status}
+            data={statusOptions}
+            size="xs"
+          />
+        </RoleGuard.Consumer>
 
         <Group gap="4" align="center" py="4">
           <Badge color={getTypeColor(item.type)} size="xs" variant="dot">

@@ -1,6 +1,15 @@
-import { ActionIcon, AppShell, Button, ButtonGroup, Flex } from "@mantine/core";
+import {
+  ActionIcon,
+  AppShell,
+  Text,
+  Button,
+  ButtonGroup,
+  Flex,
+  Box,
+} from "@mantine/core";
 import { useAppState } from "../../../states/app.state";
 import { IconSettings } from "@tabler/icons-react";
+import { RoleGuard } from "../../Investor";
 
 type Props = {};
 
@@ -17,32 +26,40 @@ export default function AppHeader({}: Props) {
           >
             Board
           </Button>
-          <Button
+          {/* <Button
             variant={activeTab === 1 ? "light" : "subtle"}
             onClick={() => setActiveTab(1)}
           >
             Chat
+          </Button> */}
+          <Button
+            variant={activeTab === 1 ? "light" : "subtle"}
+            onClick={() => setActiveTab(1)}
+          >
+            Notes
           </Button>
           <Button
             variant={activeTab === 2 ? "light" : "subtle"}
             onClick={() => setActiveTab(2)}
           >
-            Notes
-          </Button>
-          <Button
-            variant={activeTab === 3 ? "light" : "subtle"}
-            onClick={() => setActiveTab(3)}
-          >
             History
           </Button>
         </ButtonGroup>
 
-        <ActionIcon
-          variant={activeTab === 4 ? "light" : "subtle"}
-          onClick={() => setActiveTab(4)}
-        >
-          <IconSettings />
-        </ActionIcon>
+        <RoleGuard.Consumer>
+          <ActionIcon
+            variant={activeTab === 3 ? "light" : "subtle"}
+            onClick={() => setActiveTab(3)}
+          >
+            <IconSettings />
+          </ActionIcon>
+        </RoleGuard.Consumer>
+
+        <RoleGuard.Investor>
+          <Box bg="red" c="white" px="xs" py="3">
+            <Text size="xs">View Only</Text>
+          </Box>
+        </RoleGuard.Investor>
       </Flex>
     </AppShell.Header>
   );

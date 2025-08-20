@@ -49,6 +49,7 @@ import {
   useRefreshStats,
   useTrends,
 } from "../../../../hooks/use-stats";
+import { RoleGuard } from "../../../Investor";
 
 // TODO: test todo!
 export default function History() {
@@ -159,24 +160,26 @@ export default function History() {
           </Group>
         </Title>
 
-        <Group>
-          <Button
-            leftSection={<IconRefresh size={16} />}
-            onClick={() => refreshStats()}
-            loading={refreshing}
-            variant="light"
-          >
-            Refresh Stats
-          </Button>
-          <Button
-            leftSection={<IconTrash size={16} />}
-            onClick={() => cleanupStats()}
-            variant="light"
-            color="orange"
-          >
-            Cleanup Old Stats
-          </Button>
-        </Group>
+        <RoleGuard.Consumer>
+          <Group>
+            <Button
+              leftSection={<IconRefresh size={16} />}
+              onClick={() => refreshStats()}
+              loading={refreshing}
+              variant="light"
+            >
+              Refresh Stats
+            </Button>
+            <Button
+              leftSection={<IconTrash size={16} />}
+              onClick={() => cleanupStats()}
+              variant="light"
+              color="orange"
+            >
+              Cleanup Old Stats
+            </Button>
+          </Group>
+        </RoleGuard.Consumer>
       </Group>
 
       {/* Summary Cards */}
