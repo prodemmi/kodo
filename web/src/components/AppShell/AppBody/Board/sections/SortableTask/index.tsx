@@ -9,7 +9,6 @@ import {
   ActionIcon,
   Stack,
   Divider,
-  Container,
   Box,
 } from "@mantine/core";
 import { CSS } from "@dnd-kit/utilities";
@@ -143,7 +142,8 @@ export default function SortableTask({
     mutate({ id: itemId, status });
   }
 
-  const { mutate: mutateOpenFile } = useOpenFile();
+  const { mutate: mutateOpenFile, isPending: isLoadingGoToFile } =
+    useOpenFile();
 
   const goToFile = useCallback(
     (item: Item) => {
@@ -154,10 +154,10 @@ export default function SortableTask({
 
   return (
     <Card
-      shadow={isDragging ? "lg" : "sm"}
       p="xs"
       mb="sm"
       withBorder
+      shadow="none"
       ref={setNodeRef}
       style={{
         ...style,
@@ -167,8 +167,8 @@ export default function SortableTask({
           ? `${CSS.Transform.toString(transform)} rotate(5deg) scale(1.02)`
           : CSS.Transform.toString(transform),
         transition: "all 0.4 ease",
-        backgroundColor: isDragging ? "#2c2c2c" : undefined,
-        borderColor: isDragging ? "#228be6" : undefined,
+        backgroundColor: isDragging ? "#2c2c2c" : "var(--mantine-color-dark-6)",
+        borderColor: isDragging ? "#228be6" : "transparent",
       }}
     >
       <Stack gap="xs">
@@ -197,7 +197,11 @@ export default function SortableTask({
               <ActionIcon size="xs" variant="subtle">
                 <IconEye onClick={() => onItemClick(item)} />
               </ActionIcon>
-              <ActionIcon size="xs" variant="subtle">
+              <ActionIcon
+                size="xs"
+                variant="transparent"
+                loading={isLoadingGoToFile}
+              >
                 <IconCode onClick={() => goToFile(item)} />
               </ActionIcon>
             </Group>
@@ -205,7 +209,7 @@ export default function SortableTask({
         </Group>
         {item.description && (
           <Box
-            bd="1px solid gray"
+            bd="1px solid var(--mantine-color-dark-7)"
             bdrs="sm"
             p="xs"
             style={{

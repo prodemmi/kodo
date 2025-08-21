@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   DndContext,
   closestCenter,
@@ -192,6 +192,19 @@ export default function Board() {
     setDrawerOpened(true);
   };
 
+  const columnHeader = useCallback((column: Column) => {
+    return (
+      <Group justify="space-between">
+        <Text fw={600} size="sm" c="dark.3">
+          {column.title}
+        </Text>
+        <Badge variant="light" size="sm" color="gray">
+          {column.tasks.length}
+        </Badge>
+      </Group>
+    );
+  }, []);
+
   if (loading) {
     return (
       <Container size="xl" py="md">
@@ -212,7 +225,7 @@ export default function Board() {
 
   return (
     <>
-      <Container size="xl" py="md">
+      <Container size="xl" py="md" fluid>
         <Title order={2} mb="md">
           Kanban Board
         </Title>
@@ -236,16 +249,10 @@ export default function Board() {
                   withBorder
                   key={columnId}
                 >
-                  <Group mb="md" justify="space-between">
-                    <Text fw={600} size="sm" c="dark.3">
-                      {column.title}
-                    </Text>
-                    <Badge variant="light" size="sm" color="gray">
-                      {column.tasks.length}
-                    </Badge>
-                  </Group>
-
-                  <DroppableColumn columnId={columnId}>
+                  <DroppableColumn
+                    columnId={columnId}
+                    header={columnHeader(column)}
+                  >
                     <SortableContext
                       items={column.tasks.map((item) => item.id)}
                       strategy={verticalListSortingStrategy}

@@ -10,7 +10,6 @@ import {
 import { useAppState } from "../../../states/app.state";
 import { IconSettings } from "@tabler/icons-react";
 import { RoleGuard } from "../../Investor";
-
 type Props = {};
 
 export default function AppHeader({}: Props) {
@@ -21,25 +20,41 @@ export default function AppHeader({}: Props) {
       <Flex justify="space-between" align="center" h="100%" p="xs">
         <ButtonGroup>
           <Button
-            variant={activeTab === 0 ? "light" : "subtle"}
+            bg={
+              activeTab === 0
+                ? "var(--mantine-color-dark-6)"
+                : "var(--mantine-color-dark-7)"
+            }
             onClick={() => setActiveTab(0)}
           >
             Board
           </Button>
           {/* <Button
-            variant={activeTab === 1 ? "light" : "subtle"}
+             bg={
+              activeTab === 02
+                ? "var(--mantine-color-dark-6)"
+                : "var(--mantine-color-dark-7)"
+            }
             onClick={() => setActiveTab(1)}
           >
             Chat
           </Button> */}
           <Button
-            variant={activeTab === 1 ? "light" : "subtle"}
+            bg={
+              activeTab === 1
+                ? "var(--mantine-color-dark-6)"
+                : "var(--mantine-color-dark-7)"
+            }
             onClick={() => setActiveTab(1)}
           >
             Notes
           </Button>
           <Button
-            variant={activeTab === 2 ? "light" : "subtle"}
+            bg={
+              activeTab === 2
+                ? "var(--mantine-color-dark-6)"
+                : "var(--mantine-color-dark-7)"
+            }
             onClick={() => setActiveTab(2)}
           >
             History
@@ -48,7 +63,11 @@ export default function AppHeader({}: Props) {
 
         <RoleGuard.Consumer>
           <ActionIcon
-            variant={activeTab === 3 ? "light" : "subtle"}
+            bg={
+              activeTab === 3
+                ? "var(--mantine-color-dark-6)"
+                : "var(--mantine-color-dark-7)"
+            }
             onClick={() => setActiveTab(3)}
           >
             <IconSettings />

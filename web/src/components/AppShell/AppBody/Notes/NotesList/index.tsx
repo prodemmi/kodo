@@ -1,0 +1,343 @@
+import {
+  Text,
+  ScrollArea,
+  Box,
+  Card,
+  Group,
+  Menu,
+  ActionIcon,
+  Badge,
+  Avatar,
+  Tooltip,
+  Stack,
+  Button,
+  TextInput,
+  TagsInput,
+  Select,
+  Popover,
+  PopoverTarget,
+  PopoverDropdown,
+  Title,
+} from "@mantine/core";
+import {
+  IconDotsVertical,
+  IconEdit,
+  IconTrash,
+  IconGitBranch,
+  IconFileText,
+  IconPlus,
+  IconFilter,
+  IconSearch,
+  IconTags,
+} from "@tabler/icons-react";
+import { RoleGuard } from "../../../../Investor";
+import { categories, tagColors } from "../constants";
+import {
+  useNewNoteModalStore,
+  useNoteDeleteModalStore,
+  useNoteStore,
+} from "../../../../../states/note.state";
+import { useMediaQuery } from "@mantine/hooks";
+import { useMemo, useRef } from "react";
+import debounce from "lodash.debounce";
+import { selectHasSearch } from "../../../../../states/note.selector";
+
+export default function NoteList() {
+  const notes = useNoteStore((s) => s.notes);
+  const selectedNote = useNoteStore((s) => s.selectedNote);
+  const setIsEditingNote = useNoteStore((s) => s.setIsEditingNote);
+  const selectNote = useNoteStore((s) => s.selectNote);
+  const selectedFolder = useNoteStore((s) => s.selectedFolder);
+  const openForNote = useNoteDeleteModalStore((s) => s.openForNote);
+  const openNewNoteModal = useNewNoteModalStore((s) => s.openModal);
+  const isSmall = useMediaQuery("(max-width: 920px)");
+
+  const allTags = useNoteStore.getState().tags();
+  const searchQuery = useNoteStore((s) => s.searchQuery);
+  const setSearchQuery = useNoteStore((s) => s.setSearchQuery);
+  const searchTags = useNoteStore((s) => s.searchTags);
+  const setSearchTags = useNoteStore((s) => s.setSearchTags);
+  const filterCategory = useNoteStore((s) => s.filterCategory);
+  const setFilterCategory = useNoteStore((s) => s.setFilterCategory);
+  const clearSearch = useNoteStore((s) => s.clearSearch);
+  const hasSearch = useNoteStore(selectHasSearch);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  const notesInDirectory = useMemo(() => {
+    if (selectedFolder) {
+      return notes.filter((n) => n.folderId === selectedFolder.id);
+    }
+
+    return notes;
+  }, [notes, selectedFolder]);
+
+  const filteredNotes = useMemo(() => {
+    let shallowNotes = [...notes];
+    const q = searchQuery.trim().toLowerCase();
+
+    if (selectedFolder) {
+      shallowNotes = shallowNotes.filter(
+        (n) => n.folderId === selectedFolder.id
+      );
+    }
+
+    return shallowNotes.filter((note) => {
+      if (filterCategory && note.category !== filterCategory) return false;
+      if (searchTags.length && !searchTags.every((t) => note.tags.includes(t)))
+        return false;
+      if (q) {
+        const textMatch =
+          note.title.toLowerCase().includes(q) ||
+          note.content.toLowerCase().includes(q) ||
+          note.gitBranch?.toLowerCase().includes(q) ||
+          note.gitCommit?.toLowerCase().includes(q) ||
+          note.author.toLowerCase().includes(q);
+
+        if (!textMatch) return false;
+      }
+
+      return true;
+    });
+  }, [notes, searchQuery, searchTags, filterCategory, selectedFolder]);
+
+  const getCategoryColor = (category: any) => {
+    const colors: any = {
+      technical: "blue",
+      meeting: "purple",
+      idea: "green",
+      documentation: "orange",
+      "bug-analysis": "red",
+      review: "cyan",
+    };
+    return colors[category] || "gray";
+  };
+
+  const formatDate = (date: any) => {
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(date));
+  };
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setSearchQuery(value);
+      }, 300),
+    [setSearchQuery]
+  );
+
+  const clearSearches = () => {
+    clearSearch();
+    if (searchInputRef.current) {
+      searchInputRef.current.value = "";
+    }
+  };
+
+  return (
+    <Stack w={isSmall ? "100%" : "50%"}>
+      <Group justify="space-between" w="100%" px="xs">
+        <Title size="h6">{selectedFolder?.name || "All Notes"}</Title>
+        {notesInDirectory && notesInDirectory.length > 0 && (
+          <Popover position="right-start">
+            <PopoverTarget>
+              <ActionIcon size="sm">
+                <IconFilter size={14} />
+              </ActionIcon>
+            </PopoverTarget>
+            <PopoverDropdown>
+              <Stack gap="xs" align="flex-end" maw="230px">
+                <TextInput
+                  ref={searchInputRef}
+                  w="100%"
+                  size="xs"
+                  placeholder="Search notes..."
+                  defaultValue={searchQuery}
+                  onChange={(e) => debouncedSearch(e.currentTarget.value)}
+                  leftSection={<IconSearch size={16} />}
+                />
+
+                <TagsInput
+                  w="100%"
+                  size="xs"
+                  placeholder="Search by tags..."
+                  allowDuplicates={false}
+                  value={searchTags}
+                  onChange={(val) => {
+                    const filtered = val.filter((v) => allTags.includes(v));
+                    setSearchTags(filtered);
+                  }}
+                  comboboxProps={{ withinPortal: false }}
+                  data={allTags}
+                  leftSection={<IconTags size={16} />}
+                  acceptValueOnBlur={false}
+                />
+
+                <Select
+                  w="100%"
+                  size="xs"
+                  placeholder="Filter by category"
+                  value={filterCategory}
+                  onChange={(value) => setFilterCategory(value || "")}
+                  comboboxProps={{ withinPortal: false }}
+                  data={[{ value: "", label: "All Categories" }, ...categories]}
+                  leftSection={<IconFilter size={16} />}
+                  clearable
+                />
+                {hasSearch && (
+                  <Button onClick={clearSearches}>Clear Search</Button>
+                )}
+              </Stack>
+            </PopoverDropdown>
+          </Popover>
+        )}
+      </Group>
+
+      <ScrollArea style={{ flex: 1 }} h={isSmall ? undefined : "100%"}>
+        <Box p="xs" pr="xs">
+          {filteredNotes.map((note: any) => (
+            <Card
+              key={note.id}
+              padding="xs"
+              mb="xs"
+              style={{
+                cursor: "pointer",
+                border:
+                  selectedNote?.id === note.id
+                    ? "2px solid #339af0"
+                    : "1px solid var(--mantine-color-gray-8)",
+              }}
+              onClick={() => {
+                selectNote(note);
+                setIsEditingNote(false);
+              }}
+            >
+              <Group justify="space-between" mb="xs">
+                <Text fw={500} size="sm" style={{ flex: 1 }} truncate>
+                  {note.title}
+                </Text>
+                <RoleGuard.Consumer>
+                  <Menu>
+                    <Menu.Target>
+                      <ActionIcon
+                        variant="subtle"
+                        size="sm"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <IconDotsVertical size={14} />
+                      </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item
+                        leftSection={<IconEdit size={14} />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          selectNote(note);
+                          setIsEditingNote(true);
+                        }}
+                      >
+                        Edit
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={<IconTrash size={14} />}
+                        color="red"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openForNote(note);
+                        }}
+                      >
+                        Delete
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                </RoleGuard.Consumer>
+              </Group>
+
+              <Text
+                size="xs"
+                c="dimmed"
+                mb="xs"
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {note.content.replace(/<[^>]*>/g, "")}
+              </Text>
+
+              <Group gap="xs" mb="xs">
+                <Badge
+                  size="xs"
+                  color={getCategoryColor(note.category)}
+                  variant="light"
+                >
+                  {note.category}
+                </Badge>
+                {note.tags.slice(0, 2).map((tag: any) => (
+                  <Badge
+                    key={tag}
+                    size="xs"
+                    color={tagColors[tag] || "gray"}
+                    variant="outline"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+                {note.tags.length > 2 && (
+                  <Badge size="xs" variant="outline" color="gray">
+                    +{note.tags.length - 2}
+                  </Badge>
+                )}
+              </Group>
+
+              <Group justify="space-between" align="center">
+                <Group gap="xs">
+                  <Avatar size={16} color="blue">
+                    {note.author.charAt(0).toUpperCase()}
+                  </Avatar>
+                  <Text size="xs" c="dimmed">
+                    {note.author}
+                  </Text>
+                </Group>
+                <Group gap="xs">
+                  <Tooltip label={`Branch: ${note.gitBranch}`}>
+                    <IconGitBranch size={12} color="#868e96" />
+                  </Tooltip>
+                  <Text size="xs" c="dimmed">
+                    {formatDate(note.updatedAt)}
+                  </Text>
+                </Group>
+              </Group>
+            </Card>
+          ))}
+
+          {filteredNotes.length === 0 && (
+            <Card padding="lg">
+              <Stack align="center" gap="sm">
+                <IconFileText size={48} color="#ced4da" />
+                <Text c="dimmed" ta="center">
+                  {searchQuery || filterCategory || searchTags.length > 0
+                    ? "No notes match your filters"
+                    : selectedFolder
+                    ? "No notes in this folder"
+                    : "No notes yet"}
+                </Text>
+                <Button
+                  variant="light"
+                  leftSection={<IconPlus size={16} />}
+                  onClick={openNewNoteModal}
+                >
+                  Create a note
+                </Button>
+              </Stack>
+            </Card>
+          )}
+        </Box>
+      </ScrollArea>
+    </Stack>
+  );
+}

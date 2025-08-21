@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface AppState {
   investor: boolean;
@@ -6,8 +7,16 @@ interface AppState {
   setActiveTab: (tab: number) => void;
 }
 
-export const useAppState = create<AppState>((set) => ({
-  activeTab: 0,
-  investor: true,
-  setActiveTab: (activeTab: number) => set({ activeTab }),
-}));
+export const useAppState = create<AppState>()(
+  persist(
+    (set) => ({
+      activeTab: 0,
+      investor: false,
+      setActiveTab: (activeTab: number) => set({ activeTab }),
+    }),
+    {
+      name: "__APP_STATE__",
+      partialize: (state) => ({ activeTab: state.activeTab }), 
+    }
+  )
+);

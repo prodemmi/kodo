@@ -135,6 +135,7 @@ export default function ItemDetailDrawer({
       opened={drawerOpened}
       onClose={() => setDrawerOpened(false)}
       title="Item Details"
+      styles={{ title: { fontWeight: "bold", fontSize: "1.25rem" } }}
       position="right"
       size="xl"
     >
@@ -151,13 +152,17 @@ export default function ItemDetailDrawer({
                   {selectedItem.status}
                 </Badge>
               </Group>
-              <Text
-                size="sm"
-                c="dimmed"
-                styles={{ root: { whiteSpace: "break-spaces" } }}
-              >
-                {selectedItem.description}
-              </Text>
+              {selectedItem.description && (
+                <Text
+                  size="sm"
+                  c="dimmed"
+                  mb="md"
+                  styles={{ root: { whiteSpace: "break-spaces" } }}
+                >
+                  {selectedItem.description}
+                </Text>
+              )}
+
               <Group gap="sm">
                 <Badge color="orange" variant="outline" size="sm">
                   Priority: {selectedItem.priority}
