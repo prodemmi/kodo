@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useNoteStore } from "../../../../../../../states/note.state";
 import { RoleGuard } from "../../../../../../Investor";
 import { Editor } from "@tiptap/react";
+import { Box } from "@mantine/core";
 
 interface Props {
   editor: Editor;
@@ -16,8 +17,14 @@ export default function NoteEditor({ editor }: Props) {
     if (selectedNote) editor.commands.setContent(selectedNote.content);
   }, [selectedNote, editor]);
 
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(isEditingNote);
+    }
+  }, [editor, isEditingNote]);
+
   return (
-    <div
+    <Box
       style={{
         flex: 1,
         display: "flex",
@@ -38,13 +45,8 @@ export default function NoteEditor({ editor }: Props) {
         <RoleGuard.Consumer>
           {isEditingNote && (
             <RichTextEditor.Toolbar
-              sticky
-              stickyOffset={0}
-              style={{
-                borderBottom: "1px solid var(--mantine-color-gray-8)",
-                zIndex: 99,
-                padding: "8px 16px",
-              }}
+              style={{border: "none"}}
+              bg="var(---mantine-color-dark-4)"
             >
               <RichTextEditor.ControlsGroup>
                 <RichTextEditor.Bold />
@@ -97,15 +99,17 @@ export default function NoteEditor({ editor }: Props) {
         </RoleGuard.Consumer>
 
         <RichTextEditor.Content
-          bg="transparent"
+          onClick={() => isEditingNote && editor.commands.focus("end")}
           style={{
-            flex: 1,
+            cursor: isEditingNote ? "text" : "auto",
             fontSize: "16px",
             lineHeight: "1.6",
+            minHeight: "calc(100dvh - 348px)",
             overflow: "auto",
           }}
         />
       </RichTextEditor>
-    </div>
+      <Box bg="red"></Box>
+    </Box>
   );
 }

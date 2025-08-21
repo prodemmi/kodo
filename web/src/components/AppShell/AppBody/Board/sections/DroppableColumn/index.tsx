@@ -9,9 +9,8 @@ interface Props {
   children: React.ReactNode;
 }
 
-// BUG: Hi
-// Create a DroppableColumn component
-// IN PROGRESS from 2025-08-20 12:06 by prodemmi
+// FEAT: store collapse
+// The collapse should store in localStorage (using zustand persist)
 export default function DroppableColumn({ columnId, header, children }: Props) {
   const [collapsed, setCollapsed] = useState(false);
 

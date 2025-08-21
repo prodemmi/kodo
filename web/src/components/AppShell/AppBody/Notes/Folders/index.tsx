@@ -16,39 +16,19 @@ import {
 } from "../../../../../states/note.state";
 import { Folder } from "../../../../../types/note";
 import { useMediaQuery } from "@mantine/hooks";
+import { useFolderTree } from "../../../../../hooks/use-notes";
 
 export default function Folders() {
   const storeNotes = useNoteStore((s) => s.notes);
-  const folders = useNoteStore((s) => s.folders);
   const selectFolder = useNoteStore((s) => s.selectFolder);
   const selectedFolder = useNoteStore((s) => s.selectedFolder);
   const setIsFolderModalOpen = useNewFolderModalStore((s) => s.openModal);
   const isSmall = useMediaQuery("(max-width: 920px)");
-
-  const getFolderHierarchy = () => {
-    const folderMap = new Map();
-    folders.forEach((folder) =>
-      folderMap.set(folder.id, { ...folder, children: [] })
-    );
-
-    const rootFolders: Folder[] = [];
-    folders.forEach((folder) => {
-      if (folder.parentId) {
-        const parent = folderMap.get(folder.parentId);
-        if (parent) {
-          parent.children.push(folderMap.get(folder.id));
-        }
-      } else {
-        rootFolders.push(folderMap.get(folder.id));
-      }
-    });
-
-    return rootFolders;
-  };
+  const { data: folders } = useFolderTree();
 
   return (
-    <ScrollArea h={isSmall ? undefined : "100%"} w={isSmall ? "100%" : "40%"}>
-      <Box px="xs" h={isSmall ? undefined : "100%"}>
+    <ScrollArea h={isSmall ? undefined : "100%"} miw={isSmall ? "100%" : "40%"} py="xs">
+      <Box px="2" h={isSmall ? undefined : "100%"}>
         <Group justify="space-between" mb="sm">
           <Text size="sm" fw={600} c="dimmed">
             FOLDERS
@@ -65,7 +45,7 @@ export default function Folders() {
         </Group>
 
         <UnstyledButton
-          p="6"
+          p="2"
           style={{
             width: "100%",
           }}
@@ -85,9 +65,11 @@ export default function Folders() {
           </Group>
         </UnstyledButton>
 
-        {getFolderHierarchy().map((folder: Folder) => (
-          <FolderItem key={folder.id} folder={folder} level={0} />
-        ))}
+        {folders &&
+          folders.count > 0 &&
+          folders.tree.map((folder: Folder) => (
+            <FolderItem key={folder.id} folder={folder} level={0} />
+          ))}
       </Box>
     </ScrollArea>
   );

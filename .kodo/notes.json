@@ -2,43 +2,20 @@
   "notes": [
     {
       "id": 1,
-      "title": "New Note",
-      "content": "\u003ch1\u003eNew Notesd\u003c/h1\u003e\u003cp\u003eStart writing your note...\u003c/p\u003e",
+      "title": "New Notesdsadasdasd",
+      "content": "\u003ch1\u003eNew Notesd2\u003c/h1\u003e\u003cp\u003eStart writing your note...\u0026nbsp;\u003c/p\u003e",
       "author": "prodemmi \u003cprodemmi@gmail.com\u003e",
       "createdAt": "2025-08-21T12:03:23.496196009Z",
-      "updatedAt": "2025-08-21T12:58:18.775288941Z",
+      "updatedAt": "2025-08-21T17:24:12.80636638Z",
       "tags": [
         "test"
       ],
       "category": "technical",
       "folderId": null,
       "gitBranch": "main",
-      "gitCommit": "81ec66e"
-    },
-    {
-      "id": 4,
-      "title": "New Note 2",
-      "content": "\u003ch1\u003eNew Note 2\u003c/h1\u003e\u003cp\u003eStart writing your note...\u003c/p\u003e",
-      "author": "prodemmi \u003cprodemmi@gmail.com\u003e",
-      "createdAt": "2025-08-21T14:22:05.756292719Z",
-      "updatedAt": "2025-08-21T14:22:05.756292719Z",
-      "tags": [
-        "test",
-        "e2e"
-      ],
-      "category": "technical",
-      "folderId": 2,
-      "gitBranch": "main",
-      "gitCommit": "81ec66e"
+      "gitCommit": "97285b8"
     }
   ],
-  "folders": [
-    {
-      "id": 2,
-      "name": "Test Folder",
-      "parentId": null,
-      "expanded": true
-    }
-  ],
+  "folders": [],
   "next_id": 5
 }

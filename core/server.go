@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"embed"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -134,6 +133,15 @@ func (s *Server) StartServer() {
 	http.Handle("/api/notes/tags", cors(http.HandlerFunc(s.handleNoteTags)))
 	http.Handle("/api/notes/stats", cors(http.HandlerFunc(s.handleNoteStats)))
 
+	http.Handle("/api/notes/history", cors(http.HandlerFunc(s.handleNoteHistory)))
+	http.Handle("/api/notes/history/stats", cors(http.HandlerFunc(s.handleNoteHistoryStats)))
+	http.Handle("/api/notes/history/cleanup", cors(http.HandlerFunc(s.handleCleanupHistory)))
+	http.Handle("/api/notes/with-history", cors(http.HandlerFunc(s.handleNoteWithHistory)))
+
+	// Activity tracking routes
+	http.Handle("/api/notes/activity/author", cors(http.HandlerFunc(s.handleAuthorActivity)))
+	http.Handle("/api/notes/activity/branch", cors(http.HandlerFunc(s.handleBranchActivity)))
+
 	http.Handle("/api/folders", cors(http.HandlerFunc(s.handleFolders)))
 	http.Handle("/api/folders/update", cors(http.HandlerFunc(s.handleFolderUpdate)))
 	http.Handle("/api/folders/delete", cors(http.HandlerFunc(s.handleFolderDelete)))
@@ -152,6 +160,7 @@ func (s *Server) StartServer() {
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
 
+// REVIEW: see this
 func (s *Server) handleItems(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	s.scanner.Rescan()
@@ -618,8 +627,6 @@ func (s *Server) handleProjectFiles(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Add these methods to your Server struct in server.go
-
 func (s *Server) handleNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -663,14 +670,15 @@ func (s *Server) handleNotes(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		note, err := s.createNote(noteReq.Title, noteReq.Content, noteReq.Tags, noteReq.Category, noteReq.FolderID)
+		// Use history-enabled method
+		note, err := s.createNoteWithHistory(noteReq.Title, noteReq.Content, noteReq.Tags, noteReq.Category, noteReq.FolderID)
 		if err != nil {
 			s.logger.Error("Failed to create note", zap.Error(err))
 			http.Error(w, "Failed to create note", http.StatusInternalServerError)
 			return
 		}
 
-		s.logger.Info("Note created", zap.Int("id", note.ID), zap.String("title", note.Title))
+		s.logger.Info("Note created with history tracking", zap.Int("id", note.ID), zap.String("title", note.Title))
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "success",
 			"note":   note,
@@ -712,7 +720,8 @@ func (s *Server) handleNoteUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	note, err := s.updateNote(updateReq.ID, updateReq.Title, updateReq.Content, updateReq.Tags, updateReq.Category, updateReq.FolderID)
+	// Use history-enabled method
+	note, err := s.updateNoteWithHistory(updateReq.ID, updateReq.Title, updateReq.Content, updateReq.Tags, updateReq.Category, updateReq.FolderID)
 	if err != nil {
 		s.logger.Error("Failed to update note", zap.Int("id", updateReq.ID), zap.Error(err))
 		if err.Error() == "note not found" {
@@ -723,7 +732,7 @@ func (s *Server) handleNoteUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.logger.Info("Note updated", zap.Int("id", note.ID), zap.String("title", note.Title))
+	s.logger.Info("Note updated with history tracking", zap.Int("id", note.ID), zap.String("title", note.Title))
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -753,7 +762,8 @@ func (s *Server) handleNoteDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := s.deleteNote(deleteReq.ID)
+	// Use history-enabled method
+	err := s.deleteNoteWithHistory(deleteReq.ID)
 	if err != nil {
 		s.logger.Error("Failed to delete note", zap.Int("id", deleteReq.ID), zap.Error(err))
 		if err.Error() == "note not found" {
@@ -764,7 +774,7 @@ func (s *Server) handleNoteDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.logger.Info("Note deleted", zap.Int("id", deleteReq.ID))
+	s.logger.Info("Note deleted with history tracking", zap.Int("id", deleteReq.ID))
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -939,304 +949,6 @@ func (s *Server) handleFolderDelete(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Add these folder management functions to your Server struct
-
-// updateFolder updates an existing folder
-func (s *Server) updateFolder(id int, name string, parentId *int, expanded *bool) (*Folder, error) {
-	storage, err := s.loadNoteStorage()
-	if err != nil {
-		return nil, err
-	}
-
-	// Find the folder
-	folderIndex := -1
-	for i, folder := range storage.Folders {
-		if folder.ID == id {
-			folderIndex = i
-			break
-		}
-	}
-
-	if folderIndex == -1 {
-		return nil, errors.New("folder not found")
-	}
-
-	// Update the folder
-	if name != "" {
-		storage.Folders[folderIndex].Name = name
-	}
-	if parentId != nil {
-		storage.Folders[folderIndex].ParentID = parentId
-	}
-	if expanded != nil {
-		storage.Folders[folderIndex].Expanded = *expanded
-	}
-
-	if err := s.saveNoteStorage(storage); err != nil {
-		return nil, err
-	}
-
-	return &storage.Folders[folderIndex], nil
-}
-
-// deleteFolder deletes a folder by ID (only if it has no notes)
-func (s *Server) deleteFolder(id int) error {
-	storage, err := s.loadNoteStorage()
-	if err != nil {
-		return err
-	}
-
-	// Find the folder
-	folderIndex := -1
-	for i, folder := range storage.Folders {
-		if folder.ID == id {
-			folderIndex = i
-			break
-		}
-	}
-
-	if folderIndex == -1 {
-		return errors.New("folder not found")
-	}
-
-	// Check if folder has any notes
-	for _, note := range storage.Notes {
-		if note.FolderID != nil && *note.FolderID == id {
-			return errors.New("folder has notes")
-		}
-	}
-
-	// Check if folder has any subfolders
-	for _, folder := range storage.Folders {
-		if folder.ParentID != nil && *folder.ParentID == id {
-			return errors.New("folder has subfolders")
-		}
-	}
-
-	// Remove the folder from slice
-	storage.Folders = append(storage.Folders[:folderIndex], storage.Folders[folderIndex+1:]...)
-
-	return s.saveNoteStorage(storage)
-}
-
-// getFolderTree returns folders organized as a tree structure
-func (s *Server) getFolderTree() ([]map[string]interface{}, error) {
-	storage, err := s.loadNoteStorage()
-	if err != nil {
-		return nil, err
-	}
-
-	// Create a map for quick folder lookup
-	folderMap := make(map[int]*Folder)
-	for i := range storage.Folders {
-		folderMap[storage.Folders[i].ID] = &storage.Folders[i]
-	}
-
-	// Build the tree structure
-	var rootFolders []map[string]interface{}
-
-	for _, folder := range storage.Folders {
-		if folder.ParentID == nil {
-			// This is a root folder
-			rootFolders = append(rootFolders, s.buildFolderNode(folder, folderMap, storage.Notes))
-		}
-	}
-
-	// Sort root folders by name
-	sort.Slice(rootFolders, func(i, j int) bool {
-		return rootFolders[i]["name"].(string) < rootFolders[j]["name"].(string)
-	})
-
-	return rootFolders, nil
-}
-
-// buildFolderNode recursively builds a folder node with its children and note count
-func (s *Server) buildFolderNode(folder Folder, folderMap map[int]*Folder, notes []Note) map[string]interface{} {
-	// Count notes in this folder
-	noteCount := 0
-	for _, note := range notes {
-		if note.FolderID != nil && *note.FolderID == folder.ID {
-			noteCount++
-		}
-	}
-
-	// Find children folders
-	var children []map[string]interface{}
-	for _, otherFolder := range folderMap {
-		if otherFolder.ParentID != nil && *otherFolder.ParentID == folder.ID {
-			children = append(children, s.buildFolderNode(*otherFolder, folderMap, notes))
-		}
-	}
-
-	// Sort children by name
-	sort.Slice(children, func(i, j int) bool {
-		return children[i]["name"].(string) < children[j]["name"].(string)
-	})
-
-	// Calculate total note count (including children)
-	totalNoteCount := noteCount
-	for _, child := range children {
-		totalNoteCount += child["totalNoteCount"].(int)
-	}
-
-	return map[string]interface{}{
-		"id":             folder.ID,
-		"name":           folder.Name,
-		"parentId":       folder.ParentID,
-		"expanded":       folder.Expanded,
-		"noteCount":      noteCount,
-		"totalNoteCount": totalNoteCount,
-		"children":       children,
-		"hasChildren":    len(children) > 0,
-	}
-}
-
-// moveNotesToFolder moves notes from one folder to another
-func (s *Server) moveNotesToFolder(noteIds []int, targetFolderId *int) error {
-	storage, err := s.loadNoteStorage()
-	if err != nil {
-		return err
-	}
-
-	// Validate target folder exists if specified
-	if targetFolderId != nil {
-		folderExists := false
-		for _, folder := range storage.Folders {
-			if folder.ID == *targetFolderId {
-				folderExists = true
-				break
-			}
-		}
-		if !folderExists {
-			return errors.New("target folder not found")
-		}
-	}
-
-	// Update notes
-	updatedCount := 0
-	branch, commit := s.getGitInfo()
-
-	for i := range storage.Notes {
-		for _, noteId := range noteIds {
-			if storage.Notes[i].ID == noteId {
-				storage.Notes[i].FolderID = targetFolderId
-				storage.Notes[i].UpdatedAt = time.Now()
-				storage.Notes[i].GitBranch = &branch
-				storage.Notes[i].GitCommit = &commit
-				updatedCount++
-				break
-			}
-		}
-	}
-
-	if updatedCount == 0 {
-		return errors.New("no notes found to move")
-	}
-
-	return s.saveNoteStorage(storage)
-}
-
-// searchNotes searches notes by title, content, or tags
-func (s *Server) searchNotes(query string, category string, folderId *int) ([]Note, error) {
-	if query == "" {
-		return s.getNotes(category, "", "")
-	}
-
-	storage, err := s.loadNoteStorage()
-	if err != nil {
-		return nil, err
-	}
-
-	query = strings.ToLower(query)
-	var matchingNotes []Note
-
-	for _, note := range storage.Notes {
-		// Filter by category first
-		if category != "" && note.Category != category {
-			continue
-		}
-
-		// Filter by folder if specified
-		if folderId != nil {
-			if note.FolderID == nil || *note.FolderID != *folderId {
-				continue
-			}
-		}
-
-		// Search in title
-		if strings.Contains(strings.ToLower(note.Title), query) {
-			matchingNotes = append(matchingNotes, note)
-			continue
-		}
-
-		// Search in content
-		if strings.Contains(strings.ToLower(note.Content), query) {
-			matchingNotes = append(matchingNotes, note)
-			continue
-		}
-
-		// Search in tags
-		for _, tag := range note.Tags {
-			if strings.Contains(strings.ToLower(tag), query) {
-				matchingNotes = append(matchingNotes, note)
-				break
-			}
-		}
-	}
-
-	// Sort by relevance (title matches first, then by update time)
-	sort.Slice(matchingNotes, func(i, j int) bool {
-		titleMatchI := strings.Contains(strings.ToLower(matchingNotes[i].Title), query)
-		titleMatchJ := strings.Contains(strings.ToLower(matchingNotes[j].Title), query)
-
-		if titleMatchI && !titleMatchJ {
-			return true
-		}
-		if !titleMatchI && titleMatchJ {
-			return false
-		}
-
-		return matchingNotes[i].UpdatedAt.After(matchingNotes[j].UpdatedAt)
-	})
-
-	return matchingNotes, nil
-}
-
-// exportNotes exports notes to JSON format
-func (s *Server) exportNotes(folderId *int, category string) (map[string]interface{}, error) {
-	var notes []Note
-	var err error
-
-	if folderId != nil || category != "" {
-		folderIdStr := ""
-		if folderId != nil {
-			folderIdStr = strconv.Itoa(*folderId)
-		}
-		notes, err = s.getNotes(category, "", folderIdStr)
-	} else {
-		notes, err = s.getNotes("", "", "")
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	folders, err := s.getFolders()
-	if err != nil {
-		return nil, err
-	}
-
-	export := map[string]interface{}{
-		"exported_at": time.Now(),
-		"notes":       notes,
-		"folders":     folders,
-		"categories":  s.getCategories(),
-		"total":       len(notes),
-	}
-
-	return export, nil
-}
-
 func (s *Server) handleFolderTree(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -1310,7 +1022,8 @@ func (s *Server) handleMoveNotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := s.moveNotesToFolder(moveReq.NoteIds, moveReq.TargetFolderId)
+	// Use history-enabled method
+	err := s.moveNotesToFolderWithHistory(moveReq.NoteIds, moveReq.TargetFolderId)
 	if err != nil {
 		s.logger.Error("Failed to move notes", zap.Error(err))
 		if err.Error() == "target folder not found" {
@@ -1325,7 +1038,7 @@ func (s *Server) handleMoveNotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.logger.Info("Notes moved", zap.Ints("noteIds", moveReq.NoteIds), zap.Any("targetFolderId", moveReq.TargetFolderId))
+	s.logger.Info("Notes moved with history tracking", zap.Ints("noteIds", moveReq.NoteIds), zap.Any("targetFolderId", moveReq.TargetFolderId))
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -1386,29 +1099,327 @@ func (s *Server) handleNoteTags(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// getAllTags returns all unique tags used in notes
-func (s *Server) getAllTags() ([]string, error) {
-	storage, err := s.loadNoteStorage()
-	if err != nil {
-		return nil, err
+// Add these handlers to your server.go file
+
+// handleNoteHistory retrieves note history with filtering
+func (s *Server) handleNoteHistory(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
 
-	tagSet := make(map[string]bool)
-	for _, note := range storage.Notes {
-		for _, tag := range note.Tags {
-			if tag != "" {
-				tagSet[tag] = true
+	// Parse query parameters for filtering
+	var filter NoteHistoryFilter
+
+	if noteIdStr := r.URL.Query().Get("noteId"); noteIdStr != "" {
+		if noteId, err := strconv.Atoi(noteIdStr); err == nil {
+			filter.NoteID = &noteId
+		}
+	}
+
+	if actionStr := r.URL.Query().Get("action"); actionStr != "" {
+		action := NoteHistoryAction(actionStr)
+		filter.Action = &action
+	}
+
+	if author := r.URL.Query().Get("author"); author != "" {
+		filter.Author = &author
+	}
+
+	if branch := r.URL.Query().Get("branch"); branch != "" {
+		filter.GitBranch = &branch
+	}
+
+	if sinceStr := r.URL.Query().Get("since"); sinceStr != "" {
+		if since, err := time.Parse(time.RFC3339, sinceStr); err == nil {
+			filter.Since = &since
+		}
+	}
+
+	if untilStr := r.URL.Query().Get("until"); untilStr != "" {
+		if until, err := time.Parse(time.RFC3339, untilStr); err == nil {
+			filter.Until = &until
+		}
+	}
+
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if limit, err := strconv.Atoi(limitStr); err == nil && limit > 0 {
+			filter.Limit = limit
+		}
+	} else {
+		filter.Limit = 50 // Default limit
+	}
+
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if offset, err := strconv.Atoi(offsetStr); err == nil && offset >= 0 {
+			filter.Offset = offset
+		}
+	}
+
+	history, err := s.getNoteHistory(filter)
+	if err != nil {
+		s.logger.Error("Failed to get note history", zap.Error(err))
+		http.Error(w, "Failed to get note history", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"history": history,
+		"count":   len(history),
+		"filter":  filter,
+	})
+}
+
+// handleNoteHistoryStats retrieves note history statistics
+func (s *Server) handleNoteHistoryStats(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	stats, err := s.getNoteHistoryStats()
+	if err != nil {
+		s.logger.Error("Failed to get note history stats", zap.Error(err))
+		http.Error(w, "Failed to get note history stats", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(stats)
+}
+
+// handleNoteWithHistory retrieves a note with its complete history
+func (s *Server) handleNoteWithHistory(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	noteIdStr := r.URL.Query().Get("id")
+	if noteIdStr == "" {
+		http.Error(w, "Note ID is required", http.StatusBadRequest)
+		return
+	}
+
+	noteId, err := strconv.Atoi(noteIdStr)
+	if err != nil {
+		http.Error(w, "Invalid note ID", http.StatusBadRequest)
+		return
+	}
+
+	// Get the note
+	storage, err := s.loadEnhancedNoteStorage()
+	if err != nil {
+		s.logger.Error("Failed to load note storage", zap.Error(err))
+		http.Error(w, "Failed to load notes", http.StatusInternalServerError)
+		return
+	}
+
+	var note *Note
+	for _, n := range storage.Notes {
+		if n.ID == noteId {
+			note = &n
+			break
+		}
+	}
+
+	if note == nil {
+		http.Error(w, "Note not found", http.StatusNotFound)
+		return
+	}
+
+	// Get note history
+	filter := NoteHistoryFilter{NoteID: &noteId}
+	history, err := s.getNoteHistory(filter)
+	if err != nil {
+		s.logger.Error("Failed to get note history", zap.Error(err))
+		http.Error(w, "Failed to get note history", http.StatusInternalServerError)
+		return
+	}
+
+	noteWithHistory := NoteWithHistory{
+		Note:    *note,
+		History: history,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"note":          noteWithHistory,
+		"history_count": len(history),
+	})
+}
+
+// handleAuthorActivity retrieves activity summary for a specific author
+func (s *Server) handleAuthorActivity(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	author := r.URL.Query().Get("author")
+	if author == "" {
+		http.Error(w, "Author parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	// Get activity for specific author
+	filter := NoteHistoryFilter{Author: &author, Limit: 100}
+	history, err := s.getNoteHistory(filter)
+	if err != nil {
+		s.logger.Error("Failed to get author activity", zap.Error(err))
+		http.Error(w, "Failed to get author activity", http.StatusInternalServerError)
+		return
+	}
+
+	// Aggregate stats
+	actionCount := make(map[NoteHistoryAction]int)
+	noteCount := make(map[int]bool)
+	dayCount := make(map[string]int)
+
+	for _, entry := range history {
+		actionCount[entry.Action]++
+		noteCount[entry.NoteID] = true
+		day := entry.Timestamp.Format("2006-01-02")
+		dayCount[day]++
+	}
+
+	activity := map[string]interface{}{
+		"author":         author,
+		"total_actions":  len(history),
+		"notes_affected": len(noteCount),
+		"by_action":      actionCount,
+		"by_day":         dayCount,
+		"recent_history": history,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(activity)
+}
+
+// handleBranchActivity retrieves activity summary for a specific git branch
+func (s *Server) handleBranchActivity(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	branch := r.URL.Query().Get("branch")
+	if branch == "" {
+		http.Error(w, "Branch parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	// Get activity for specific branch
+	filter := NoteHistoryFilter{GitBranch: &branch, Limit: 100}
+	history, err := s.getNoteHistory(filter)
+	if err != nil {
+		s.logger.Error("Failed to get branch activity", zap.Error(err))
+		http.Error(w, "Failed to get branch activity", http.StatusInternalServerError)
+		return
+	}
+
+	// Aggregate stats
+	actionCount := make(map[NoteHistoryAction]int)
+	authorCount := make(map[string]int)
+	noteCount := make(map[int]bool)
+
+	for _, entry := range history {
+		actionCount[entry.Action]++
+		authorCount[entry.Author]++
+		noteCount[entry.NoteID] = true
+	}
+
+	activity := map[string]interface{}{
+		"branch":         branch,
+		"total_actions":  len(history),
+		"notes_affected": len(noteCount),
+		"by_action":      actionCount,
+		"by_author":      authorCount,
+		"recent_history": history,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(activity)
+}
+
+// handleCleanupHistory removes old history entries
+func (s *Server) handleCleanupHistory(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		OlderThanDays int `json:"older_than_days"`
+		KeepMinimum   int `json:"keep_minimum"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	if req.OlderThanDays <= 0 {
+		req.OlderThanDays = 90 // Default to 90 days
+	}
+	if req.KeepMinimum <= 0 {
+		req.KeepMinimum = 10 // Keep at least 10 entries per note
+	}
+
+	storage, err := s.loadEnhancedNoteStorage()
+	if err != nil {
+		s.logger.Error("Failed to load note storage", zap.Error(err))
+		http.Error(w, "Failed to load notes", http.StatusInternalServerError)
+		return
+	}
+
+	cutoff := time.Now().AddDate(0, 0, -req.OlderThanDays)
+
+	// Group history by note ID
+	noteHistory := make(map[int][]NoteHistoryEntry)
+	for _, entry := range storage.History {
+		noteHistory[entry.NoteID] = append(noteHistory[entry.NoteID], entry)
+	}
+
+	// Keep recent entries and minimum number per note
+	var filteredHistory []NoteHistoryEntry
+	removedCount := 0
+
+	for _, entries := range noteHistory {
+		// Sort entries by timestamp descending (newest first)
+		sort.Slice(entries, func(i, j int) bool {
+			return entries[i].Timestamp.After(entries[j].Timestamp)
+		})
+
+		keptCount := 0
+		for _, entry := range entries {
+			// Always keep minimum number of entries per note
+			// Also keep entries newer than cutoff
+			if keptCount < req.KeepMinimum || entry.Timestamp.After(cutoff) {
+				filteredHistory = append(filteredHistory, entry)
+				keptCount++
+			} else {
+				removedCount++
 			}
 		}
 	}
 
-	var tags []string
-	for tag := range tagSet {
-		tags = append(tags, tag)
+	storage.History = filteredHistory
+
+	if err := s.saveEnhancedNoteStorage(storage); err != nil {
+		s.logger.Error("Failed to save cleaned history", zap.Error(err))
+		http.Error(w, "Failed to save changes", http.StatusInternalServerError)
+		return
 	}
 
-	// Sort tags alphabetically
-	sort.Strings(tags)
+	s.logger.Info("History cleanup completed", zap.Int("removed_entries", removedCount), zap.Int("remaining_entries", len(filteredHistory)))
 
-	return tags, nil
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":            "success",
+		"removed_entries":   removedCount,
+		"remaining_entries": len(filteredHistory),
+		"message":           fmt.Sprintf("Removed %d old history entries", removedCount),
+	})
 }

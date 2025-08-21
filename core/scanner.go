@@ -58,8 +58,8 @@ func (s *Scanner) ScanTodos() {
 	// Create comprehensive pattern for all item types
 	itemTypes := []string{
 		"TODO", "FIXME", "BUG", "NOTE", "REFACTOR", "OPTIMIZE", "CLEANUP", "DEPRECATED",
-		"FEATURE", "ENHANCE", "DOC", "TEST", "EXAMPLE", "SECURITY", "COMPLIANCE",
-		"DEBT", "ARCHITECTURE", "CONFIG", "DEPLOY", "MONITOR", "QUESTION", "IDEA",
+		"FEATURE", "FEAT", "ENHANCE", "DOC", "TEST", "EXAMPLE", "SECURITY", "COMPLIANCE",
+		"DEBT", "ARCHITECTURE", "ARCH", "CONFIG", "DEPLOY", "MONITOR", "QUESTION", "IDEA",
 		"REVIEW", "HACK",
 	}
 

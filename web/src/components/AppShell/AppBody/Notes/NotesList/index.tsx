@@ -34,7 +34,7 @@ import { RoleGuard } from "../../../../Investor";
 import { categories, tagColors } from "../constants";
 import {
   useNewNoteModalStore,
-  useNoteDeleteModalStore,
+  useDeleteModalStore,
   useNoteStore,
 } from "../../../../../states/note.state";
 import { useMediaQuery } from "@mantine/hooks";
@@ -48,7 +48,7 @@ export default function NoteList() {
   const setIsEditingNote = useNoteStore((s) => s.setIsEditingNote);
   const selectNote = useNoteStore((s) => s.selectNote);
   const selectedFolder = useNoteStore((s) => s.selectedFolder);
-  const openForNote = useNoteDeleteModalStore((s) => s.openForNote);
+  const openForNote = useDeleteModalStore((s) => s.openForNote);
   const openNewNoteModal = useNewNoteModalStore((s) => s.openModal);
   const isSmall = useMediaQuery("(max-width: 920px)");
 
@@ -137,7 +137,13 @@ export default function NoteList() {
   };
 
   return (
-    <Stack w={isSmall ? "100%" : "50%"}>
+    <Stack
+      w="100%"
+      miw={"250px"}
+      py="xs"
+      gap="xs"
+      style={{ height: "calc(100dvh - 44px)" }}
+    >
       <Group justify="space-between" w="100%" px="xs">
         <Title size="h6">{selectedFolder?.name || "All Notes"}</Title>
         {notesInDirectory && notesInDirectory.length > 0 && (

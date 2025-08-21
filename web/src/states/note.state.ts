@@ -159,15 +159,31 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     })),
 
   deleteFolder: (folderId) =>
-    set((state) => ({
-      folders: state.folders.filter((folder) => folder.id !== folderId),
-      selectedFolder:
-        state.selectedFolder?.id === folderId ? null : state.selectedFolder,
-      // optionally: move notes in this folder to root
-      notes: state.notes.map((note) =>
-        note.folderId === folderId ? { ...note, folderId: null } : note
-      ),
-    })),
+    set((state) => {
+      const collectFolderIds = (
+        id: number,
+        folders: typeof state.folders
+      ): number[] => {
+        const childIds = folders
+          .filter((f) => f.parentId === id)
+          .flatMap((f) => collectFolderIds(f.id, folders));
+        return [id, ...childIds];
+      };
+
+      const folderIdsToDelete = collectFolderIds(folderId, state.folders);
+
+      return {
+        folders: state.folders.filter(
+          (folder) => !folderIdsToDelete.includes(folder.id)
+        ),
+
+        selectedFolder: null,
+
+        notes: state.notes.filter(
+          (note) => !folderIdsToDelete.includes(note.folderId!)
+        ),
+      };
+    }),
 
   selectFolder: (folder) => set({ selectedFolder: folder, selectedNote: null }),
   toggleFolder: (folderId: number | null) =>
@@ -273,7 +289,7 @@ interface DeleteModalState {
   clear: () => void;
 }
 
-export const useNoteDeleteModalStore = create<DeleteModalState>((set) => ({
+export const useDeleteModalStore = create<DeleteModalState>((set) => ({
   isOpen: false,
   noteToDelete: null,
   folderToDelete: null,

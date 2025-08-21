@@ -1,5 +1,4 @@
 import {
-  Box,
   Text,
   Group,
   Avatar,
@@ -17,7 +16,6 @@ import { Editor } from "@tiptap/react";
 import { useNoteStore } from "../../../../../../../states/note.state";
 import { RoleGuard } from "../../../../../../Investor";
 import { tagColors } from "../../../constants";
-import NoteTitle from "./sections/NoteTitle";
 import { useUpdateNote } from "../../../../../../../hooks/use-notes";
 
 interface Props {
@@ -112,16 +110,13 @@ export default function NoteInfo({ editor }: Props) {
     selectedNote && (
       <Stack
         px="md"
-        pb="md"
-        gap="xs"
+        pb="xs"
         style={{
-          borderBottom: "1px solid var(--mantine-color-gray-8)",
           minHeight: "auto",
         }}
       >
         <Group justify="space-between">
           <div style={{ flex: 1 }}>
-            <NoteTitle />
             <Group gap="sm">
               <Group gap="xs">
                 <Avatar size={24} color="blue">

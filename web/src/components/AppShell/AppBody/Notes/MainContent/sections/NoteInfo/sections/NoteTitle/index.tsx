@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { TextInput, ActionIcon, Group, Notification } from "@mantine/core";
 import { IconEdit, IconCheck, IconX } from "@tabler/icons-react";
 import { useNoteStore } from "../../../../../../../../../states/note.state";
 import { RoleGuard } from "../../../../../../../../Investor";
 import { useUpdateNote } from "../../../../../../../../../hooks/use-notes";
+import { useTextWidth } from "../../../../../../../../../hooks/use-text-width";
+import { getInputWidth } from "../../../../../../../../../utils/get-text-input";
 
 export default function NoteTitle() {
   const selectedNote = useNoteStore((s) => s.selectedNote);
@@ -22,7 +24,6 @@ export default function NoteTitle() {
       },
       {
         onSuccess() {
-          updateNote(selectedNote.id, { ...selectedNote, title: value });
           setIsEditing(false);
         },
       }
@@ -33,6 +34,7 @@ export default function NoteTitle() {
     setValue(selectedNote?.title || "");
     setIsEditing(false);
   };
+  const inputWidth = getInputWidth(value);
 
   if (!selectedNote) return null;
 
@@ -42,6 +44,7 @@ export default function NoteTitle() {
         <>
           <TextInput
             value={value}
+            w={inputWidth}
             onChange={(e) => setValue(e.currentTarget.value)}
             size="md"
             autoFocus={isEditing}
@@ -71,6 +74,7 @@ export default function NoteTitle() {
           <TextInput
             defaultValue={value}
             size="md"
+            w={inputWidth}
             variant="unstyled"
             autoFocus={false}
             mb="xs"

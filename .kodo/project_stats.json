@@ -1,46 +1,59 @@
 {
   "project_path": "/mnt/projects/Projects/Programming/KodoBoard",
-  "last_scan_at": "2025-08-21T14:43:35.784782076Z",
+  "last_scan_at": "2025-08-21T19:14:19.491877154Z",
   "git_branch": "main",
-  "git_commit": "81ec66e31ad1aff0eaed32b735440fcb88ec0e08",
-  "git_commit_short": "81ec66e",
-  "total_items": 3,
+  "git_commit": "97285b8ee8c03b2e82d2826a9623eb335e41a74e",
+  "git_commit_short": "97285b8",
+  "total_items": 5,
   "items_by_status": {
-    "done": 1,
-    "in-progress": 2
+    "done": 2,
+    "todo": 3
   },
   "items_by_type": {
-    "BUG": 1,
-    "TODO": 2
+    "FEAT": 1,
+    "REVIEW": 1,
+    "TODO": 3
   },
   "items_by_file": {
+    "core/server.go": 1,
     "main.go": 1,
     "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx": 1,
-    "web/src/components/AppShell/AppBody/History/index.tsx": 1
+    "web/src/components/AppShell/AppBody/History/index.tsx": 1,
+    "web/src/hooks/use-notes.ts": 1
   },
   "current_items": [
     {
       "id": 1,
+      "type": "REVIEW",
+      "title": "see this",
+      "file": "core/server.go",
+      "line": 163,
+      "status": "todo",
+      "priority": "medium",
+      "hash": "-5a074da11ea41196"
+    },
+    {
+      "id": 2,
       "type": "TODO",
       "title": "this is a test todo",
       "file": "main.go",
       "line": 14,
-      "status": "in-progress",
+      "status": "done",
       "priority": "medium",
       "hash": "-1741add25431a699"
     },
     {
-      "id": 2,
-      "type": "BUG",
-      "title": "Hi",
+      "id": 3,
+      "type": "FEAT",
+      "title": "store collapse",
       "file": "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
       "line": 12,
-      "status": "in-progress",
-      "priority": "high",
-      "hash": "2c6b16f4b178abe6"
+      "status": "todo",
+      "priority": "medium",
+      "hash": "67fcec8da9b09d5"
     },
     {
-      "id": 3,
+      "id": 4,
       "type": "TODO",
       "title": "test todo!",
       "file": "web/src/components/AppShell/AppBody/History/index.tsx",
@@ -48,6 +61,16 @@
       "status": "done",
       "priority": "medium",
       "hash": "-7176d7cfcb6de0e9"
+    },
+    {
+      "id": 5,
+      "type": "TODO",
+      "title": "implement in zustand and sync with onSuccess fn",
+      "file": "web/src/hooks/use-notes.ts",
+      "line": 129,
+      "status": "todo",
+      "priority": "medium",
+      "hash": "-7e268033d4e53caa"
     }
   ],
   "branch_history": [
@@ -425,8 +448,61 @@
           }
         ]
       }
+    },
+    {
+      "branch": "main",
+      "commit": "97285b8ee8c03b2e82d2826a9623eb335e41a74e",
+      "commit_short": "97285b8",
+      "commit_message": "fix web note and backend saving",
+      "timestamp": "2025-08-21T15:16:32.216687739Z",
+      "stats": {
+        "total": 3,
+        "todo": 0,
+        "in_progress": 2,
+        "done": 1,
+        "by_type": {
+          "BUG": 1,
+          "TODO": 2
+        },
+        "by_priority": {
+          "high": 1,
+          "medium": 2
+        },
+        "items": [
+          {
+            "id": 1,
+            "type": "TODO",
+            "title": "this is a test todo",
+            "file": "main.go",
+            "line": 14,
+            "status": "in-progress",
+            "priority": "medium",
+            "hash": "-1741add25431a699"
+          },
+          {
+            "id": 2,
+            "type": "BUG",
+            "title": "Hi",
+            "file": "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
+            "line": 12,
+            "status": "in-progress",
+            "priority": "high",
+            "hash": "2c6b16f4b178abe6"
+          },
+          {
+            "id": 3,
+            "type": "TODO",
+            "title": "test todo!",
+            "file": "web/src/components/AppShell/AppBody/History/index.tsx",
+            "line": 54,
+            "status": "done",
+            "priority": "medium",
+            "hash": "-7176d7cfcb6de0e9"
+          }
+        ]
+      }
     }
   ],
   "created_at": "2025-08-18T01:06:39.516646427+03:30",
-  "updated_at": "2025-08-21T14:43:35.786260882Z"
+  "updated_at": "2025-08-21T19:14:19.492492611Z"
 }

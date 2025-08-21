@@ -24,7 +24,7 @@ export default function CreateFolderModal() {
   const parentId = useNewFolderModalStore((s) => s.parentId);
   const setName = useNewFolderModalStore((s) => s.setName);
   const setParentId = useNewFolderModalStore((s) => s.setParentId);
-  const { mutate } = useCreateFolder(); 
+  const { mutate } = useCreateFolder();
 
   const [error, setError] = useState("");
 
@@ -41,7 +41,11 @@ export default function CreateFolderModal() {
     mutate(
       {
         name: name,
-        parentId: !!parentId ? parentId : null,
+        parentId: selectedFolder
+          ? selectedFolder.id
+          : !!parentId
+          ? parentId
+          : null,
       },
       {
         onSuccess() {

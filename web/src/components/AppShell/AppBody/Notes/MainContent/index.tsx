@@ -9,14 +9,13 @@ import StarterKit from "@tiptap/starter-kit";
 import SubScript from "@tiptap/extension-subscript";
 import Highlight from "@tiptap/extension-highlight";
 import { createLowlight } from "lowlight";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import NoteInfo from "./sections/NoteInfo";
 import WelcomeState from "./sections/WelcomeState";
 import NoteEditor from "./sections/NoteEditor";
 
 export default function MainContent() {
   const selectedNote = useNoteStore((s) => s.selectedNote);
-  const isEditingNote = useNoteStore((s) => s.isEditingNote);
   const lowlight = useMemo(() => createLowlight(), []);
 
   const editor = useEditor({
@@ -34,7 +33,7 @@ export default function MainContent() {
       }),
     ],
     content: selectedNote?.content || "",
-    editable: isEditingNote,
+    editable: false,
   });
 
   return (

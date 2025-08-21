@@ -30,6 +30,7 @@ import {
   deleteFolder,
   getCategories,
 } from "../api/notes.api";
+import { useNoteStore } from "../states/note.state";
 
 // Note hooks
 export function useNotes(params?: {
@@ -103,82 +104,33 @@ export function useCreateNote() {
 }
 
 export function useUpdateNote() {
-  const queryClient = useQueryClient();
+  const updateNoteStore = useNoteStore((s) => s.updateNote);
 
   return useMutation({
     mutationFn: updateNote,
     onSuccess: (data, variables) => {
-      // Update all notes queries
-      queryClient.setQueriesData<{ notes: Note[]; count: number }>(
-        { queryKey: ["notes"] },
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            notes: old.notes.map((note) =>
-              note.id === variables.id ? data.note : note
-            ),
-          };
-        }
-      );
-
-      // Invalidate search results
-      queryClient.invalidateQueries({ queryKey: ["notes", "search"] });
-      queryClient.invalidateQueries({ queryKey: ["notes", "tags"] });
+      updateNoteStore(variables.id, { ...data.note });
     },
   });
 }
 
 export function useDeleteNote() {
-  const queryClient = useQueryClient();
+  const deleteStoreNote = useNoteStore((s) => s.deleteNote);
 
   return useMutation({
     mutationFn: deleteNote,
     onSuccess: (_, noteId) => {
-      // Remove note from all queries
-      queryClient.setQueriesData<{ notes: Note[]; count: number }>(
-        { queryKey: ["notes"] },
-        (old) => {
-          if (!old) return old;
-          return {
-            notes: old.notes.filter((note) => note.id !== noteId),
-            count: old.count - 1,
-          };
-        }
-      );
-
-      // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ["notes", "search"] });
-      queryClient.invalidateQueries({ queryKey: ["notes", "stats"] });
+      deleteStoreNote(noteId);
     },
   });
 }
 
 export function useMoveNotes() {
-  const queryClient = useQueryClient();
+  // TODO: implement in zustand and sync with onSuccess fn
 
   return useMutation({
     mutationFn: moveNotes,
-    onSuccess: (_, variables) => {
-      // Update notes in cache
-      queryClient.setQueriesData<{ notes: Note[]; count: number }>(
-        { queryKey: ["notes"] },
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            notes: old.notes.map((note) =>
-              variables.noteIds.includes(note.id)
-                ? { ...note, folderId: variables.targetFolderId }
-                : note
-            ),
-          };
-        }
-      );
-
-      // Invalidate folder tree to update note counts
-      queryClient.invalidateQueries({ queryKey: ["folders", "tree"] });
-    },
+    onSuccess: (_, variables) => {},
   });
 }
 
@@ -271,39 +223,12 @@ export function useUpdateFolder() {
 }
 
 export function useDeleteFolder() {
-  const queryClient = useQueryClient();
+  const deleteStoreFolder = useNoteStore((s) => s.deleteFolder);
 
   return useMutation({
     mutationFn: deleteFolder,
     onSuccess: (_, folderId) => {
-      // Remove folder from cache
-      queryClient.setQueryData<{ folders: Folder[]; count: number }>(
-        ["folders"],
-        (old) => {
-          if (!old) return old;
-          return {
-            folders: old.folders.filter((folder) => folder.id !== folderId),
-            count: old.count - 1,
-          };
-        }
-      );
-
-      // Move notes from deleted folder to root
-      queryClient.setQueriesData<{ notes: Note[]; count: number }>(
-        { queryKey: ["notes"] },
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            notes: old.notes.map((note) =>
-              note.folderId === folderId ? { ...note, folderId: null } : note
-            ),
-          };
-        }
-      );
-
-      // Invalidate folder tree
-      queryClient.invalidateQueries({ queryKey: ["folders", "tree"] });
+      deleteStoreFolder(folderId);
     },
   });
 }

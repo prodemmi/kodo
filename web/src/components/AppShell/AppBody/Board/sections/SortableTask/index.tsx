@@ -16,6 +16,7 @@ import { IconCode, IconEye, IconGripVertical } from "@tabler/icons-react";
 import { useOpenFile, useUpdateItem } from "../../../../../../hooks/use-items";
 import { useCallback } from "react";
 import { RoleGuard } from "../../../../../Investor";
+import { useElementSize, useMergedRef } from "@mantine/hooks";
 
 export default function SortableTask({
   item,
@@ -39,7 +40,8 @@ export default function SortableTask({
       easing: "cubic-bezier(0.25, 1, 0.5, 1)",
     },
   });
-
+  const {ref, width} = useElementSize()
+  const cardRef = useMergedRef(setNodeRef, ref)
   const { mutate } = useUpdateItem();
 
   const style = {
@@ -158,7 +160,7 @@ export default function SortableTask({
       mb="sm"
       withBorder
       shadow="none"
-      ref={setNodeRef}
+      ref={cardRef}
       style={{
         ...style,
         cursor: isDragging ? "grabbing" : "grab",
@@ -174,7 +176,7 @@ export default function SortableTask({
       <Stack gap="xs">
         <Group>
           <Group justify="space-between" align="flex-start" w="100%">
-            <Group align="center" gap="xs">
+            <Group align="flex-start" gap="xs">
               <RoleGuard.Consumer>
                 <IconGripVertical
                   size={18}
@@ -188,7 +190,7 @@ export default function SortableTask({
                   }}
                 />
               </RoleGuard.Consumer>
-              <Text size="sm" onClick={() => onItemClick(item)}>
+              <Text size="sm" onClick={() => onItemClick(item)} truncate  maw={width - 100}>
                 {item.title}
               </Text>
             </Group>

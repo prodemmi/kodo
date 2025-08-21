@@ -30,12 +30,6 @@ export default function Notes() {
   const setFolders = useNoteStore((s) => s.setFolders);
 
   useEffect(() => {
-    if (!notesError && !notesLoading && notesData && notesData.count > 0) {
-      setNotes(notesData.notes);
-    }
-  }, [notesData, notesError, notesLoading]);
-
-  useEffect(() => {
     if (
       !foldersError &&
       !foldersLoading &&
@@ -44,7 +38,17 @@ export default function Notes() {
     ) {
       setFolders(foldersData.folders);
     }
-  }, [foldersData, foldersError, foldersLoading]);
+    if (!notesError && !notesLoading && notesData && notesData.count > 0) {
+      setNotes(notesData.notes);
+    }
+  }, [
+    notesData,
+    notesError,
+    notesLoading,
+    foldersData,
+    foldersError,
+    foldersLoading,
+  ]);
 
   return (
     <Container
@@ -52,10 +56,9 @@ export default function Notes() {
       p="0"
       m="0"
       style={{
-        height: "calc(100vh - 86px)",
+        height: "calc(100dvh - 52px)",
         display: "flex",
         flexDirection: "column",
-        overflow: "hidden",
       }}
     >
       {/* Top Header */}
@@ -65,13 +68,15 @@ export default function Notes() {
           flex: 1,
           overflow: "hidden",
         }}
+        h="100dvh"
       >
         {/* Sidebar */}
         <Flex
           gap="xs"
           align="flex-start"
+          h="100%"
           style={{
-            width: isSmall ? "100%" : "65dvw",
+            width: isSmall ? "auto" : "65dvw",
             flexDirection: isSmall ? "column" : "row",
           }}
         >
@@ -90,7 +95,7 @@ export default function Notes() {
         </Flex>
 
         {/* Main Content */}
-        <Stack w="100%">
+        <Stack w="100%" p="xs">
           <TopHeader />
           <MainContent />
         </Stack>

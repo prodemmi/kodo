@@ -15,7 +15,7 @@ var staticFiles embed.FS
 // This function initializes the application server. It sets up the logger
 // depending on the environment, creates a new scanner for code analysis,
 // and starts the HTTP server with static files and scanner integration.
-// IN PROGRESS from 2025-08-20 20:52 by prodemmi
+// DONE 2025-08-21 19:14 by prodemmi
 func main() {
 	var logger *zap.Logger
 	if true {
