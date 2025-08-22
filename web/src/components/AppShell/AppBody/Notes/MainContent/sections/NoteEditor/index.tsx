@@ -95,6 +95,12 @@ export default function NoteEditor({ editor }: Props) {
               <RichTextEditor.ControlsGroup>
                 <RichTextEditor.CodeBlock />
               </RichTextEditor.ControlsGroup>
+
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.TaskList />
+                <RichTextEditor.TaskListLift />
+                <RichTextEditor.TaskListSink />
+              </RichTextEditor.ControlsGroup>
             </RichTextEditor.Toolbar>
           )}
         </RoleGuard.Consumer>

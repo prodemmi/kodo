@@ -818,6 +818,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@popperjs/core@npm:^2.9.0":
+  version: 2.11.8
+  resolution: "@popperjs/core@npm:2.11.8"
+  checksum: 10c0/4681e682abc006d25eb380d0cf3efc7557043f53b6aea7a5057d0d1e7df849a00e281cd8ea79c902a35a414d7919621fc2ba293ecec05f413598e0b23d5a1e63
+  languageName: node
+  linkType: hard
+
 "@remirror/core-constants@npm:3.0.0":
   version: 3.0.0
   resolution: "@remirror/core-constants@npm:3.0.0"
@@ -1310,6 +1317,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-mention@npm:^3.2.2":
+  version: 3.2.2
+  resolution: "@tiptap/extension-mention@npm:3.2.2"
+  peerDependencies:
+    "@tiptap/core": ^3.2.2
+    "@tiptap/pm": ^3.2.2
+    "@tiptap/suggestion": ^3.2.2
+  checksum: 10c0/55f45e6c349b615b28a3219bddb92925eae056f30a0ea192cd4b3428a75c8cee9e560d684292885c735523b0bd50833a0f23e75e40944c397cf005ed78af2de3
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-ordered-list@npm:^3.2.0":
   version: 3.2.0
   resolution: "@tiptap/extension-ordered-list@npm:3.2.0"
@@ -1354,6 +1372,24 @@ __metadata:
     "@tiptap/core": ^3.2.0
     "@tiptap/pm": ^3.2.0
   checksum: 10c0/6700ae758b82bebdddac9e48179526a11726794d2a84c5c7ad0fccd8ccfea7042d1a50f7002572cd8598a99543582da6e11f2d1c54d505f6f1d8ecf49692a6a9
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-task-item@npm:^3.2.2":
+  version: 3.2.2
+  resolution: "@tiptap/extension-task-item@npm:3.2.2"
+  peerDependencies:
+    "@tiptap/extension-list": ^3.2.2
+  checksum: 10c0/809176a0369400e2b821831976dac13293d45ef27e75367402c200cbd6853e1f2024dbd25a8a6e34b89d45ac993587908323a6493fcc0d3301a5dd878af1e3bf
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-task-list@npm:^3.2.2":
+  version: 3.2.2
+  resolution: "@tiptap/extension-task-list@npm:3.2.2"
+  peerDependencies:
+    "@tiptap/extension-list": ^3.2.2
+  checksum: 10c0/88428b91953e1c43a1c5a5c041458557c7ea44fded88c673b637b74ebc1ee0f273ee93af978bfde9986855ac8814fa3ee5b1cb049a1bf1858315e76d8ae92507
   languageName: node
   linkType: hard
 
@@ -1472,6 +1508,16 @@ __metadata:
     "@tiptap/extensions": "npm:^3.2.0"
     "@tiptap/pm": "npm:^3.2.0"
   checksum: 10c0/94638018e7bb5b43ce9ad008d1db4760c7afb8fb57c85d47d450ac78b21505c0257e21292d99c0ff1383dbe214f25e3ff276d074add88147e6b090ee146d3894
+  languageName: node
+  linkType: hard
+
+"@tiptap/suggestion@npm:^3.2.2":
+  version: 3.2.2
+  resolution: "@tiptap/suggestion@npm:3.2.2"
+  peerDependencies:
+    "@tiptap/core": ^3.2.2
+    "@tiptap/pm": ^3.2.2
+  checksum: 10c0/b8a72d53fb16c90baaae95daa8ba78c544944ab3b7b08adf17cf4fc19820258e0d7bd8ce2b3ee3f03b8c7723871ec2549a3a52f67568f4d9a5865ca8fe6fe1b0
   languageName: node
   linkType: hard
 
@@ -3917,6 +3963,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tippy.js@npm:^6.3.7":
+  version: 6.3.7
+  resolution: "tippy.js@npm:6.3.7"
+  dependencies:
+    "@popperjs/core": "npm:^2.9.0"
+  checksum: 10c0/ec3677beb8caec791ee1f715663f28f42d60e0f7250074a047d13d5e6db95fdb6d26d8a3ac16cecb4ebcaf33ae919dbc889cf97948d115e8d3c81518c911b379
+  languageName: node
+  linkType: hard
+
 "to-fast-properties@npm:^2.0.0":
   version: 2.0.0
   resolution: "to-fast-properties@npm:2.0.0"
@@ -4181,12 +4236,16 @@ __metadata:
     "@tanstack/react-query-persist-client": "npm:^5.85.3"
     "@tiptap/extension-code-block-lowlight": "npm:^3.2.0"
     "@tiptap/extension-highlight": "npm:^3.2.0"
+    "@tiptap/extension-mention": "npm:^3.2.2"
     "@tiptap/extension-subscript": "npm:^3.2.0"
     "@tiptap/extension-superscript": "npm:^3.2.0"
+    "@tiptap/extension-task-item": "npm:^3.2.2"
+    "@tiptap/extension-task-list": "npm:^3.2.2"
     "@tiptap/extension-text-align": "npm:^3.2.0"
     "@tiptap/extension-underline": "npm:^3.2.0"
     "@tiptap/react": "npm:^3.2.0"
     "@tiptap/starter-kit": "npm:^3.2.0"
+    "@tiptap/suggestion": "npm:^3.2.2"
     "@types/lodash.debounce": "npm:^4.0.9"
     "@types/react": "npm:18"
     "@types/react-dom": "npm:18"
@@ -4200,6 +4259,7 @@ __metadata:
     react: "npm:18"
     react-dom: "npm:18"
     shiki: "npm:^3.9.2"
+    tippy.js: "npm:^6.3.7"
     typescript: "npm:^5.8.3"
     vite: "npm:^6.3.5"
     zustand: "npm:^5.0.7"

@@ -1,5 +1,5 @@
 import { useNoteStore } from "../../../../../states/note.state";
-import { Link } from "@mantine/tiptap";
+import { getTaskListExtension, Link } from "@mantine/tiptap";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import Superscript from "@tiptap/extension-superscript";
 import TextAlign from "@tiptap/extension-text-align";
@@ -8,12 +8,14 @@ import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import SubScript from "@tiptap/extension-subscript";
 import Highlight from "@tiptap/extension-highlight";
+import TaskItem from "@tiptap/extension-task-item";
+import TipTapTaskList from "@tiptap/extension-task-list";
 import { createLowlight } from "lowlight";
-import { useMemo } from "react";
+import { useMemo, } from "react";
+import { Stack } from "@mantine/core";
 import NoteInfo from "./sections/NoteInfo";
 import WelcomeState from "./sections/WelcomeState";
 import NoteEditor from "./sections/NoteEditor";
-import { Stack } from "@mantine/core";
 
 export default function MainContent() {
   const selectedNote = useNoteStore((s) => s.selectedNote);
@@ -24,18 +26,32 @@ export default function MainContent() {
     extensions: [
       StarterKit,
       Underline,
-      Link,
+      Link.configure({
+        HTMLAttributes: {
+          class: 'editor-link',
+        },
+      }),
       Superscript,
       SubScript,
       Highlight,
+      getTaskListExtension(TipTapTaskList),
+      TaskItem.configure({
+        nested: true,
+        HTMLAttributes: {
+          class: "test-item",
+        },
+      }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       CodeBlockLowlight.configure({
         lowlight,
       }),
     ],
     content: selectedNote?.content || "",
-    editable: false,
-  });
+    editable: true, // Enable editing to test mentions
+    onUpdate: ({ editor }) => {
+      // Handle content updates if needed
+    },
+  })
 
   return (
     <Stack
@@ -45,6 +61,7 @@ export default function MainContent() {
       flex={1}
       style={{
         overflow: "hidden",
+        position: 'relative'
       }}
     >
       {selectedNote ? (
