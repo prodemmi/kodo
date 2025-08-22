@@ -49,26 +49,16 @@ export default function AppHeader({}: Props) {
           >
             Notes
           </Button>
-          <Button
+        </ButtonGroup>
+
+        <RoleGuard.Consumer>
+          <ActionIcon
             bg={
               activeTab === 2
                 ? "var(--mantine-color-dark-6)"
                 : "var(--mantine-color-dark-7)"
             }
             onClick={() => setActiveTab(2)}
-          >
-            History
-          </Button>
-        </ButtonGroup>
-
-        <RoleGuard.Consumer>
-          <ActionIcon
-            bg={
-              activeTab === 3
-                ? "var(--mantine-color-dark-6)"
-                : "var(--mantine-color-dark-7)"
-            }
-            onClick={() => setActiveTab(3)}
           >
             <IconSettings />
           </ActionIcon>

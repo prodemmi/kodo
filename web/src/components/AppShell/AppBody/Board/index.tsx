@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy } from "react";
 import {
   DndContext,
   closestCenter,
@@ -23,13 +23,16 @@ import {
   Paper,
   Alert,
   LoadingOverlay,
+  Button,
 } from "@mantine/core";
-import { IconAlertCircle } from "@tabler/icons-react";
+import { IconAlertCircle, IconHistory } from "@tabler/icons-react";
 import { Item } from "../../../../types/item";
 import { useItems, useUpdateItem } from "../../../../hooks/use-items";
 import ItemDetailDrawer from "./sections/ItemDetailDrawer";
 import SortableTask from "./sections/SortableTask";
-import DroppableColumn from "./sections/DroppableColumn";
+
+const DroppableColumn = lazy(() => import("./sections/DroppableColumn"));
+const HistoryDrawer = lazy(() => import("./sections/HistoryDrawer"));
 
 interface Column {
   title: string;
@@ -41,6 +44,7 @@ export default function Board() {
   const [columns, setColumns] = useState<Record<string, Column>>({});
   const [columnOrder, setColumnOrder] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openItemHistory, setOpenItemHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [drawerOpened, setDrawerOpened] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -223,9 +227,17 @@ export default function Board() {
   return (
     <>
       <Container size="xl" py="md" fluid>
-        <Title order={2} mb="md">
-          Kanban Board
-        </Title>
+        <Group justify="space-between" align="center" w="100%">
+          <Title order={2} mb="md">
+            Kanban Board
+          </Title>
+          <Button
+            leftSection={<IconHistory size={16} />}
+            onClick={() => setOpenItemHistory(true)}
+          >
+            History
+          </Button>
+        </Group>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -304,6 +316,12 @@ export default function Board() {
         drawerOpened={drawerOpened}
         selectedItem={selectedItem}
         setDrawerOpened={setDrawerOpened}
+      />
+      <HistoryDrawer
+        isOpen={openItemHistory}
+        onClose={() => {
+          setOpenItemHistory(false);
+        }}
       />
     </>
   );

@@ -160,7 +160,6 @@ func (s *Server) StartServer() {
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
 
-// REVIEW: see this
 func (s *Server) handleItems(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	s.scanner.Rescan()

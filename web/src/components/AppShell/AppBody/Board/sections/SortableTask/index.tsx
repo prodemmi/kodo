@@ -40,8 +40,8 @@ export default function SortableTask({
       easing: "cubic-bezier(0.25, 1, 0.5, 1)",
     },
   });
-  const {ref, width} = useElementSize()
-  const cardRef = useMergedRef(setNodeRef, ref)
+  const { ref, width } = useElementSize();
+  const cardRef = useMergedRef(setNodeRef, ref);
   const { mutate } = useUpdateItem();
 
   const style = {
@@ -190,17 +190,23 @@ export default function SortableTask({
                   }}
                 />
               </RoleGuard.Consumer>
-              <Text size="sm" onClick={() => onItemClick(item)} truncate  maw={width - 100}>
+              <Text
+                size="sm"
+                onClick={() => onItemClick(item)}
+                truncate
+                maw={width - 100}
+              >
                 {item.title}
               </Text>
             </Group>
 
             <Group gap="4" mt="2">
-              <ActionIcon size="xs" variant="subtle">
+              <ActionIcon size="xs" variant="subtle" c="blue">
                 <IconEye onClick={() => onItemClick(item)} />
               </ActionIcon>
               <ActionIcon
                 size="xs"
+                c="blue"
                 variant="transparent"
                 loading={isLoadingGoToFile}
               >

@@ -212,7 +212,7 @@ export const theme = createTheme({
       },
       styles: {
         root: {
-          backgroundColor: "var(--mantine-color-dark-7)",
+          backgroundColor: "var(--mantine-color-dark-8)",
           border: "1px solid var(--mantine-color-dark-6)",
         },
       },
@@ -439,9 +439,6 @@ export const theme = createTheme({
             fontWeight: 600,
           },
         },
-        list: {
-          borderBottom: "1px solid var(--mantine-color-dark-6)",
-        },
       },
     }),
 
@@ -473,6 +470,6 @@ export const theme = createTheme({
           transition: "width 300ms ease",
         },
       },
-    }),
+    }),       
   },
 });

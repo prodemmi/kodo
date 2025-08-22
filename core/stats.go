@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -564,6 +565,17 @@ func (pt *ProjectTracker) GetBranchHistory() []BranchSnapshot {
 	if stats == nil {
 		return nil
 	}
+
+	slices.SortFunc(stats.BranchHistory, func(a, b BranchSnapshot) int {
+		if a.Timestamp.Before(b.Timestamp) {
+			return 1
+		}
+		if a.Timestamp.After(b.Timestamp) {
+			return -1
+		}
+		return 0
+	})
+
 	return stats.BranchHistory
 }
 

@@ -1,49 +1,24 @@
 {
   "project_path": "/mnt/projects/Projects/Programming/KodoBoard",
-  "last_scan_at": "2025-08-22T16:04:53.893941889Z",
+  "last_scan_at": "2025-08-22T20:09:38.136139625Z",
   "git_branch": "main",
-  "git_commit": "71341f937e448ea85b825e6c77c0393a86407993",
-  "git_commit_short": "71341f9",
-  "total_items": 5,
+  "git_commit": "15ece4504684a1b3d36c69dc48d78f252b4b0f9d",
+  "git_commit_short": "15ece45",
+  "total_items": 2,
   "items_by_status": {
-    "done": 2,
-    "todo": 3
+    "todo": 2
   },
   "items_by_type": {
     "FEAT": 1,
-    "REVIEW": 1,
-    "TODO": 3
+    "TODO": 1
   },
   "items_by_file": {
-    "core/server.go": 1,
-    "main.go": 1,
     "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx": 1,
-    "web/src/components/AppShell/AppBody/History/index.tsx": 1,
     "web/src/hooks/use-notes.ts": 1
   },
   "current_items": [
     {
       "id": 1,
-      "type": "REVIEW",
-      "title": "see this",
-      "file": "core/server.go",
-      "line": 163,
-      "status": "todo",
-      "priority": "medium",
-      "hash": "-5a074da11ea41196"
-    },
-    {
-      "id": 2,
-      "type": "TODO",
-      "title": "this is a test todo",
-      "file": "main.go",
-      "line": 14,
-      "status": "done",
-      "priority": "medium",
-      "hash": "-1741add25431a699"
-    },
-    {
-      "id": 3,
       "type": "FEAT",
       "title": "store collapse",
       "file": "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
@@ -53,17 +28,7 @@
       "hash": "67fcec8da9b09d5"
     },
     {
-      "id": 4,
-      "type": "TODO",
-      "title": "test todo!",
-      "file": "web/src/components/AppShell/AppBody/History/index.tsx",
-      "line": 52,
-      "status": "done",
-      "priority": "medium",
-      "hash": "2f1357cf933e6315"
-    },
-    {
-      "id": 5,
+      "id": 2,
       "type": "TODO",
       "title": "implement in zustand and sync with onSuccess fn",
       "file": "web/src/hooks/use-notes.ts",
@@ -647,8 +612,81 @@
           }
         ]
       }
+    },
+    {
+      "branch": "main",
+      "commit": "15ece4504684a1b3d36c69dc48d78f252b4b0f9d",
+      "commit_short": "15ece45",
+      "commit_message": "add items to editor",
+      "timestamp": "2025-08-22T19:07:35.345395353Z",
+      "stats": {
+        "total": 5,
+        "todo": 3,
+        "in_progress": 0,
+        "done": 2,
+        "by_type": {
+          "FEAT": 1,
+          "REVIEW": 1,
+          "TODO": 3
+        },
+        "by_priority": {
+          "medium": 5
+        },
+        "items": [
+          {
+            "id": 1,
+            "type": "REVIEW",
+            "title": "see this",
+            "file": "core/server.go",
+            "line": 163,
+            "status": "todo",
+            "priority": "medium",
+            "hash": "-5a074da11ea41196"
+          },
+          {
+            "id": 2,
+            "type": "TODO",
+            "title": "this is a test todo",
+            "file": "main.go",
+            "line": 14,
+            "status": "done",
+            "priority": "medium",
+            "hash": "-1741add25431a699"
+          },
+          {
+            "id": 3,
+            "type": "FEAT",
+            "title": "store collapse",
+            "file": "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
+            "line": 12,
+            "status": "todo",
+            "priority": "medium",
+            "hash": "67fcec8da9b09d5"
+          },
+          {
+            "id": 4,
+            "type": "TODO",
+            "title": "test todo!",
+            "file": "web/src/components/AppShell/AppBody/History/index.tsx",
+            "line": 52,
+            "status": "done",
+            "priority": "medium",
+            "hash": "2f1357cf933e6315"
+          },
+          {
+            "id": 5,
+            "type": "TODO",
+            "title": "implement in zustand and sync with onSuccess fn",
+            "file": "web/src/hooks/use-notes.ts",
+            "line": 130,
+            "status": "todo",
+            "priority": "medium",
+            "hash": "7c0968ba6977a500"
+          }
+        ]
+      }
     }
   ],
   "created_at": "2025-08-18T01:06:39.516646427+03:30",
-  "updated_at": "2025-08-22T16:04:53.895029089Z"
+  "updated_at": "2025-08-22T20:09:38.136512012Z"
 }
