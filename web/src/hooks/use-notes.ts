@@ -29,6 +29,7 @@ import {
   updateFolder,
   deleteFolder,
   getCategories,
+  getNoteHistory,
 } from "../api/notes.api";
 import { useNoteStore } from "../states/note.state";
 
@@ -173,62 +174,47 @@ export function useFolderTree() {
 }
 
 export function useCreateFolder() {
-  const queryClient = useQueryClient();
-
+  const client = useQueryClient();
+  const createFolderStore = useNoteStore((s) => s.addFolder);
   return useMutation({
     mutationFn: createFolder,
-    onSuccess: (data) => {
-      // Invalidate folder queries
-      queryClient.invalidateQueries({ queryKey: ["folders"] });
-
-      // Add to folders cache
-      queryClient.setQueryData<{ folders: Folder[]; count: number }>(
-        ["folders"],
-        (old) => {
-          if (!old) return old;
-          return {
-            folders: [...old.folders, data.folder],
-            count: old.count + 1,
-          };
-        }
-      );
+    onSuccess: (data, params) => {
+      createFolderStore({
+        id: data.folder.id,
+        name: params.name,
+        parentId: params.parentId,
+        expanded: false,
+      });
+      client.invalidateQueries({ queryKey: ["folders", "tree"] });
     },
   });
 }
 
 export function useUpdateFolder() {
-  const queryClient = useQueryClient();
-
+  const client = useQueryClient();
+  const updateFolderStore = useNoteStore((s) => s.updateFolder);
   return useMutation({
     mutationFn: updateFolder,
-    onSuccess: (data, variables) => {
-      // Update folders cache
-      queryClient.setQueryData<{ folders: Folder[]; count: number }>(
-        ["folders"],
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            folders: old.folders.map((folder) =>
-              folder.id === variables.id ? data.folder : folder
-            ),
-          };
-        }
-      );
-
-      // Invalidate folder tree
-      queryClient.invalidateQueries({ queryKey: ["folders", "tree"] });
+    onSuccess: (_, params) => {
+      updateFolderStore(params.id, {
+        name: params.name,
+        parentId: params.parentId,
+        expanded: params.expanded,
+      });
+      client.invalidateQueries({ queryKey: ["folders", "tree"] });
     },
   });
 }
 
 export function useDeleteFolder() {
+  const client = useQueryClient();
   const deleteStoreFolder = useNoteStore((s) => s.deleteFolder);
 
   return useMutation({
     mutationFn: deleteFolder,
     onSuccess: (_, folderId) => {
       deleteStoreFolder(folderId);
+      client.invalidateQueries({ queryKey: ["folders", "tree"] });
     },
   });
 }
@@ -238,5 +224,12 @@ export function useCategories() {
   return useQuery({
     queryKey: ["categories"],
     queryFn: getCategories,
+  });
+}
+
+export function useNoteHistory(noteId: number) {
+  return useQuery({
+    queryKey: ["notes", "history", noteId],
+    queryFn: () => getNoteHistory(noteId),
   });
 }

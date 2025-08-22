@@ -45,8 +45,9 @@ export default function NoteEditor({ editor }: Props) {
         <RoleGuard.Consumer>
           {isEditingNote && (
             <RichTextEditor.Toolbar
-              style={{border: "none"}}
+              style={{ border: "none" }}
               bg="var(---mantine-color-dark-4)"
+              m="0"
             >
               <RichTextEditor.ControlsGroup>
                 <RichTextEditor.Bold />
@@ -99,7 +100,7 @@ export default function NoteEditor({ editor }: Props) {
         </RoleGuard.Consumer>
 
         <RichTextEditor.Content
-          onClick={() => isEditingNote && editor.commands.focus("end")}
+          bg="transparent"
           style={{
             cursor: isEditingNote ? "text" : "auto",
             fontSize: "16px",
@@ -109,7 +110,6 @@ export default function NoteEditor({ editor }: Props) {
           }}
         />
       </RichTextEditor>
-      <Box bg="red"></Box>
     </Box>
   );
 }

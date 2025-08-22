@@ -5,15 +5,23 @@ import {
   Badge,
   Text,
   Collapse,
+  Menu,
+  MenuTarget,
+  MenuDropdown,
+  MenuItem,
+  Box,
 } from "@mantine/core";
 import {
   IconFolder,
   IconChevronDown,
   IconChevronRight,
   IconTrash,
+  IconEdit,
+  IconDotsVertical,
 } from "@tabler/icons-react";
 import {
   useDeleteModalStore,
+  useNewFolderModalStore,
   useNoteStore,
 } from "../../../../../../states/note.state";
 import { Folder } from "../../../../../../types/note";
@@ -30,6 +38,7 @@ export default function FolderItem({ folder, level = 0 }: Props) {
   const selectedFolder = useNoteStore((s) => s.selectedFolder);
   const selectFolder = useNoteStore((s) => s.selectFolder);
   const openForFolder = useDeleteModalStore((s) => s.openForFolder);
+  const openEditModal = useNewFolderModalStore((s) => s.openEditModal);
   const [collapsed, setCollapsed] = useState(false);
 
   const folderNotes = storeNotes.filter(
@@ -45,60 +54,79 @@ export default function FolderItem({ folder, level = 0 }: Props) {
   };
 
   return (
-    <div key={folder.id}>
-      <UnstyledButton
-        p="2"
-        style={{
-          width: "100%",
-        }}
-      >
-        <Group justify="space-between" w="100%">
-          <Group
-            gap="xs"
-            onClick={(e) => {
-              e.stopPropagation();
-              selectFolder(folder);
-              setCollapsed((o) => !o);
-            }}
-          >
-            <IconFolder size={16} color={isSelected ? "#339af0" : "#868e96"} />
+    folder && (
+      <Box key={folder.id}>
+        <UnstyledButton
+          p="2"
+          style={{
+            width: "100%",
+          }}
+        >
+          <Group justify="space-between" w="100%">
+            <Group
+              gap="xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                selectFolder(folder);
+                setCollapsed((o) => !o);
+              }}
+            >
+              <IconFolder
+                size={16}
+                color={isSelected ? "#339af0" : "#868e96"}
+              />
 
-            <Text size="sm" fw={isSelected ? 600 : 400}>
-              {folder.name}
-            </Text>
+              <Text size="sm" fw={isSelected ? 600 : 400}>
+                {folder.name}
+              </Text>
 
-            {hasChildren && (
-              <ActionIcon variant="transparent" size="xs">
-                {collapsed ? (
-                  <IconChevronDown size={12} />
-                ) : (
-                  <IconChevronRight size={12} />
-                )}
-              </ActionIcon>
-            )}
+              {hasChildren && (
+                <ActionIcon variant="transparent" size="xs">
+                  {collapsed ? (
+                    <IconChevronDown size={12} />
+                  ) : (
+                    <IconChevronRight size={12} />
+                  )}
+                </ActionIcon>
+              )}
 
-            {hasNotes && (
-              <Badge size="xs" variant="light" color="gray">
-                {folderNotes.length}
-              </Badge>
-            )}
+              {hasNotes && (
+                <Badge size="xs" variant="light" color="gray">
+                  {folderNotes.length}
+                </Badge>
+              )}
+            </Group>
+            <Menu position="right-start">
+              <MenuTarget>
+                <ActionIcon>
+                  <IconDotsVertical size={14} />
+                </ActionIcon>
+              </MenuTarget>
+              <MenuDropdown>
+                <MenuItem
+                  onClick={() => openEditModal(folder.id)}
+                  leftSection={<IconEdit size={12} />}
+                >
+                  Edit
+                </MenuItem>
+                <MenuItem
+                  color="red"
+                  onClick={openDeleteModal}
+                  leftSection={<IconTrash size={12} />}
+                >
+                  Delete
+                </MenuItem>
+              </MenuDropdown>
+            </Menu>
           </Group>
-          <ActionIcon
-            size="xs"
-            c="red"
-            onClick={openDeleteModal}
-            variant="transparent"
-          >
-            <IconTrash size={12} />
-          </ActionIcon>
-        </Group>
-      </UnstyledButton>
+        </UnstyledButton>
 
-      <Collapse in={collapsed} pl="md">
-        {folderChildren?.map((child: Folder) => (
-          <FolderItem key={child.id} folder={child} level={level + 1} />
-        ))}
-      </Collapse>
-    </div>
+        <Collapse in={collapsed} pl="md">
+          {folderChildren?.map((child: Folder) => (
+            <FolderItem key={child.id} folder={child} level={level + 1} />
+          ))}
+        </Collapse>
+      </Box>
+    )
   );
 }

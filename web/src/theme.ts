@@ -1,4 +1,23 @@
-import { createTheme } from "@mantine/core";
+import {
+  createTheme,
+  AppShell,
+  Card,
+  Paper,
+  Button,
+  ActionIcon,
+  Input,
+  TagsInput,
+  Select,
+  Table,
+  Badge,
+  Divider,
+  Modal,
+  Menu,
+  Tabs,
+  Notification,
+  Progress,
+  rem,
+} from "@mantine/core";
 
 export const theme = createTheme({
   // Primary colors - Using dark for consistency
@@ -104,19 +123,39 @@ export const theme = createTheme({
       '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif',
     fontWeight: "600",
     sizes: {
-      h1: { fontSize: "2rem", lineHeight: "1.3" },
-      h2: { fontSize: "1.5rem", lineHeight: "1.35" },
-      h3: { fontSize: "1.25rem", lineHeight: "1.4" },
-      h4: { fontSize: "1.125rem", lineHeight: "1.45" },
-      h5: { fontSize: "1rem", lineHeight: "1.5" },
-      h6: { fontSize: "0.875rem", lineHeight: "1.5" },
+      h1: { fontSize: rem(32), lineHeight: "1.3" },
+      h2: { fontSize: rem(24), lineHeight: "1.35" },
+      h3: { fontSize: rem(20), lineHeight: "1.4" },
+      h4: { fontSize: rem(18), lineHeight: "1.45" },
+      h5: { fontSize: rem(16), lineHeight: "1.5" },
+      h6: { fontSize: rem(14), lineHeight: "1.5" },
     },
   },
 
-  // Component customizations - organized by component type
+  // Design tokens
+  defaultRadius: "md",
+
+  spacing: {
+    xs: rem(8),
+    sm: rem(12),
+    md: rem(16),
+    lg: rem(24),
+    xl: rem(32),
+  },
+
+  shadows: {
+    xs: "0 1px 2px rgba(0, 0, 0, 0.05)",
+    sm: "0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24)",
+    md: "0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06)",
+    lg: "0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05)",
+    xl: "0 20px 25px rgba(0, 0, 0, 0.15), 0 10px 10px rgba(0, 0, 0, 0.04)",
+  },
+
+  // Component extensions using Mantine v8 pattern
   components: {
     // Layout components
-    AppShell: {
+    AppShell: AppShell.extend({
+      defaultProps: {},
       styles: {
         root: {
           backgroundColor: "var(--mantine-color-dark-9)",
@@ -141,10 +180,15 @@ export const theme = createTheme({
           backgroundColor: "var(--mantine-color-dark-9)",
         },
       },
-    },
+    }),
 
     // Surface components
-    Card: {
+    Card: Card.extend({
+      defaultProps: {
+        padding: "md",
+        radius: "md",
+        withBorder: true,
+      },
       styles: {
         root: {
           backgroundColor: "var(--mantine-color-dark-7)",
@@ -160,19 +204,25 @@ export const theme = createTheme({
           },
         },
       },
-    },
+    }),
 
-    Paper: {
+    Paper: Paper.extend({
+      defaultProps: {
+        withBorder: true,
+      },
       styles: {
         root: {
           backgroundColor: "var(--mantine-color-dark-7)",
           border: "1px solid var(--mantine-color-dark-6)",
         },
       },
-    },
+    }),
 
     // Interactive components
-    Button: {
+    Button: Button.extend({
+      defaultProps: {
+        variant: "default",
+      },
       styles: {
         root: {
           fontWeight: 500,
@@ -185,9 +235,12 @@ export const theme = createTheme({
           },
         },
       },
-    },
+    }),
 
-    ActionIcon: {
+    ActionIcon: ActionIcon.extend({
+      defaultProps: {
+        variant: "transparent",
+      },
       styles: {
         root: {
           color: "var(--mantine-color-dark-2)",
@@ -199,10 +252,10 @@ export const theme = createTheme({
           },
         },
       },
-    },
+    }),
 
     // Form components
-    Input: {
+    Input: Input.extend({
       styles: {
         input: {
           backgroundColor: "var(--mantine-color-dark-8)",
@@ -218,9 +271,9 @@ export const theme = createTheme({
           },
         },
       },
-    },
+    }),
 
-    TagsInput: {
+    TagsInput: TagsInput.extend({
       styles: {
         input: {
           backgroundColor: "var(--mantine-color-dark-8)",
@@ -236,9 +289,9 @@ export const theme = createTheme({
           },
         },
       },
-    },
+    }),
 
-    Select: {
+    Select: Select.extend({
       styles: {
         input: {
           backgroundColor: "var(--mantine-color-dark-7)",
@@ -267,12 +320,17 @@ export const theme = createTheme({
           },
         },
       },
-    },
+    }),
 
     // Data display components
-    Table: {
+    Table: Table.extend({
+      defaultProps: {
+        withTableBorder: true,
+        withColumnBorders: false,
+        withRowBorders: true,
+      },
       styles: {
-        root: {
+        table: {
           backgroundColor: "var(--mantine-color-dark-7)",
           borderRadius: "var(--mantine-radius-md)",
           overflow: "hidden",
@@ -294,19 +352,35 @@ export const theme = createTheme({
           },
         },
       },
-    },
+    }),
 
-    Badge: {
+    Badge: Badge.extend({
+      defaultProps: {
+        variant: "light",
+      },
       styles: {
         root: {
           color: "var(--mantine-color-dark-0)",
           border: "1px solid var(--mantine-color-dark-5)",
         },
       },
-    },
+    }),
+
+    Divider: Divider.extend({
+      styles: {
+        root: {
+          borderWidth: "1px",
+          borderColor: "var(--mantine-color-dark-6)",
+        },
+      },
+    }),
 
     // Overlay components
-    Modal: {
+    Modal: Modal.extend({
+      defaultProps: {
+        radius: "lg",
+        shadow: "xl",
+      },
       styles: {
         content: {
           backgroundColor: "var(--mantine-color-dark-7)",
@@ -321,9 +395,13 @@ export const theme = createTheme({
           padding: "var(--mantine-spacing-lg)",
         },
       },
-    },
+    }),
 
-    Menu: {
+    Menu: Menu.extend({
+      defaultProps: {
+        radius: "md",
+        shadow: "xl",
+      },
       styles: {
         dropdown: {
           backgroundColor: "var(--mantine-color-dark-6)",
@@ -339,10 +417,10 @@ export const theme = createTheme({
           },
         },
       },
-    },
+    }),
 
     // Navigation components
-    Tabs: {
+    Tabs: Tabs.extend({
       styles: {
         root: {
           backgroundColor: "transparent",
@@ -361,14 +439,17 @@ export const theme = createTheme({
             fontWeight: 600,
           },
         },
-        tabsList: {
+        list: {
           borderBottom: "1px solid var(--mantine-color-dark-6)",
         },
       },
-    },
+    }),
 
     // Feedback components
-    Notification: {
+    Notification: Notification.extend({
+      defaultProps: {
+        radius: "md",
+      },
       styles: {
         root: {
           backgroundColor: "var(--mantine-color-dark-6)",
@@ -377,89 +458,21 @@ export const theme = createTheme({
           boxShadow: "var(--mantine-shadow-lg)",
         },
       },
-    },
+    }),
 
-    Progress: {
+    Progress: Progress.extend({
+      defaultProps: {
+        radius: "sm",
+      },
       styles: {
         root: {
           backgroundColor: "var(--mantine-color-dark-6)",
           borderRadius: "var(--mantine-radius-sm)",
         },
-        bar: {
+        section: {
           transition: "width 300ms ease",
         },
       },
-    },
-
-    // Search components
-    Spotlight: {
-      styles: {
-        root: {
-          backgroundColor: "var(--mantine-color-dark-6)",
-          border: "1px solid var(--mantine-color-dark-5)",
-          borderRadius: "var(--mantine-radius-lg)",
-        },
-        action: {
-          borderRadius: "var(--mantine-radius-sm)",
-          "&:hover": {
-            backgroundColor: "var(--mantine-color-dark-5)",
-          },
-        },
-      },
-    },
+    }),
   },
-
-  // Design tokens
-  defaultRadius: "md",
-
-  spacing: {
-    xs: "0.5rem",
-    sm: "0.75rem",
-    md: "1rem",
-    lg: "1.5rem",
-    xl: "2rem",
-  },
-
-  shadows: {
-    xs: "0 1px 2px rgba(0, 0, 0, 0.05)",
-    sm: "0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24)",
-    md: "0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06)",
-    lg: "0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05)",
-    xl: "0 20px 25px rgba(0, 0, 0, 0.15), 0 10px 10px rgba(0, 0, 0, 0.04)",
-  },
-
-  // Global styles for smooth interactions
-  globalStyles: () => ({
-    "*": {
-      boxSizing: "border-box",
-    },
-
-    body: {
-      backgroundColor: "var(--mantine-color-dark-9)",
-      color: "var(--mantine-color-dark-0)",
-      fontFamily: "var(--mantine-font-family)",
-    },
-
-    // Custom scrollbars
-    "*::-webkit-scrollbar": {
-      width: "6px",
-      height: "6px",
-    },
-    "*::-webkit-scrollbar-track": {
-      backgroundColor: "var(--mantine-color-dark-8)",
-    },
-    "*::-webkit-scrollbar-thumb": {
-      backgroundColor: "var(--mantine-color-dark-5)",
-      borderRadius: "3px",
-      "&:hover": {
-        backgroundColor: "var(--mantine-color-dark-4)",
-      },
-    },
-
-    // Selection styling
-    "::selection": {
-      backgroundColor: "var(--mantine-color-blue-7)",
-      color: "var(--mantine-color-blue-0)",
-    },
-  }),
 });

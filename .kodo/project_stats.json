@@ -1,9 +1,9 @@
 {
   "project_path": "/mnt/projects/Projects/Programming/KodoBoard",
-  "last_scan_at": "2025-08-21T19:14:19.491877154Z",
+  "last_scan_at": "2025-08-22T15:58:19.892442521Z",
   "git_branch": "main",
-  "git_commit": "97285b8ee8c03b2e82d2826a9623eb335e41a74e",
-  "git_commit_short": "97285b8",
+  "git_commit": "64b09b2d6c39a75a9af45ee302c16cef6ec6feb3",
+  "git_commit_short": "64b09b2",
   "total_items": 5,
   "items_by_status": {
     "done": 2,
@@ -57,20 +57,20 @@
       "type": "TODO",
       "title": "test todo!",
       "file": "web/src/components/AppShell/AppBody/History/index.tsx",
-      "line": 54,
+      "line": 52,
       "status": "done",
       "priority": "medium",
-      "hash": "-7176d7cfcb6de0e9"
+      "hash": "2f1357cf933e6315"
     },
     {
       "id": 5,
       "type": "TODO",
       "title": "implement in zustand and sync with onSuccess fn",
       "file": "web/src/hooks/use-notes.ts",
-      "line": 129,
+      "line": 130,
       "status": "todo",
       "priority": "medium",
-      "hash": "-7e268033d4e53caa"
+      "hash": "7c0968ba6977a500"
     }
   ],
   "branch_history": [
@@ -501,8 +501,81 @@
           }
         ]
       }
+    },
+    {
+      "branch": "main",
+      "commit": "64b09b2d6c39a75a9af45ee302c16cef6ec6feb3",
+      "commit_short": "64b09b2",
+      "commit_message": "implement note history",
+      "timestamp": "2025-08-21T19:17:59.888200316Z",
+      "stats": {
+        "total": 5,
+        "todo": 3,
+        "in_progress": 0,
+        "done": 2,
+        "by_type": {
+          "FEAT": 1,
+          "REVIEW": 1,
+          "TODO": 3
+        },
+        "by_priority": {
+          "medium": 5
+        },
+        "items": [
+          {
+            "id": 1,
+            "type": "REVIEW",
+            "title": "see this",
+            "file": "core/server.go",
+            "line": 163,
+            "status": "todo",
+            "priority": "medium",
+            "hash": "-5a074da11ea41196"
+          },
+          {
+            "id": 2,
+            "type": "TODO",
+            "title": "this is a test todo",
+            "file": "main.go",
+            "line": 14,
+            "status": "done",
+            "priority": "medium",
+            "hash": "-1741add25431a699"
+          },
+          {
+            "id": 3,
+            "type": "FEAT",
+            "title": "store collapse",
+            "file": "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
+            "line": 12,
+            "status": "todo",
+            "priority": "medium",
+            "hash": "67fcec8da9b09d5"
+          },
+          {
+            "id": 4,
+            "type": "TODO",
+            "title": "test todo!",
+            "file": "web/src/components/AppShell/AppBody/History/index.tsx",
+            "line": 54,
+            "status": "done",
+            "priority": "medium",
+            "hash": "-7176d7cfcb6de0e9"
+          },
+          {
+            "id": 5,
+            "type": "TODO",
+            "title": "implement in zustand and sync with onSuccess fn",
+            "file": "web/src/hooks/use-notes.ts",
+            "line": 129,
+            "status": "todo",
+            "priority": "medium",
+            "hash": "-7e268033d4e53caa"
+          }
+        ]
+      }
     }
   ],
   "created_at": "2025-08-18T01:06:39.516646427+03:30",
-  "updated_at": "2025-08-21T19:14:19.492492611Z"
+  "updated_at": "2025-08-22T15:58:19.893098123Z"
 }

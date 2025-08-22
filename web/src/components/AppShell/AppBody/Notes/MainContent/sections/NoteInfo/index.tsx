@@ -9,14 +9,28 @@ import {
   TagsInput,
   Alert,
   Stack,
+  Menu,
+  MenuTarget,
+  MenuDropdown,
+  MenuItem,
 } from "@mantine/core";
-import { IconGitBranch, IconEdit, IconCheck, IconX } from "@tabler/icons-react";
+import {
+  IconGitBranch,
+  IconEdit,
+  IconCheck,
+  IconX,
+  IconHistory,
+} from "@tabler/icons-react";
 import { useState } from "react";
 import { Editor } from "@tiptap/react";
-import { useNoteStore } from "../../../../../../../states/note.state";
+import {
+  useNoteHistoryModalStore,
+  useNoteStore,
+} from "../../../../../../../states/note.state";
 import { RoleGuard } from "../../../../../../Investor";
-import { tagColors } from "../../../constants";
+import { categories, tagColors } from "../../../constants";
 import { useUpdateNote } from "../../../../../../../hooks/use-notes";
+import NoteTitle from "./sections/NoteTitle";
 
 interface Props {
   editor: Editor;
@@ -24,6 +38,7 @@ interface Props {
 
 export default function NoteInfo({ editor }: Props) {
   const allTags = useNoteStore((s) => s.tags);
+  const openHistoryForNote = useNoteHistoryModalStore((s) => s.openForNote);
   const isEditingTags = useNoteStore((s) => s.isEditingTags);
   const setIsEditingTags = useNoteStore((s) => s.setIsEditingTags);
   const setIsEditingNote = useNoteStore((s) => s.setIsEditingNote);
@@ -63,6 +78,27 @@ export default function NoteInfo({ editor }: Props) {
       );
   };
 
+  const updateCategory = (value: string) => {
+    if (selectedNote)
+      mutate(
+        {
+          ...selectedNote,
+          category: value,
+          id: selectedNote?.id!,
+        },
+        {
+          onSuccess() {
+            updateNote(selectedNote?.id!, {
+              ...selectedNote,
+              category: value,
+              updatedAt: new Date(),
+            });
+            setError(null);
+          },
+        }
+      );
+  };
+
   const getCategoryColor = (category: any) => {
     const colors: any = {
       technical: "blue",
@@ -94,12 +130,7 @@ export default function NoteInfo({ editor }: Props) {
         },
         {
           onSuccess() {
-            updateNote(selectedNote?.id!, {
-              ...selectedNote,
-              content: editor?.getHTML() || "",
-              updatedAt: new Date(),
-            });
-            setIsEditingTags(false);
+            setIsEditingNote(false);
             setError(null);
           },
         }
@@ -111,10 +142,13 @@ export default function NoteInfo({ editor }: Props) {
       <Stack
         px="md"
         pb="xs"
+        gap="sm"
         style={{
           minHeight: "auto",
         }}
       >
+        <NoteTitle />
+
         <Group justify="space-between">
           <div style={{ flex: 1 }}>
             <Group gap="sm">
@@ -149,12 +183,20 @@ export default function NoteInfo({ editor }: Props) {
           <RoleGuard.Consumer>
             <Group gap="sm">
               {!isEditingNote ? (
-                <Button
-                  leftSection={<IconEdit size={16} />}
-                  onClick={() => setIsEditingNote(true)}
-                >
-                  Edit
-                </Button>
+                <Group>
+                  <Button
+                    leftSection={<IconHistory size={16} />}
+                    onClick={() => openHistoryForNote(selectedNote)}
+                  >
+                    History
+                  </Button>
+                  <Button
+                    leftSection={<IconEdit size={16} />}
+                    onClick={() => setIsEditingNote(true)}
+                  >
+                    Edit
+                  </Button>
+                </Group>
               ) : (
                 <Group gap="sm">
                   <Button
@@ -179,12 +221,33 @@ export default function NoteInfo({ editor }: Props) {
 
         {/* Tags and Category */}
         <Group gap="sm" h="32px">
-          <Badge
-            color={getCategoryColor(selectedNote.category)}
-            variant="light"
-          >
-            {selectedNote.category}
-          </Badge>
+          <Menu>
+            <MenuTarget>
+              <Badge color={getCategoryColor(selectedNote.category)} pr={0}>
+                <Group align="center" gap="0" justify="space-between">
+                  <Text size="xs">{selectedNote.category}</Text>
+                 <ActionIcon m={0}>
+                   <IconEdit size={12} />
+                 </ActionIcon>
+                </Group>
+              </Badge>
+            </MenuTarget>
+            <MenuDropdown>
+              {categories.map((cat) => (
+                <MenuItem
+                  value={cat.value}
+                  leftSection={
+                    cat.value === selectedNote.category && (
+                      <IconCheck size={12} />
+                    )
+                  }
+                  onClick={() => updateCategory(cat.value)}
+                >
+                  {cat.label}
+                </MenuItem>
+              ))}
+            </MenuDropdown>
+          </Menu>
 
           <Divider orientation="vertical" />
 
@@ -201,6 +264,10 @@ export default function NoteInfo({ editor }: Props) {
                 </Badge>
               ))}
               <RoleGuard.Consumer>
+                {!selectedNote.tags ||
+                  (selectedNote.tags.length === 0 && (
+                    <Text size="xs">Add tags</Text>
+                  ))}
                 <ActionIcon variant="subtle" size="sm" onClick={handleTagsEdit}>
                   <IconEdit size={12} />
                 </ActionIcon>

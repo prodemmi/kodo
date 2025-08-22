@@ -136,7 +136,6 @@ export default function ItemDetailDrawer({
       onClose={() => setDrawerOpened(false)}
       title="Item Details"
       styles={{ title: { fontWeight: "bold", fontSize: "1.25rem" } }}
-      position="right"
       size="xl"
     >
       {selectedItem && (

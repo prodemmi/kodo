@@ -1,9 +1,11 @@
 import { create } from "zustand";
-import { Folder, Note } from "../types/note";
+import { Folder, FolderTree, Note } from "../types/note";
 
 export interface NoteState {
   notes: Note[];
   folders: Folder[];
+
+  folderTree: FolderTree[];
 
   isEditingNote: boolean;
   isEditingTags: boolean;
@@ -38,7 +40,8 @@ export interface NoteState {
 
   // Folder functions
   setFolders: (folders: Folder[]) => Folder[];
-  addFolder: (folder: Omit<Folder, "id">) => void;
+  setFolderTree: (folderTree: FolderTree[]) => FolderTree[];
+  addFolder: (folder: Folder) => void;
   updateFolder: (folderId: number, updatedFields: Partial<Folder>) => void;
   deleteFolder: (folderId: number) => void;
   selectFolder: (folder: Folder | null) => void;
@@ -48,6 +51,8 @@ export interface NoteState {
 export const useNoteStore = create<NoteState>((set, get) => ({
   notes: [],
   folders: [],
+
+  folderTree: [],
 
   isEditingNote: false,
   isEditingTags: false,
@@ -136,16 +141,17 @@ export const useNoteStore = create<NoteState>((set, get) => ({
 
     return folders;
   },
+  setFolderTree: (folderTree) => {
+    set(() => ({
+      folderTree,
+    }));
+
+    return folderTree;
+  },
   addFolder: (folder) =>
     set((state) => {
-      const newFolder: Folder = {
-        ...folder,
-        id: state.folders.length
-          ? state.folders[state.folders.length - 1].id + 1
-          : 1,
-      };
       return {
-        folders: [...state.folders, newFolder],
+        folders: [...state.folders, folder],
         selectedNote: null,
         selectedFolder: null,
       };
@@ -246,11 +252,14 @@ export const useNewNoteModalStore = create<NewNoteModalState>((set) => ({
 
 interface NewFolderModalState {
   isOpen: boolean;
+  editMode: boolean;
+  editFolderId: number | null;
   name: string;
   parentId: number | null;
   error: string | null;
 
   openModal: () => void;
+  openEditModal: (editFolderId: number | null) => void;
   closeModal: () => void;
   setName: (name: string) => void;
   setParentId: (parentId: number | null) => void;
@@ -260,12 +269,16 @@ interface NewFolderModalState {
 
 export const useNewFolderModalStore = create<NewFolderModalState>((set) => ({
   isOpen: false,
+  editMode: false,
+  editFolderId: null,
   name: "",
   parentId: null,
   error: null,
 
   openModal: () => set({ isOpen: true }),
-  closeModal: () => set({ isOpen: false }),
+  openEditModal: (editFolderId: number | null) =>
+    set({ isOpen: true, editMode: true, editFolderId }),
+  closeModal: () => set({ isOpen: false, editMode: false, editFolderId: null }),
   setName: (name) => set({ name }),
   setParentId: (parentId) => set({ parentId }),
   resetForm: () =>
@@ -311,3 +324,33 @@ export const useDeleteModalStore = create<DeleteModalState>((set) => ({
       folderToDelete: null,
     }),
 }));
+
+interface NoteHistoryModalState {
+  isOpen: boolean;
+  note: Note | null;
+
+  // setters
+  open: () => void;
+  openForNote: (note: Note) => void;
+  closeModal: () => void;
+  clear: () => void;
+}
+
+export const useNoteHistoryModalStore = create<NoteHistoryModalState>(
+  (set) => ({
+    isOpen: false,
+    note: null,
+
+    open: () => set({ isOpen: true }),
+
+    openForNote: (note: Note) => set({ isOpen: true, note }),
+
+    closeModal: () => set({ isOpen: false }),
+
+    clear: () =>
+      set({
+        isOpen: false,
+        note: null,
+      }),
+  })
+);

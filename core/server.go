@@ -719,6 +719,7 @@ func (s *Server) handleNoteUpdate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Title is required", http.StatusBadRequest)
 		return
 	}
+	fmt.Println("updateReq", updateReq.ID)
 
 	// Use history-enabled method
 	note, err := s.updateNoteWithHistory(updateReq.ID, updateReq.Title, updateReq.Content, updateReq.Tags, updateReq.Category, updateReq.FolderID)

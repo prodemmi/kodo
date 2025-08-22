@@ -1,17 +1,25 @@
-import { Container, Box, Stack, Flex, Group, Divider } from "@mantine/core";
+import {
+  Container,
+  Box,
+  Stack,
+  Flex,
+  Group,
+  Divider,
+  LoadingOverlay,
+} from "@mantine/core";
 
 import "@mantine/tiptap/styles.css";
 import CreateNoteModal from "./CreateNoteModal";
 import CreateFolderModal from "./CreateFolderModal";
 import MainContent from "./MainContent";
 import NoteList from "./NotesList";
-import TopHeader from "./TopHeader";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import Folders from "./Folders";
 import { useMediaQuery } from "@mantine/hooks";
 import { useFolders, useNotes } from "../../../../hooks/use-notes";
 import { useNoteStore } from "../../../../states/note.state";
 import { useEffect } from "react";
+import HistoryDrawer from "./HistoryModal";
 
 export default function Notes() {
   const isSmall = useMediaQuery("(max-width: 920px)");
@@ -50,6 +58,12 @@ export default function Notes() {
     foldersLoading,
   ]);
 
+  if (notesLoading || foldersLoading) {
+    return (
+      <LoadingOverlay zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+    );
+  }
+
   return (
     <Container
       fluid
@@ -76,7 +90,7 @@ export default function Notes() {
           align="flex-start"
           h="100%"
           style={{
-            width: isSmall ? "auto" : "65dvw",
+            width: isSmall ? "auto" : "45dvw",
             flexDirection: isSmall ? "column" : "row",
           }}
         >
@@ -95,10 +109,7 @@ export default function Notes() {
         </Flex>
 
         {/* Main Content */}
-        <Stack w="100%" p="xs">
-          <TopHeader />
-          <MainContent />
-        </Stack>
+        <MainContent />
       </Box>
 
       {/* Create Note Modal */}
@@ -109,6 +120,9 @@ export default function Notes() {
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal />
+
+      {/* Note History Modal */}
+      <HistoryDrawer />
     </Container>
   );
 }

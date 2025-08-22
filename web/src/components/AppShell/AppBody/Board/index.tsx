@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   DndContext,
   closestCenter,
@@ -21,8 +21,8 @@ import {
   Title,
   Container,
   Paper,
-  Loader,
   Alert,
+  LoadingOverlay,
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { Item } from "../../../../types/item";
@@ -31,7 +31,6 @@ import ItemDetailDrawer from "./sections/ItemDetailDrawer";
 import SortableTask from "./sections/SortableTask";
 import DroppableColumn from "./sections/DroppableColumn";
 
-// Define column structure
 interface Column {
   title: string;
   tasks: Item[];
@@ -207,9 +206,7 @@ export default function Board() {
 
   if (loading) {
     return (
-      <Container size="xl" py="md">
-        <Loader />
-      </Container>
+      <LoadingOverlay zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
     );
   }
 

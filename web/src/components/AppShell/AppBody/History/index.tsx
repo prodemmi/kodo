@@ -22,9 +22,7 @@ import {
   ThemeIcon,
   Accordion,
   Select,
-  Switch,
   LoadingOverlay,
-  Box,
 } from "@mantine/core";
 import {
   IconHistory,
@@ -52,7 +50,7 @@ import {
 import { RoleGuard } from "../../../Investor";
 
 // TODO: test todo!
-// DONE 2025-08-20 21:11 by prodemmi
+// DONE 2025-08-21 19:37 by prodemmi
 export default function History() {
   const [activeTab, setActiveTab] = useState("timeline");
   const [selectedBranch, setSelectedBranch] = useState<string>("all");
@@ -89,19 +87,6 @@ export default function History() {
         return "gray";
       default:
         return "gray";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "done":
-        return IconCheck;
-      case "in-progress":
-        return IconProgress;
-      case "todo":
-        return IconClock;
-      default:
-        return IconClock;
     }
   };
 
@@ -144,7 +129,6 @@ export default function History() {
   if (loading) {
     return (
       <LoadingOverlay
-        visible={loading}
         zIndex={1000}
         overlayProps={{ radius: "sm", blur: 2 }}
       />

@@ -6,6 +6,7 @@ import {
   UnstyledButton,
   Badge,
   ScrollArea,
+  LoadingOverlay,
 } from "@mantine/core";
 import { IconFolderPlus, IconFileText } from "@tabler/icons-react";
 import { RoleGuard } from "../../../../Investor";
@@ -17,17 +18,32 @@ import {
 import { Folder } from "../../../../../types/note";
 import { useMediaQuery } from "@mantine/hooks";
 import { useFolderTree } from "../../../../../hooks/use-notes";
+import { useEffect } from "react";
 
 export default function Folders() {
   const storeNotes = useNoteStore((s) => s.notes);
+  const folderTree = useNoteStore((s) => s.folderTree);
+  const setFolderTree = useNoteStore((s) => s.setFolderTree);
   const selectFolder = useNoteStore((s) => s.selectFolder);
   const selectedFolder = useNoteStore((s) => s.selectedFolder);
   const setIsFolderModalOpen = useNewFolderModalStore((s) => s.openModal);
   const isSmall = useMediaQuery("(max-width: 920px)");
-  const { data: folders } = useFolderTree();
+  const { data: remoteFolderTree, isError, isPending } = useFolderTree();
+
+  useEffect(() => {
+    if (!isError && !isPending) {
+      setFolderTree(remoteFolderTree.tree);
+    }
+  }, [remoteFolderTree, isError, isPending, setFolderTree]);
+
+  if (isPending) return <LoadingOverlay />;
 
   return (
-    <ScrollArea h={isSmall ? undefined : "100%"} miw={isSmall ? "100%" : "40%"} py="xs">
+    <ScrollArea
+      h={isSmall ? undefined : "100%"}
+      miw={isSmall ? "100%" : "40%"}
+      py="xs"
+    >
       <Box px="2" h={isSmall ? undefined : "100%"}>
         <Group justify="space-between" mb="sm">
           <Text size="sm" fw={600} c="dimmed">
@@ -65,9 +81,9 @@ export default function Folders() {
           </Group>
         </UnstyledButton>
 
-        {folders &&
-          folders.count > 0 &&
-          folders.tree.map((folder: Folder) => (
+        {folderTree &&
+          folderTree.length > 0 &&
+          folderTree.map((folder: Folder) => (
             <FolderItem key={folder.id} folder={folder} level={0} />
           ))}
       </Box>

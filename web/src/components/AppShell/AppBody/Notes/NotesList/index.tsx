@@ -21,7 +21,6 @@ import {
 } from "@mantine/core";
 import {
   IconDotsVertical,
-  IconEdit,
   IconTrash,
   IconGitBranch,
   IconFileText,
@@ -40,7 +39,7 @@ import {
 import { useMediaQuery } from "@mantine/hooks";
 import { useMemo, useRef } from "react";
 import debounce from "lodash.debounce";
-import { selectHasSearch } from "../../../../../states/note.selector";
+import { selectHasSearch } from '../../../../../states/note.selector';
 
 export default function NoteList() {
   const notes = useNoteStore((s) => s.notes);
@@ -149,7 +148,7 @@ export default function NoteList() {
         {notesInDirectory && notesInDirectory.length > 0 && (
           <Popover position="right-start">
             <PopoverTarget>
-              <ActionIcon size="sm">
+              <ActionIcon size="sm" c={hasSearch ? "blue" : undefined}>
                 <IconFilter size={14} />
               </ActionIcon>
             </PopoverTarget>
@@ -237,16 +236,6 @@ export default function NoteList() {
                     </Menu.Target>
                     <Menu.Dropdown>
                       <Menu.Item
-                        leftSection={<IconEdit size={14} />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          selectNote(note);
-                          setIsEditingNote(true);
-                        }}
-                      >
-                        Edit
-                      </Menu.Item>
-                      <Menu.Item
                         leftSection={<IconTrash size={14} />}
                         color="red"
                         onClick={(e) => {
@@ -270,6 +259,7 @@ export default function NoteList() {
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
+                  whiteSpace: "pre"
                 }}
               >
                 {note.content.replace(/<[^>]*>/g, "")}
@@ -321,7 +311,7 @@ export default function NoteList() {
             </Card>
           ))}
 
-          {filteredNotes.length === 0 && (
+          {filteredNotes.length === 0 ? (
             <Card padding="lg">
               <Stack align="center" gap="sm">
                 <IconFileText size={48} color="#ced4da" />
@@ -341,6 +331,17 @@ export default function NoteList() {
                 </Button>
               </Stack>
             </Card>
+          ) : (
+            <RoleGuard.Consumer>
+              <Button
+                size="sm"
+                w="100%"
+                leftSection={<IconPlus size={20} />}
+                onClick={openNewNoteModal}
+              >
+                Create New Note
+              </Button>
+            </RoleGuard.Consumer>
           )}
         </Box>
       </ScrollArea>

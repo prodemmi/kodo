@@ -1,17 +1,22 @@
 import { ProjectFile } from "../types/chat";
+import api from "../utils/api";
 
 export const getFiles = async (
   dir: string | null,
   search: string | null
 ): Promise<ProjectFile[]> => {
-  const params = new URLSearchParams();
-  if (dir) params.set("dir", dir);
-  if (search) params.set("search", search);
+  try {
+    const params: Record<string, string> = {};
+    if (dir) params.dir = dir;
+    if (search) params.search = search;
 
-  const response = await fetch(
-    `http://localhost:8080/api/chat/project-files?${params.toString()}`
-  );
+    const response = await api.get<ProjectFile[]>("/chat/project-files", {
+      params,
+    });
 
-  if (!response.ok) throw new Error("Failed to load project-files");
-  return await response.json();
+    return response.data;
+  } catch (error: any) {
+    // Axios interceptor already shows notification
+    throw new Error(error.response?.data?.message || "Failed to load project files");
+  }
 };

@@ -57,7 +57,7 @@ export default function DroppableColumn({ columnId, header, children }: Props) {
       <Group
         style={groupStyles}
         justify="space-between"
-        mb={collapsed ? undefined : "lg"}
+        mb={collapsed ? undefined : "md"}
       >
         {header}
         <ActionIcon

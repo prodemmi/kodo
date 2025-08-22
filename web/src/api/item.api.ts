@@ -1,44 +1,42 @@
 import { Item, ItemContext, OpenFileResponse } from "../types/item";
+import api from "../utils/api";
 
 export const getItems = async (): Promise<Item[]> => {
-  const response = await fetch(`http://localhost:8080/api/items`);
-  return await response.json();
+  const response = await api.get<Item[]>("/items");
+  return response.data;
 };
 
 export const getItem = async (id: number): Promise<Item> => {
-  const response = await fetch(`http://localhost:8080/api/items/${id}`);
-  return await response.json();
+  const response = await api.get<Item>(`/items/${id}`);
+  return response.data;
 };
 
 export const getItemContext = async (
   file: string,
   line: number
 ): Promise<ItemContext> => {
-  const response = await fetch(`http://localhost:8080/api/get-context`, {
-    method: "POST",
-    body: JSON.stringify({ file, line }),
-  });
-  return await response.json();
+  const response = await api.post<ItemContext>("/get-context", { file, line });
+  return response.data;
 };
 
 export const updateItem = async (
   id: number,
   status: string
 ): Promise<OpenFileResponse> => {
-  const response = await fetch(`http://localhost:8080/api/items/update`, {
-    method: "PUT",
-    body: JSON.stringify({ id, status }),
+  const response = await api.put<OpenFileResponse>("/items/update", {
+    id,
+    status,
   });
-  return await response.json();
+  return response.data;
 };
 
 export const openFile = async (
   file: string,
   line: number
 ): Promise<OpenFileResponse> => {
-  const response = await fetch(`http://localhost:8080/api/open-file`, {
-    method: "POST",
-    body: JSON.stringify({ file, line }),
+  const response = await api.post<OpenFileResponse>("/open-file", {
+    file,
+    line,
   });
-  return await response.json();
+  return response.data;
 };

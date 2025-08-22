@@ -13,6 +13,7 @@ import { useMemo } from "react";
 import NoteInfo from "./sections/NoteInfo";
 import WelcomeState from "./sections/WelcomeState";
 import NoteEditor from "./sections/NoteEditor";
+import { Stack } from "@mantine/core";
 
 export default function MainContent() {
   const selectedNote = useNoteStore((s) => s.selectedNote);
@@ -37,11 +38,12 @@ export default function MainContent() {
   });
 
   return (
-    <div
+    <Stack
+      w="100%"
+      gap="xs"
+      p="xs"
+      flex={1}
       style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
         overflow: "hidden",
       }}
     >
@@ -57,6 +59,6 @@ export default function MainContent() {
         /* Welcome State */
         <WelcomeState />
       )}
-    </div>
+    </Stack>
   );
 }

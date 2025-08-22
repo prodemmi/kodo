@@ -4,6 +4,7 @@ import Board from "./Board";
 import History from "./History";
 import Settings from "./Settings";
 import Notes from "./Notes";
+import StickyView from "./Notes/StickyView";
 
 const tabs = [<Board />, /*<Chat />,*/ <Notes />, <History />, <Settings />];
 

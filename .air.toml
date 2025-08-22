@@ -1,13 +1,11 @@
 [build]
-cmd = "./build.sh"
-bin = "kodo"
-include_ext = ["go", "ts", "tsx", "css", "html"]
-
+cmd = "go build -o kodo ./main.go"
+bin = "./kodo"
+include_ext = ["go"]
 exclude_dir = [
     "tmp",
-    "web/node_modules/",
-    "web/dist/",
-    "web/tmp/"
+    ".kodo",
+    "web",
 ]
 
 [build.color]

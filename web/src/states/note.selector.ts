@@ -20,9 +20,7 @@ export const selectFilteredNotes = (s: NoteState) => {
 };
 
 export const selectHasSearch = (s: NoteState) =>
-  Boolean(
-    s.searchQuery?.trim() ||
-      (s.searchTags && s.searchTags.length) ||
-      s.filterCategory ||
-      s.selectedFolder
-  );
+  s.searchQuery?.trim() ||
+  (s.searchTags && s.searchTags.length) ||
+  s.filterCategory ||
+  s.selectedFolder;

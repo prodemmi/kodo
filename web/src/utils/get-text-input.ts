@@ -1,17 +1,14 @@
-
-
 export function getInputWidth(value: string, font: string = "16px Arial") {
   // create virtual span
-  const span = document.createElement("span");
-  span.style.visibility = "hidden";
-  span.style.position = "absolute";
-  span.style.whiteSpace = "pre";
-  span.style.font = font;
-  span.textContent = value || " "; // use a space if empty
-  document.body.appendChild(span);
+  const input = document.createElement("input");
+  input.style.visibility = "hidden";
+  input.style.position = "absolute";
+  input.style.font = font;
+  input.value = value || " ";
+  document.body.appendChild(input);
 
-  const width = span.offsetWidth + 8; // add some padding
-  document.body.removeChild(span);
+  const width = input.offsetWidth + 8;
+  document.body.removeChild(input);
 
-  return Math.max(width, 32); // minimum width
+  return Math.max(width, 32);
 }

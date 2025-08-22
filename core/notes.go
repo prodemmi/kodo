@@ -469,12 +469,10 @@ func (s *Server) updateFolder(id int, name string, parentId *int, expanded *bool
 	if name != "" {
 		storage.Folders[folderIndex].Name = name
 	}
-	if parentId != nil {
-		storage.Folders[folderIndex].ParentID = parentId
-	}
 	if expanded != nil {
 		storage.Folders[folderIndex].Expanded = *expanded
 	}
+	storage.Folders[folderIndex].ParentID = parentId
 
 	if err := s.saveNoteStorage(storage); err != nil {
 		return nil, err
@@ -884,6 +882,7 @@ func (s *Server) updateNoteWithHistory(id int, title, content string, tags []str
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("changes")
 
 	// Find the note
 	noteIndex := -1
@@ -1068,6 +1067,7 @@ func (s *Server) getNoteHistory(filter NoteHistoryFilter) ([]NoteHistoryEntry, e
 
 		filteredHistory = append(filteredHistory, entry)
 	}
+	fmt.Println("filteredHistory", filteredHistory)
 
 	// Sort by timestamp descending (most recent first)
 	sort.Slice(filteredHistory, func(i, j int) bool {
