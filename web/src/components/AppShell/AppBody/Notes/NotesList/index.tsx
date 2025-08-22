@@ -28,6 +28,9 @@ import {
   IconFilter,
   IconSearch,
   IconTags,
+  IconPin,
+  IconPinned,
+  IconPinFilled,
 } from "@tabler/icons-react";
 import { RoleGuard } from "../../../../Investor";
 import { categories, tagColors } from "../constants";
@@ -39,12 +42,14 @@ import {
 import { useMediaQuery } from "@mantine/hooks";
 import { useMemo, useRef } from "react";
 import debounce from "lodash.debounce";
-import { selectHasSearch } from '../../../../../states/note.selector';
+import { selectHasSearch } from "../../../../../states/note.selector";
 
 export default function NoteList() {
   const notes = useNoteStore((s) => s.notes);
   const selectedNote = useNoteStore((s) => s.selectedNote);
   const setIsEditingNote = useNoteStore((s) => s.setIsEditingNote);
+  const togglePinNote = useNoteStore((s) => s.togglePinNote);
+  const isPinned = useNoteStore((s) => s.isPinned);
   const selectNote = useNoteStore((s) => s.selectNote);
   const selectedFolder = useNoteStore((s) => s.selectedFolder);
   const openForNote = useDeleteModalStore((s) => s.openForNote);
@@ -137,13 +142,13 @@ export default function NoteList() {
 
   return (
     <Stack
-      w="100%"
-      miw={"250px"}
-      py="xs"
+      w="60%"
+      p="sm"
+      pt="md"
       gap="xs"
       style={{ height: "calc(100dvh - 44px)" }}
     >
-      <Group justify="space-between" w="100%" px="xs">
+      <Group justify="space-between" w="100%">
         <Title size="h6">{selectedFolder?.name || "All Notes"}</Title>
         {notesInDirectory && notesInDirectory.length > 0 && (
           <Popover position="right-start">
@@ -201,7 +206,7 @@ export default function NoteList() {
       </Group>
 
       <ScrollArea style={{ flex: 1 }} h={isSmall ? undefined : "100%"}>
-        <Box p="xs" pr="xs">
+        <Box pr="xs">
           {filteredNotes.map((note: any) => (
             <Card
               key={note.id}
@@ -223,31 +228,47 @@ export default function NoteList() {
                 <Text fw={500} size="sm" style={{ flex: 1 }} truncate>
                   {note.title}
                 </Text>
-                <RoleGuard.Consumer>
-                  <Menu>
-                    <Menu.Target>
-                      <ActionIcon
-                        variant="subtle"
-                        size="sm"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <IconDotsVertical size={14} />
-                      </ActionIcon>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <Menu.Item
-                        leftSection={<IconTrash size={14} />}
-                        color="red"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openForNote(note);
-                        }}
-                      >
-                        Delete
-                      </Menu.Item>
-                    </Menu.Dropdown>
-                  </Menu>
-                </RoleGuard.Consumer>
+                <Group gap="xs">
+                  <ActionIcon
+                    variant="subtle"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      togglePinNote(note.id);
+                    }}
+                  >
+                    {isPinned(note.id) ? (
+                      <IconPinFilled size={14} />
+                    ) : (
+                      <IconPin size={14} />
+                    )}
+                  </ActionIcon>
+                  <RoleGuard.Consumer>
+                    <Menu>
+                      <Menu.Target>
+                        <ActionIcon
+                          variant="subtle"
+                          size="sm"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <IconDotsVertical size={14} />
+                        </ActionIcon>
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <Menu.Item
+                          leftSection={<IconTrash size={14} />}
+                          color="red"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openForNote(note);
+                          }}
+                        >
+                          Delete
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
+                  </RoleGuard.Consumer>
+                </Group>
               </Group>
 
               <Text
@@ -259,7 +280,7 @@ export default function NoteList() {
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
-                  whiteSpace: "pre"
+                  whiteSpace: "pre",
                 }}
               >
                 {note.content.replace(/<[^>]*>/g, "")}

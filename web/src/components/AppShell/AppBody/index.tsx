@@ -11,8 +11,8 @@ export default function AppBody() {
 
   return (
     <AppShell.Main
-      px="xs"
-      py="calc(var(--app-shell-header-offset, 0rem))"
+      pt="calc(var(--app-shell-header-offset, 0rem))"
+      px="0"
       pb="0"
     >
       {tabs[activeTab] || null}

@@ -141,3 +141,5 @@ export const getNoteHistory = async (noteId: number) => {
   const response = await api.get<NoteHistoryResponse>(`/notes/history?noteId=${noteId}`);
   return response.data;
 };
+
+// TODO: implement note pin in backend

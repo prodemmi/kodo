@@ -147,39 +147,8 @@ export default function NoteInfo({ editor }: Props) {
           minHeight: "auto",
         }}
       >
-        <NoteTitle />
-
         <Group justify="space-between">
-          <div style={{ flex: 1 }}>
-            <Group gap="sm">
-              <Group gap="xs">
-                <Avatar size={24} color="blue">
-                  {selectedNote.author.charAt(0).toUpperCase()}
-                </Avatar>
-                <div>
-                  <Text size="sm" fw={500}>
-                    {selectedNote.author}
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    Created {formatDate(selectedNote.createdAt)}
-                    {selectedNote.updatedAt > selectedNote.createdAt &&
-                      ` • Updated ${formatDate(selectedNote.updatedAt)}`}
-                  </Text>
-                </div>
-              </Group>
-              <Divider orientation="vertical" />
-              <Group gap="xs">
-                <IconGitBranch size={16} color="#868e96" />
-                <Text size="sm" c="dimmed">
-                  {selectedNote.gitBranch}
-                </Text>
-                <Text size="xs" c="dimmed">
-                  ({selectedNote.gitCommit})
-                </Text>
-              </Group>
-            </Group>
-          </div>
-
+          <NoteTitle />
           <RoleGuard.Consumer>
             <Group gap="sm">
               {!isEditingNote ? (
@@ -219,6 +188,36 @@ export default function NoteInfo({ editor }: Props) {
           </RoleGuard.Consumer>
         </Group>
 
+        <Group justify="space-between">
+          <Group gap="sm" align="flex-start">
+            <Group gap="xs">
+              <Avatar size={24} color="blue">
+                {selectedNote.author.charAt(0).toUpperCase()}
+              </Avatar>
+              <div>
+                <Text size="sm" fw={500}>
+                  {selectedNote.author}
+                </Text>
+                <Text size="xs" c="dimmed">
+                  Created {formatDate(selectedNote.createdAt)}
+                  {selectedNote.updatedAt > selectedNote.createdAt &&
+                    ` • Updated ${formatDate(selectedNote.updatedAt)}`}
+                </Text>
+              </div>
+            </Group>
+            <Divider orientation="vertical" />
+            <Group gap="xs">
+              <IconGitBranch size={16} color="#868e96" />
+              <Text size="sm" c="dimmed">
+                {selectedNote.gitBranch}
+              </Text>
+              <Text size="xs" c="dimmed">
+                ({selectedNote.gitCommit})
+              </Text>
+            </Group>
+          </Group>
+        </Group>
+
         {/* Tags and Category */}
         <Group gap="sm" h="32px">
           <Menu>
@@ -226,9 +225,9 @@ export default function NoteInfo({ editor }: Props) {
               <Badge color={getCategoryColor(selectedNote.category)} pr={0}>
                 <Group align="center" gap="0" justify="space-between">
                   <Text size="xs">{selectedNote.category}</Text>
-                 <ActionIcon m={0}>
-                   <IconEdit size={12} />
-                 </ActionIcon>
+                  <ActionIcon m={0}>
+                    <IconEdit size={12} />
+                  </ActionIcon>
                 </Group>
               </Badge>
             </MenuTarget>

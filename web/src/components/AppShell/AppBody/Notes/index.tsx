@@ -65,35 +65,15 @@ export default function Notes() {
   }
 
   return (
-    <Container
-      fluid
-      p="0"
-      m="0"
-      style={{
-        height: "calc(100dvh - 52px)",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* Top Header */}
-      <Box
-        style={{
-          display: "flex",
-          flex: 1,
-          overflow: "hidden",
-        }}
-        h="100dvh"
+    <>
+      <Flex
+        gap="0"
+        h="calc(100dvh - 52px)"
+        align="stretch"
+        justify="space-between"
+        direction={isSmall ? "column" : "row"}
       >
-        {/* Sidebar */}
-        <Flex
-          gap="xs"
-          align="flex-start"
-          h="100%"
-          style={{
-            width: isSmall ? "auto" : "45dvw",
-            flexDirection: isSmall ? "column" : "row",
-          }}
-        >
+        <Flex align="stretch" justify="space-between" w="40%">
           {/* Folders */}
           <Folders />
 
@@ -110,7 +90,7 @@ export default function Notes() {
 
         {/* Main Content */}
         <MainContent />
-      </Box>
+      </Flex>
 
       {/* Create Note Modal */}
       <CreateNoteModal />
@@ -123,6 +103,6 @@ export default function Notes() {
 
       {/* Note History Modal */}
       <HistoryDrawer />
-    </Container>
+    </>
   );
 }

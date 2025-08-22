@@ -11,7 +11,7 @@ import Highlight from "@tiptap/extension-highlight";
 import TaskItem from "@tiptap/extension-task-item";
 import TipTapTaskList from "@tiptap/extension-task-list";
 import { createLowlight } from "lowlight";
-import { useMemo, } from "react";
+import { useMemo } from "react";
 import { Stack } from "@mantine/core";
 import NoteInfo from "./sections/NoteInfo";
 import WelcomeState from "./sections/WelcomeState";
@@ -28,7 +28,7 @@ export default function MainContent() {
       Underline,
       Link.configure({
         HTMLAttributes: {
-          class: 'editor-link',
+          class: "editor-link",
         },
       }),
       Superscript,
@@ -51,19 +51,10 @@ export default function MainContent() {
     onUpdate: ({ editor }) => {
       // Handle content updates if needed
     },
-  })
+  });
 
   return (
-    <Stack
-      w="100%"
-      gap="xs"
-      p="xs"
-      flex={1}
-      style={{
-        overflow: "hidden",
-        position: 'relative'
-      }}
-    >
+    <Stack gap="xs" p="xs" flex={1}>
       {selectedNote ? (
         <>
           {/* Editor Header */}

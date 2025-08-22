@@ -4,6 +4,7 @@ import { Folder, FolderTree, Note } from "../types/note";
 export interface NoteState {
   notes: Note[];
   folders: Folder[];
+  pinnedNotes: [];
 
   folderTree: FolderTree[];
 
@@ -46,11 +47,17 @@ export interface NoteState {
   deleteFolder: (folderId: number) => void;
   selectFolder: (folder: Folder | null) => void;
   toggleFolder: (folderId: number | null) => void;
+
+  togglePinNote: (noteId: number) => void;
+  getPinnedNotes: () => Note[];
+  getUnpinnedNotes: () => Note[];
+  isPinned: (noteId: number) => boolean;
 }
 
 export const useNoteStore = create<NoteState>((set, get) => ({
   notes: [],
   folders: [],
+  pinnedNotes: [],
 
   folderTree: [],
 
@@ -206,6 +213,31 @@ export const useNoteStore = create<NoteState>((set, get) => ({
           : null,
       };
     }),
+
+  togglePinNote: (noteId: number) => {
+    set((state) => ({
+      notes: state.notes.map((note) =>
+        note.id === noteId ? { ...note, pinned: !note.pinned } : note
+      ),
+    }));
+  },
+
+  // Get pinned notes
+  getPinnedNotes: () => {
+    const { notes } = get();
+    return notes.filter((note) => note.pinned);
+  },
+
+  // Get unpinned notes
+  getUnpinnedNotes: () => {
+    const { notes } = get();
+    return notes.filter((note) => !note.pinned);
+  },
+  // Get is pinned note
+  isPinned: (noteId: number) => {
+    const { notes } = get();
+    return !!notes.find((note) => note.id === noteId && note.pinned);
+  },
 }));
 
 interface NewNoteModalState {

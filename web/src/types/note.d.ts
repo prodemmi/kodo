@@ -10,6 +10,7 @@ export interface Note {
   folderId: number | null;
   gitBranch?: string;
   gitCommit?: string;
+  pinned?: boolean;
 }
 
 export interface Folder {

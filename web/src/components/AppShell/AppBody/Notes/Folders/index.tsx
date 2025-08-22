@@ -7,18 +7,25 @@ import {
   Badge,
   ScrollArea,
   LoadingOverlay,
+  Title,
+  Divider,
 } from "@mantine/core";
-import { IconFolderPlus, IconFileText } from "@tabler/icons-react";
+import {
+  IconFolderPlus,
+  IconFileText,
+  IconPinFilled,
+} from "@tabler/icons-react";
 import { RoleGuard } from "../../../../Investor";
 import FolderItem from "./FolderItem";
 import {
   useNewFolderModalStore,
   useNoteStore,
 } from "../../../../../states/note.state";
-import { Folder } from "../../../../../types/note";
+import { Folder, Note } from "../../../../../types/note";
 import { useMediaQuery } from "@mantine/hooks";
 import { useFolderTree } from "../../../../../hooks/use-notes";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import PinnedNoteItem from "../PinnedNoteItem";
 
 export default function Folders() {
   const storeNotes = useNoteStore((s) => s.notes);
@@ -30,6 +37,16 @@ export default function Folders() {
   const isSmall = useMediaQuery("(max-width: 920px)");
   const { data: remoteFolderTree, isError, isPending } = useFolderTree();
 
+  // Get pinned and unpinned notes
+  const pinnedNotes = useMemo(
+    () => storeNotes.filter((note) => note.pinned),
+    [storeNotes]
+  );
+  const unpinnedNotes = useMemo(
+    () => storeNotes.filter((note) => !note.pinned),
+    [storeNotes]
+  );
+
   useEffect(() => {
     if (!isError && !isPending) {
       setFolderTree(remoteFolderTree.tree);
@@ -39,16 +56,10 @@ export default function Folders() {
   if (isPending) return <LoadingOverlay />;
 
   return (
-    <ScrollArea
-      h={isSmall ? undefined : "100%"}
-      miw={isSmall ? "100%" : "40%"}
-      py="xs"
-    >
-      <Box px="2" h={isSmall ? undefined : "100%"}>
+    <ScrollArea h={isSmall ? undefined : "100%"} w="40%" p="sm" pt="md">
+      <Box h={isSmall ? undefined : "100%"}>
         <Group justify="space-between" mb="sm">
-          <Text size="sm" fw={600} c="dimmed">
-            FOLDERS
-          </Text>
+          <Title size="h6">Folders</Title>
           <RoleGuard.Consumer>
             <ActionIcon
               variant="subtle"
@@ -60,11 +71,30 @@ export default function Folders() {
           </RoleGuard.Consumer>
         </Group>
 
+        {/* Pinned Notes Section */}
+        {pinnedNotes.length > 0 && (
+          <>
+            <Group gap="xs" mb="xs">
+              <IconPinFilled size={16} color="#339af0" />
+              <Text size="sm" fw={500} c="blue">
+                Pinned Notes
+              </Text>
+              <Badge size="xs" variant="light" color="blue">
+                {pinnedNotes.length}
+              </Badge>
+            </Group>
+
+            {pinnedNotes.map((note: Note) => (
+              <PinnedNoteItem key={note.id} note={note} />
+            ))}
+
+            <Divider my="md" />
+          </>
+        )}
+
+        {/* All Notes Button */}
         <UnstyledButton
-          p="2"
-          style={{
-            width: "100%",
-          }}
+          style={{ width: "100%" }}
           onClick={() => selectFolder(null)}
         >
           <Group gap="xs">
@@ -72,7 +102,7 @@ export default function Folders() {
               size={16}
               color={selectedFolder === null ? "#339af0" : "#868e96"}
             />
-            <Text size="sm" fw={selectedFolder === null ? 600 : 400}>
+            <Text size="sm" fw={400}>
               All Notes
             </Text>
             <Badge size="xs" variant="light" color="gray">
@@ -81,6 +111,7 @@ export default function Folders() {
           </Group>
         </UnstyledButton>
 
+        {/* Folder Tree */}
         {folderTree &&
           folderTree.length > 0 &&
           folderTree.map((folder: Folder) => (

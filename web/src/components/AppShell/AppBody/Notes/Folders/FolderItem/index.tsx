@@ -57,7 +57,6 @@ export default function FolderItem({ folder, level = 0 }: Props) {
     folder && (
       <Box key={folder.id}>
         <UnstyledButton
-          p="2"
           style={{
             width: "100%",
           }}
@@ -76,7 +75,7 @@ export default function FolderItem({ folder, level = 0 }: Props) {
                 color={isSelected ? "#339af0" : "#868e96"}
               />
 
-              <Text size="sm" fw={isSelected ? 600 : 400}>
+              <Text size="sm" fw={400}>
                 {folder.name}
               </Text>
 

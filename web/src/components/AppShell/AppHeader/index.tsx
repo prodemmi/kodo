@@ -27,7 +27,7 @@ export default function AppHeader({}: Props) {
             }
             onClick={() => setActiveTab(0)}
           >
-            Board
+            Kanban
           </Button>
           {/* <Button
              bg={
