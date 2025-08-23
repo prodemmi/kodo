@@ -448,6 +448,9 @@ export const theme = createTheme({
         radius: "md",
       },
       styles: {
+        title: {
+          backgroundColor: "var(--mantine-color-dark-0)",
+        },
         root: {
           backgroundColor: "var(--mantine-color-dark-6)",
           border: "1px solid var(--mantine-color-dark-5)",
