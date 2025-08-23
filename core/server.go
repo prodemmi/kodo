@@ -5,6 +5,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -15,6 +16,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/common-nighthawk/go-figure"
+	"github.com/fatih/color"
 	"go.uber.org/zap"
 )
 
@@ -153,13 +156,52 @@ func (s *Server) StartServer() {
 	http.Handle("/api/chat/project-files", cors(http.HandlerFunc(s.handleProjectFiles)))
 
 	port := 8080
-	url := fmt.Sprintf("http://localhost:%d", port)
-	fmt.Println("Server running at", url)
-	s.logger.Info("found items in the project", zap.Int("length", s.scanner.GetItemsLength()))
+	url := fmt.Sprintf("http://%s:%d", s.getLocalIP(), port)
+	s.showServerInfo(url)
+
+	s.logger.Debug("found items in the project", zap.Int("length", s.scanner.GetItemsLength()))
 
 	s.scanner.LoadExistingStats()
 
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+}
+
+func (s *Server) getLocalIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "127.0.0.1"
+	}
+
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok && ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return "127.0.0.1"
+}
+
+func (s *Server) showServerInfo(url string) {
+	// Banner
+	banner := figure.NewFigure("KODO", "o8", true)
+	color.Cyan(banner.String())
+
+	fmt.Println()
+
+	fmt.Println(color.GreenString("======================================"))
+
+	if s.config.Flags.Config != ".kodo" && s.config.Flags.Config != "./.kodo" {
+		fmt.Println(color.YellowString("▶ Config Path: %s", s.config.Flags.Config))
+	}
+
+	if s.config.Flags.Investor {
+		fmt.Println(color.BlueString("▶ Investor Mode: Enabled"))
+	}
+
+	fmt.Println(color.GreenString("▶ Running at: %s", url))
+
+	fmt.Println(color.GreenString("======================================"))
 }
 
 func (s *Server) handleInvestor(w http.ResponseWriter, r *http.Request) {

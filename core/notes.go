@@ -747,7 +747,6 @@ func (s *Server) loadEnhancedNoteStorage() (*EnhancedNoteStorage, error) {
 	}
 
 	filePath := s.getNotesFilePath()
-	fmt.Println("filePath", filePath)
 
 	// If file doesn't exist, create empty storage
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
