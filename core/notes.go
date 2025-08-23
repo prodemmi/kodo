@@ -24,7 +24,7 @@ type NoteStorage struct {
 // ensureNotesDir creates the notes directory if it doesn't exist
 func (s *Server) ensureNotesDir() error {
 	wd, _ := os.Getwd()
-	notesDir := filepath.Join(wd, ".kodo")
+	notesDir := filepath.Join(wd, s.config.Flags.Config)
 
 	if err := os.MkdirAll(notesDir, 0755); err != nil {
 		return fmt.Errorf("failed to create notes directory: %v", err)
@@ -36,7 +36,7 @@ func (s *Server) ensureNotesDir() error {
 // getNotesFilePath returns the path to the notes storage file
 func (s *Server) getNotesFilePath() string {
 	wd, _ := os.Getwd()
-	return filepath.Join(wd, ".kodo", "notes.json")
+	return filepath.Join(wd, s.config.Flags.Config, "notes.json")
 }
 
 // loadNoteStorage loads the note storage from file
@@ -747,6 +747,7 @@ func (s *Server) loadEnhancedNoteStorage() (*EnhancedNoteStorage, error) {
 	}
 
 	filePath := s.getNotesFilePath()
+	fmt.Println("filePath", filePath)
 
 	// If file doesn't exist, create empty storage
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {

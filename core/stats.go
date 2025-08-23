@@ -76,7 +76,7 @@ type ProjectTracker struct {
 // NewProjectTracker creates a new project tracker
 func NewProjectTracker(config Config, scanner *Scanner, logger *zap.Logger) *ProjectTracker {
 	wd, _ := os.Getwd()
-	kodoDir := filepath.Join(wd, ".kodo")
+	kodoDir := filepath.Join(wd, config.Flags.Config)
 
 	return &ProjectTracker{
 		config:      config,

@@ -12,7 +12,7 @@ type Flags struct {
 func NewDefaultConfig() Config {
 	return Config{
 		Flags: Flags{
-			Config:   "./kodo",
+			Config:   "./.kodo",
 			Investor: false,
 		},
 	}
