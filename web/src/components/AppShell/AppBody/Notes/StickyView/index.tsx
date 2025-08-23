@@ -190,7 +190,7 @@ function StickyNoteCard({
         <ActionIcon
           size="sm"
           variant="subtle"
-          color="blue"
+          
           onClick={() => setIsEditing(!isEditing)}
         >
           <IconEdit size={14} />

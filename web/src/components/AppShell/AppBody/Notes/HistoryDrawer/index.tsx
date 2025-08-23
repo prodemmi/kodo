@@ -15,6 +15,7 @@ import {
   Box,
   Divider,
   ThemeIcon,
+  useMantineTheme,
 } from "@mantine/core";
 import {
   IconJson,
@@ -39,6 +40,7 @@ export default function HistoryDrawer() {
   const closeModal = useNoteHistoryModalStore((s) => s.closeModal);
   const noteId = note?.id!;
   const { data: history, isLoading } = useNoteHistory(noteId);
+  const { primaryColor } = useMantineTheme();
 
   const formatDate = (
     dateStr: string
@@ -138,11 +140,15 @@ export default function HistoryDrawer() {
           </Box>
         </Group>
         <RoleGuard.Consumer>
-          <Tooltip label="View raw JSON data">
-            <ActionIcon variant="light" onClick={showJson} size="lg">
-              <IconJson size={18} />
-            </ActionIcon>
-          </Tooltip>
+          <Text
+            size="xs"
+            style={{ cursor: "pointer" }}
+            td="underline"
+            onClick={showJson}
+            c={primaryColor}
+          >
+            Show Json
+          </Text>
         </RoleGuard.Consumer>
       </Group>
     ),
@@ -192,7 +198,7 @@ export default function HistoryDrawer() {
                 <Group justify="space-between">
                   <Group gap="lg">
                     <Box ta="center">
-                      <Text size="xl" fw={700} c="blue">
+                      <Text size="xl" fw={700}>
                         {history.history.length}
                       </Text>
                       <Text size="sm" c="dimmed">
@@ -258,7 +264,7 @@ export default function HistoryDrawer() {
                               {entry.action || "Unknown Action"}
                             </Badge>
                             {isLatest && (
-                              <Badge color="blue" variant="dot" size="sm">
+                              <Badge variant="dot" size="sm">
                                 Latest
                               </Badge>
                             )}

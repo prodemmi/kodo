@@ -147,7 +147,7 @@ export default function ItemDetailDrawer({
                 <Text fw={600} size="lg">
                   {selectedItem.title}
                 </Text>
-                <Badge color="blue" variant="light">
+                <Badge  variant="light">
                   {selectedItem.status}
                 </Badge>
               </Group>

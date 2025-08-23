@@ -2,12 +2,14 @@ import "./global.css";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import { MantineProvider } from "@mantine/core";
-import { theme } from "./theme";
+import { createTheme } from "./theme";
 import AppShell from "./components/AppShell";
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { Notifications } from "@mantine/notifications";
+import { useAppState } from "./states/app.state";
+import { useMemo } from "react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,6 +24,11 @@ const persister = createAsyncStoragePersister({
 });
 
 export default function App() {
+  const primaryColor = useAppState((s) => s.primaryColor);
+
+  const theme = useMemo(() => createTheme(primaryColor), [primaryColor]);
+  console.log('primaryColor ===>', primaryColor);
+  
   return (
     <PersistQueryClientProvider
       client={queryClient}

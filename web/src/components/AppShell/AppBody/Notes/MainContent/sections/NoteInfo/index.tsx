@@ -199,7 +199,7 @@ export default function NoteInfo({ editor }: Props) {
         <Group justify="space-between">
           <Group gap="sm" align="flex-start">
             <Group gap="xs">
-              <Avatar size={24} color="blue">
+              <Avatar size={24} >
                 {selectedNote.author.charAt(0).toUpperCase()}
               </Avatar>
               <div>

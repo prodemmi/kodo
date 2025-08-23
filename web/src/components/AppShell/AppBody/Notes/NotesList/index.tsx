@@ -18,6 +18,7 @@ import {
   PopoverTarget,
   PopoverDropdown,
   Title,
+  useMantineTheme,
 } from "@mantine/core";
 import {
   IconDotsVertical,
@@ -66,6 +67,7 @@ export default function NoteList() {
   const clearSearch = useNoteStore((s) => s.clearSearch);
   const hasSearch = useNoteStore(selectHasSearch);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const { primaryColor } = useMantineTheme();
 
   const { mutate: updateNote } = useUpdateNote();
 
@@ -163,7 +165,7 @@ export default function NoteList() {
         {notesInDirectory && notesInDirectory.length > 0 && (
           <Popover position="right-start">
             <PopoverTarget>
-              <ActionIcon size="sm" c={hasSearch ? "blue" : undefined}>
+              <ActionIcon size="sm" c={hasSearch ? primaryColor : undefined}>
                 <IconFilter size={14} />
               </ActionIcon>
             </PopoverTarget>
@@ -226,7 +228,7 @@ export default function NoteList() {
                 cursor: "pointer",
                 border:
                   selectedNote?.id === note.id
-                    ? "2px solid #339af0"
+                    ? `1px solid ${primaryColor}`
                     : "1px solid var(--mantine-color-gray-8)",
               }}
               onClick={() => {
@@ -323,7 +325,7 @@ export default function NoteList() {
 
               <Group justify="space-between" align="center">
                 <Group gap="xs">
-                  <Avatar size={16} color="blue">
+                  <Avatar size={16}>
                     {note.author.charAt(0).toUpperCase()}
                   </Avatar>
                   <Text size="xs" c="dimmed">

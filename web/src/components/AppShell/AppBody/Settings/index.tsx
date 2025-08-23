@@ -27,7 +27,6 @@ import { useForm } from "@mantine/form";
 import {
   IconPlus,
   IconTrash,
-  IconUser,
   IconFolder,
   IconNote,
   IconSearch,
@@ -52,6 +51,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useAppState } from "../../../../states/app.state";
 
 interface UserSettings {
   // Personal productivity
@@ -167,7 +167,14 @@ const WorkspaceContext = createContext<WorkspaceContextType>({
     syncProvider: "github",
     autoCreateIssues: true,
     syncBranches: true,
-    issueLabels: ["enhancement", "bug", "todo"],
+    issueLabels: [
+      "ENHANCEMENT",
+      "BUG",
+      "TODO",
+      "FEATURE|FEAT",
+      "DOC|DOCUMENTATION",
+      "HELP",
+    ],
     autoCommit: false,
     commitTemplate: "feat: {description}",
     branchNaming: "feature/{ticket}-{description}",
@@ -351,11 +358,8 @@ function SortableColumn({
 }
 
 function Settings() {
-  const {
-    username,
-    settings: userSettings,
-    updateSettings: updateUserSettings,
-  } = useContext(UserContext);
+  const { settings: userSettings, updateSettings: updateUserSettings } =
+    useContext(UserContext);
   const {
     codeScanSettings,
     workspaceSettings,
@@ -365,8 +369,10 @@ function Settings() {
     setKanbanColumns,
   } = useContext(WorkspaceContext);
 
-  const [activeTab, setActiveTab] = useState<string | null>("user");
+  const [activeTab, setActiveTab] = useState<string | null>("workspace");
   const [deleteColumnId, setDeleteColumnId] = useState<string | null>(null);
+  const primaryColor = useAppState((s) => s.primaryColor);
+  const setPrimaryColor = useAppState((s) => s.setPrimaryColor);
 
   // User settings form
   const userForm = useForm<UserSettings>({
@@ -402,14 +408,6 @@ function Settings() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  // Apply primary color
-  useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--mantine-primary-color-filled",
-      `var(--mantine-color-${workspaceSettings.primaryColor}-6)`
-    );
-  }, [workspaceSettings.primaryColor]);
 
   // Handle submissions
   const handleUserSubmit = (values: UserSettings) => {
@@ -489,16 +487,7 @@ function Settings() {
     });
   };
 
-  const colors = [
-    "blue",
-    "red",
-    "green",
-    "yellow",
-    "teal",
-    "pink",
-    "gray",
-    "cyan",
-  ];
+  const colors = ["dark", "blue", "orange", "green", "red", "gray"];
 
   return (
     <Container size="lg" py="xl">
@@ -513,79 +502,16 @@ function Settings() {
         radius="md"
       >
         <Tabs.List mb="lg">
-          <Tabs.Tab value="user" leftSection={<IconUser size={16} />}>
-            User Preferences
-          </Tabs.Tab>
-          <Tabs.Tab value="scanning" leftSection={<IconSearch size={16} />}>
-            Code Scanning
-          </Tabs.Tab>
           <Tabs.Tab value="workspace" leftSection={<IconFolder size={16} />}>
             Workspace & Sync
           </Tabs.Tab>
           <Tabs.Tab value="kanban" leftSection={<IconNote size={16} />}>
             Kanban Board
           </Tabs.Tab>
+          <Tabs.Tab value="scanning" leftSection={<IconSearch size={16} />}>
+            Code Scanning
+          </Tabs.Tab>
         </Tabs.List>
-
-        {/* User Preferences Tab */}
-        <Tabs.Panel value="user">
-          <Paper shadow="sm" p="lg" radius="md" withBorder>
-            <Stack gap="lg">
-              <Text fw={600} size="lg">
-                Personal Settings
-              </Text>
-
-              <Group grow>
-                <Select
-                  label="Preferred IDE"
-                  description="Your main development environment"
-                  data={[
-                    { value: "vscode", label: "VS Code" },
-                    { value: "intellij", label: "IntelliJ IDEA" },
-                    { value: "sublime", label: "Sublime Text" },
-                    { value: "atom", label: "Atom" },
-                    { value: "vim", label: "Vim/Neovim" },
-                  ]}
-                  {...userForm.getInputProps("preferredIde")}
-                />
-
-                <Select
-                  label="Theme"
-                  description="Interface appearance"
-                  data={[
-                    { value: "auto", label: "Auto (System)" },
-                    { value: "light", label: "Light" },
-                    { value: "dark", label: "Dark" },
-                  ]}
-                  {...userForm.getInputProps("theme")}
-                />
-              </Group>
-
-              <NumberInput
-                label="Auto-save Interval"
-                description="Minutes between automatic saves"
-                min={1}
-                max={30}
-                suffix=" min"
-                {...userForm.getInputProps("autoSaveInterval")}
-              />
-
-              <Switch
-                label="Show Line Preview"
-                description="Show code context in kanban cards"
-                {...userForm.getInputProps("showLinePreview", {
-                  type: "checkbox",
-                })}
-              />
-
-              <Group justify="flex-end">
-                <Button onClick={() => handleUserSubmit(userForm.values)}>
-                  Save User Settings
-                </Button>
-              </Group>
-            </Stack>
-          </Paper>
-        </Tabs.Panel>
 
         {/* Code Scanning Tab */}
         <Tabs.Panel value="scanning">
@@ -729,7 +655,7 @@ function Settings() {
                             pattern.id
                           ) && (
                             <Badge
-                              color="blue"
+                              
                               size="sm"
                               leftSection={<IconCheck size={12} />}
                             >
@@ -803,15 +729,14 @@ function Settings() {
                       <ColorSwatch
                         key={color}
                         color={`var(--mantine-color-${color}-6)`}
+                        bd={primaryColor === color ? "2px solid white" : "none"}
                         size={25}
                         style={{ cursor: "pointer" }}
-                        onClick={() =>
-                          workspaceForm.setFieldValue("primaryColor", color)
-                        }
+                        onClick={() => setPrimaryColor(color)}
                         component="button"
                         type="button"
                       >
-                        {workspaceForm.values.primaryColor === color && (
+                        {primaryColor === color && (
                           <Text c="white" size="xs">
                             ✓
                           </Text>
@@ -827,15 +752,17 @@ function Settings() {
               <Alert
                 icon={<IconBrandGithub size={16} />}
                 title="Sync with Version Control"
-                color="blue"
+                
                 variant="light"
               >
-                Connect your project with GitHub, GitLab, or other providers to
-                automatically create issues from code comments and sync task
-                status with branches.
+                <Text c="var(--mantine-color-dark-0)">
+                  Connect your project with GitHub, GitLab, or other providers
+                  to automatically create issues from code comments and sync
+                  task status with branches.
+                </Text>
               </Alert>
 
-              <Group grow>
+              <Group grow align="flex-end">
                 <Select
                   label="Sync Provider"
                   description="Choose your version control provider"
@@ -859,34 +786,24 @@ function Settings() {
 
               {workspaceForm.values.syncEnabled && (
                 <Stack gap="md">
-                  <Group grow>
-                    <Switch
-                      label="Auto-create Issues"
-                      description="Create repository issues from TODO comments"
-                      {...workspaceForm.getInputProps("autoCreateIssues", {
-                        type: "checkbox",
-                      })}
-                    />
-
-                    <Switch
-                      label="Sync with Branches"
-                      description="Update task status based on git branches"
-                      {...workspaceForm.getInputProps("syncBranches", {
-                        type: "checkbox",
-                      })}
-                    />
-                  </Group>
+                  <Switch
+                    label="Auto-create Issues"
+                    description="Create repository issues from TODO comments"
+                    {...workspaceForm.getInputProps("autoCreateIssues", {
+                      type: "checkbox",
+                    })}
+                  />
 
                   <MultiSelect
                     label="Issue Labels"
                     description="Default labels for auto-created issues"
                     data={[
-                      "enhancement",
-                      "bug",
-                      "todo",
-                      "feature",
-                      "documentation",
-                      "help-wanted",
+                      "ENHANCEMENT",
+                      "BUG",
+                      "TODO",
+                      "FEATURE|FEAT",
+                      "DOC|DOCUMENTATION",
+                      "HELP",
                     ]}
                     placeholder="Select default labels..."
                     {...workspaceForm.getInputProps("issueLabels")}
@@ -936,6 +853,61 @@ function Settings() {
                 </Button>
               </Group>
             </Stack>
+
+            <Stack gap="lg">
+              <Text fw={600} size="lg">
+                Personal Settings
+              </Text>
+
+              <Group grow>
+                <Select
+                  label="Preferred IDE"
+                  description="Your main development environment"
+                  data={[
+                    { value: "vscode", label: "VS Code" },
+                    { value: "intellij", label: "IntelliJ IDEA" },
+                    { value: "sublime", label: "Sublime Text" },
+                    { value: "atom", label: "Atom" },
+                    { value: "vim", label: "Vim/Neovim" },
+                  ]}
+                  {...userForm.getInputProps("preferredIde")}
+                />
+
+                <Select
+                  label="Theme"
+                  description="Interface appearance"
+                  data={[
+                    { value: "auto", label: "Auto (System)" },
+                    { value: "light", label: "Light" },
+                    { value: "dark", label: "Dark" },
+                  ]}
+                  {...userForm.getInputProps("theme")}
+                />
+              </Group>
+
+              <NumberInput
+                label="Auto-save Interval"
+                description="Minutes between automatic saves"
+                min={1}
+                max={30}
+                suffix=" min"
+                {...userForm.getInputProps("autoSaveInterval")}
+              />
+
+              <Switch
+                label="Show Line Preview"
+                description="Show code context in kanban cards"
+                {...userForm.getInputProps("showLinePreview", {
+                  type: "checkbox",
+                })}
+              />
+
+              <Group justify="flex-end">
+                <Button onClick={() => handleUserSubmit(userForm.values)}>
+                  Save User Settings
+                </Button>
+              </Group>
+            </Stack>
           </Paper>
         </Tabs.Panel>
 
@@ -974,7 +946,7 @@ function Settings() {
 
               <Alert
                 icon={<IconAlertCircle size={16} />}
-                color="blue"
+                
                 variant="light"
               >
                 Drag the grip (⋮⋮) to reorder columns. Auto-assign patterns

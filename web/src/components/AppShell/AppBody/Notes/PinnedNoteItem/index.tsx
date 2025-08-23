@@ -8,6 +8,7 @@ import {
   MenuDropdown,
   MenuItem,
   Box,
+  useMantineTheme,
 } from "@mantine/core";
 import {
   IconFileText,
@@ -29,6 +30,7 @@ interface Props {
 export default function PinnedNoteItem({ note }: Props) {
   const selectNote = useNoteStore((s) => s.selectNote);
   const selectedNote = useNoteStore((s) => s.selectedNote);
+  const { primaryColor } = useMantineTheme();
 
   const isSelected = selectedNote?.id === note.id;
 
@@ -58,7 +60,7 @@ export default function PinnedNoteItem({ note }: Props) {
           <Group gap="xs">
             <IconFileText
               size={16}
-              color={isSelected ? "#339af0" : "#868e96"}
+              color={isSelected ? primaryColor : "var(--mantine-color-gray-4)"}
             />
             <Text
               size="sm"
@@ -79,7 +81,6 @@ export default function PinnedNoteItem({ note }: Props) {
               variant="subtle"
               size="xs"
               mr="xs"
-              color="blue"
               style={{ pointerEvents: "none" }}
             >
               <IconPinFilled size={12} />
@@ -88,12 +89,7 @@ export default function PinnedNoteItem({ note }: Props) {
 
           <RoleGuard.Consumer>
             <Group gap="xs">
-              <ActionIcon
-                variant="subtle"
-                size="xs"
-                onClick={handleTogglePin}
-                color="blue"
-              >
+              <ActionIcon variant="subtle" size="xs" onClick={handleTogglePin}>
                 <IconPinFilled size={12} />
               </ActionIcon>
 

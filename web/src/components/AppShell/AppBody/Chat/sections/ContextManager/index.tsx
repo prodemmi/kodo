@@ -178,7 +178,7 @@ export default function ContextManager({ opened, onClose }: Props) {
 
                     <Group gap={4}>
                       <Tooltip label="Add to Context">
-                        <ActionIcon size={20} variant="subtle" color="blue">
+                        <ActionIcon size={20} variant="subtle" >
                           <IconFileText size={12} />
                         </ActionIcon>
                       </Tooltip>

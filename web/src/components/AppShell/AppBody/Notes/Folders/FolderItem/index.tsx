@@ -10,6 +10,7 @@ import {
   MenuDropdown,
   MenuItem,
   Box,
+  useMantineTheme,
 } from "@mantine/core";
 import {
   IconFolder,
@@ -34,6 +35,7 @@ interface Props {
 }
 
 export default function FolderItem({ folder, level = 0 }: Props) {
+  const { primaryColor, colors } = useMantineTheme();
   const storeNotes = useNoteStore((s) => s.notes);
   const folders = useNoteStore((s) => s.folders);
   const selectedFolder = useNoteStore((s) => s.selectedFolder);
@@ -73,7 +75,7 @@ export default function FolderItem({ folder, level = 0 }: Props) {
             >
               <IconFolder
                 size={16}
-                color={isSelected ? "#339af0" : "#868e96"}
+                color={isSelected ? primaryColor : colors.gray[4]}
               />
 
               <Text size="sm" fw={400}>

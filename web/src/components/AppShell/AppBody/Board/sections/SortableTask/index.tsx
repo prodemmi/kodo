@@ -201,13 +201,12 @@ export default function SortableTask({
             </Group>
 
             <Group gap="4" mt="2">
-              <ActionIcon size="xs" variant="subtle" c="blue">
+              <ActionIcon size="xs" variant="subtle" >
                 <IconEye onClick={() => onItemClick(item)} />
               </ActionIcon>
               <ActionIcon
                 size="xs"
-                c="blue"
-                variant="transparent"
+                variant="subtle"
                 loading={isLoadingGoToFile}
               >
                 <IconCode onClick={() => goToFile(item)} />

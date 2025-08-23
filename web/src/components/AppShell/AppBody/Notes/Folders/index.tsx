@@ -10,6 +10,7 @@ import {
   Title,
   Divider,
   Stack,
+  useMantineTheme,
 } from "@mantine/core";
 import {
   IconFolderPlus,
@@ -29,6 +30,7 @@ import { useEffect, useMemo } from "react";
 import PinnedNoteItem from "../PinnedNoteItem";
 
 export default function Folders() {
+  const { primaryColor } = useMantineTheme();
   const storeNotes = useNoteStore((s) => s.notes);
   const folderTree = useNoteStore((s) => s.folderTree);
   const setFolderTree = useNoteStore((s) => s.setFolderTree);
@@ -36,12 +38,7 @@ export default function Folders() {
   const selectedFolder = useNoteStore((s) => s.selectedFolder);
   const setIsFolderModalOpen = useNewFolderModalStore((s) => s.openModal);
   const isSmall = useMediaQuery("(max-width: 920px)");
-  const {
-    data: remoteFolderTree,
-    isError,
-    isPending,
-    isLoading,
-  } = useFolderTree();
+  const { data: remoteFolderTree, isError, isLoading } = useFolderTree();
 
   // Get pinned and unpinned notes
   const pinnedNotes = useMemo(
@@ -77,11 +74,11 @@ export default function Folders() {
         {pinnedNotes.length > 0 && (
           <>
             <Group gap="xs" mb="xs">
-              <IconPinFilled size={16} color="#339af0" />
-              <Text size="sm" fw={500} c="blue">
+              <IconPinFilled size={16} />
+              <Text size="sm" fw={500}>
                 Pinned Notes
               </Text>
-              <Badge size="xs" variant="light" color="blue">
+              <Badge size="xs" variant="light">
                 {pinnedNotes.length}
               </Badge>
             </Group>
@@ -102,7 +99,7 @@ export default function Folders() {
           <Group gap="xs">
             <IconFileText
               size={16}
-              color={selectedFolder === null ? "#339af0" : "#868e96"}
+              color={!selectedFolder ? primaryColor : "var(--mantine-color-gray-4)"}
             />
             <Text size="sm" fw={400}>
               All Notes

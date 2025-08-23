@@ -400,7 +400,7 @@ export default function ProjectChat() {
                 <ActionIcon
                   size="lg"
                   variant="filled"
-                  color="blue"
+                  
                   onClick={handleSendMessage}
                   disabled={!inputValue.trim()}
                 >

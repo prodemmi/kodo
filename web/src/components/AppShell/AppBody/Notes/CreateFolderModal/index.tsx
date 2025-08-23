@@ -42,8 +42,10 @@ export default function CreateFolderModal() {
         setName(currentFolder.name);
         setParentId(currentFolder.parentId);
       }
+    } else {
+      setParentId(selectedFolder?.id!);
     }
-  }, [editMode, editFolderId, folders]);
+  }, [editMode, editFolderId, folders, selectedFolder]);
 
   const handleCreateFolder = () => {
     if (!name.trim()) {
