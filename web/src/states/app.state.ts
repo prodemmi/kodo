@@ -5,6 +5,7 @@ interface AppState {
   investor: boolean;
   activeTab: number;
   setActiveTab: (tab: number) => void;
+  setInvestor: (investor: boolean) => void;
 }
 
 export const useAppState = create<AppState>()(
@@ -13,10 +14,11 @@ export const useAppState = create<AppState>()(
       activeTab: 0,
       investor: false,
       setActiveTab: (activeTab: number) => set({ activeTab }),
+      setInvestor: (investor: boolean) => set({ investor }),
     }),
     {
       name: "__APP_STATE__",
-      partialize: (state) => ({ activeTab: state.activeTab }), 
+      partialize: (state) => ({ activeTab: state.activeTab }),
     }
   )
 );

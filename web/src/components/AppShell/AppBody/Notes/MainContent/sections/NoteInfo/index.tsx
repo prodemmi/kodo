@@ -149,6 +149,14 @@ export default function NoteInfo({ editor }: Props) {
       >
         <Group justify="space-between">
           <NoteTitle />
+          <RoleGuard.Investor>
+            <Button
+              leftSection={<IconHistory size={16} />}
+              onClick={() => openHistoryForNote(selectedNote)}
+            >
+              History
+            </Button>
+          </RoleGuard.Investor>
           <RoleGuard.Consumer>
             <Group gap="sm">
               {!isEditingNote ? (
@@ -220,35 +228,45 @@ export default function NoteInfo({ editor }: Props) {
 
         {/* Tags and Category */}
         <Group gap="sm" h="32px">
-          <Menu>
-            <MenuTarget>
-              <Badge color={getCategoryColor(selectedNote.category)} pr={0}>
-                <Group align="center" gap="0" justify="space-between">
-                  <Text size="xs">{selectedNote.category}</Text>
-                  <ActionIcon m={0}>
-                    <IconEdit size={12} />
-                  </ActionIcon>
-                </Group>
-              </Badge>
-            </MenuTarget>
-            <MenuDropdown>
-              {categories.map((cat) => (
-                <MenuItem
-                  value={cat.value}
-                  leftSection={
-                    cat.value === selectedNote.category && (
-                      <IconCheck size={12} />
-                    )
-                  }
-                  onClick={() => updateCategory(cat.value)}
-                >
-                  {cat.label}
-                </MenuItem>
-              ))}
-            </MenuDropdown>
-          </Menu>
+          <RoleGuard.Consumer>
+            <Menu>
+              <MenuTarget>
+                <Badge color={getCategoryColor(selectedNote.category)} pr={0}>
+                  <Group align="center" gap="0" justify="space-between">
+                    <Text size="xs">{selectedNote.category}</Text>
+                    <ActionIcon m={0}>
+                      <IconEdit size={12} />
+                    </ActionIcon>
+                  </Group>
+                </Badge>
+              </MenuTarget>
+              <MenuDropdown>
+                {categories.map((cat) => (
+                  <MenuItem
+                    value={cat.value}
+                    leftSection={
+                      cat.value === selectedNote.category && (
+                        <IconCheck size={12} />
+                      )
+                    }
+                    onClick={() => updateCategory(cat.value)}
+                  >
+                    {cat.label}
+                  </MenuItem>
+                ))}
+              </MenuDropdown>
+            </Menu>
+          </RoleGuard.Consumer>
 
-          <Divider orientation="vertical" />
+          <RoleGuard.Investor>
+            <Badge color={getCategoryColor(selectedNote.category)}>
+              <Text size="xs">{selectedNote.category}</Text>
+            </Badge>
+          </RoleGuard.Investor>
+
+          {selectedNote.tags && selectedNote.tags.length && (
+            <Divider orientation="vertical" />
+          )}
 
           {!isEditingTags ? (
             <Group gap="xs">

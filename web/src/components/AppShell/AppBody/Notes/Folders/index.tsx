@@ -9,6 +9,7 @@ import {
   LoadingOverlay,
   Title,
   Divider,
+  Stack,
 } from "@mantine/core";
 import {
   IconFolderPlus,
@@ -35,7 +36,12 @@ export default function Folders() {
   const selectedFolder = useNoteStore((s) => s.selectedFolder);
   const setIsFolderModalOpen = useNewFolderModalStore((s) => s.openModal);
   const isSmall = useMediaQuery("(max-width: 920px)");
-  const { data: remoteFolderTree, isError, isPending, isLoading } = useFolderTree();
+  const {
+    data: remoteFolderTree,
+    isError,
+    isPending,
+    isLoading,
+  } = useFolderTree();
 
   // Get pinned and unpinned notes
   const pinnedNotes = useMemo(
@@ -108,11 +114,13 @@ export default function Folders() {
         </UnstyledButton>
 
         {/* Folder Tree */}
-        {folderTree &&
-          folderTree.length > 0 &&
-          folderTree.map((folder: Folder) => (
-            <FolderItem key={folder.id} folder={folder} level={0} />
-          ))}
+        <Stack>
+          {folderTree &&
+            folderTree.length > 0 &&
+            folderTree.map((folder: Folder) => (
+              <FolderItem key={folder.id} folder={folder} level={0} />
+            ))}
+        </Stack>
       </Box>
     </ScrollArea>
   );

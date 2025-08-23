@@ -4,6 +4,7 @@ import (
 	"embed"
 
 	"github.com/prodemmi/kodo/core"
+	"github.com/spf13/pflag"
 	"go.uber.org/zap"
 )
 
@@ -12,6 +13,13 @@ import (
 var staticFiles embed.FS
 
 func main() {
+	config := core.NewDefaultConfig()
+
+	pflag.StringVarP(&config.Flags.Config, "config", "c", config.Flags.Config, "Path to config file")
+	pflag.BoolVarP(&config.Flags.Investor, "investor", "i", config.Flags.Investor, "Run in investor mode")
+
+	pflag.Parse()
+
 	var logger *zap.Logger
 	if true {
 		logger = core.NewSilenceLogger()
@@ -19,9 +27,9 @@ func main() {
 		logger = core.NewLogger()
 	}
 
-	scanner := core.NewScanner(logger)
+	scanner := core.NewScanner(config, logger)
 
-	server := core.NewServer(logger, staticFiles, scanner)
+	server := core.NewServer(config, logger, staticFiles, scanner)
 
 	server.StartServer()
 }

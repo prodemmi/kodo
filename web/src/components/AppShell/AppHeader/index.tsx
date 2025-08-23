@@ -65,7 +65,7 @@ export default function AppHeader({}: Props) {
         </RoleGuard.Consumer>
 
         <RoleGuard.Investor>
-          <Box bg="red" c="white" px="xs" py="3">
+          <Box bg="red" color="white" px="xs" py="3">
             <Text size="xs">View Only</Text>
           </Box>
         </RoleGuard.Investor>

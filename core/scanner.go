@@ -21,9 +21,9 @@ type Scanner struct {
 	tracker *ProjectTracker
 }
 
-func NewScanner(logger *zap.Logger) *Scanner {
+func NewScanner(config Config, logger *zap.Logger) *Scanner {
 	scanner := &Scanner{}
-	scanner.tracker = NewProjectTracker(scanner, logger)
+	scanner.tracker = NewProjectTracker(config, scanner, logger)
 	return scanner
 }
 

@@ -7,10 +7,10 @@ export interface Note {
   updatedAt: Date;
   tags: string[];
   category: string;
+  pinned: boolean;
   folderId: number | null;
   gitBranch?: string;
   gitCommit?: string;
-  pinned?: boolean;
 }
 
 export interface Folder {

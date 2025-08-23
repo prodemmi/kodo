@@ -1070,7 +1070,6 @@ func (s *Server) getNoteHistory(filter NoteHistoryFilter) ([]NoteHistoryEntry, e
 
 		filteredHistory = append(filteredHistory, entry)
 	}
-	fmt.Println("filteredHistory", filteredHistory)
 
 	// Sort by timestamp descending (most recent first)
 	sort.Slice(filteredHistory, func(i, j int) bool {

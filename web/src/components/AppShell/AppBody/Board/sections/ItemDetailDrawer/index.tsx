@@ -139,7 +139,7 @@ export default function ItemDetailDrawer({
       size="xl"
     >
       {selectedItem && (
-        <Stack gap="md" mr="6">
+        <Stack gap="md" mt="md" mr="6">
           {/* TODO Item Information */}
           <Card withBorder p="md">
             <Stack gap="xs">

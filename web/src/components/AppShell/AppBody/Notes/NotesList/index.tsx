@@ -239,21 +239,21 @@ export default function NoteList() {
                   {note.title}
                 </Text>
                 <Group gap="xs">
-                  <ActionIcon
-                    variant="subtle"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      togglePinNote(note);
-                    }}
-                  >
-                    {isPinned(note.id) ? (
-                      <IconPinFilled size={14} />
-                    ) : (
-                      <IconPin size={14} />
-                    )}
-                  </ActionIcon>
                   <RoleGuard.Consumer>
+                    <ActionIcon
+                      variant="subtle"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        togglePinNote(note);
+                      }}
+                    >
+                      {isPinned(note.id) ? (
+                        <IconPinFilled size={14} />
+                      ) : (
+                        <IconPin size={14} />
+                      )}
+                    </ActionIcon>
                     <Menu>
                       <Menu.Target>
                         <ActionIcon

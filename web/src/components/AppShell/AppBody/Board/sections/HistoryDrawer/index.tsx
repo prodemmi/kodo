@@ -23,7 +23,6 @@ import {
   LoadingOverlay,
   Drawer,
   DrawerBody,
-  DrawerHeader,
 } from "@mantine/core";
 import {
   IconHistory,
@@ -54,7 +53,7 @@ interface Props {
 }
 
 export default function HistoryDrawer({ isOpen, onClose }: Props) {
-  const [activeTab, setActiveTab] = useState("timeline");
+  const [activeTab, setActiveTab] = useState<string | null>("timeline");
   const [selectedBranch, setSelectedBranch] = useState<string>("all");
 
   const { data: history, isLoading: isLoadingHistory } = useHistory(true);
@@ -286,8 +285,9 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
 
               <Tabs
                 value={activeTab}
-                onChange={(value) => setActiveTab(value!)}
+                onChange={setActiveTab}
                 variant="pills"
+                radius="md"
               >
                 <Tabs.List>
                   <Tabs.Tab

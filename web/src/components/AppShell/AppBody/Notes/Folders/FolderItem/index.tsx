@@ -26,6 +26,7 @@ import {
 } from "../../../../../../states/note.state";
 import { Folder } from "../../../../../../types/note";
 import { useState } from "react";
+import { RoleGuard } from "../../../../../Investor";
 
 interface Props {
   folder: Folder;
@@ -95,28 +96,30 @@ export default function FolderItem({ folder, level = 0 }: Props) {
                 </Badge>
               )}
             </Group>
-            <Menu position="right-start">
-              <MenuTarget>
-                <ActionIcon>
-                  <IconDotsVertical size={14} />
-                </ActionIcon>
-              </MenuTarget>
-              <MenuDropdown>
-                <MenuItem
-                  onClick={() => openEditModal(folder.id)}
-                  leftSection={<IconEdit size={12} />}
-                >
-                  Edit
-                </MenuItem>
-                <MenuItem
-                  color="red"
-                  onClick={openDeleteModal}
-                  leftSection={<IconTrash size={12} />}
-                >
-                  Delete
-                </MenuItem>
-              </MenuDropdown>
-            </Menu>
+            <RoleGuard.Consumer>
+              <Menu position="right-start">
+                <MenuTarget>
+                  <ActionIcon>
+                    <IconDotsVertical size={14} />
+                  </ActionIcon>
+                </MenuTarget>
+                <MenuDropdown>
+                  <MenuItem
+                    onClick={() => openEditModal(folder.id)}
+                    leftSection={<IconEdit size={12} />}
+                  >
+                    Edit
+                  </MenuItem>
+                  <MenuItem
+                    color="red"
+                    onClick={openDeleteModal}
+                    leftSection={<IconTrash size={12} />}
+                  >
+                    Delete
+                  </MenuItem>
+                </MenuDropdown>
+              </Menu>
+            </RoleGuard.Consumer>
           </Group>
         </UnstyledButton>
 

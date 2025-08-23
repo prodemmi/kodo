@@ -3,6 +3,7 @@ import { Group, TextInput, ActionIcon } from "@mantine/core";
 import { IconEdit } from "@tabler/icons-react";
 import { useNoteStore } from "../../../../../../../../../states/note.state";
 import { useUpdateNote } from "../../../../../../../../../hooks/use-notes";
+import { RoleGuard } from "../../../../../../../../Investor";
 
 export default function NoteTitle() {
   const selectedNote = useNoteStore((s) => s.selectedNote);
@@ -170,26 +171,28 @@ export default function NoteTitle() {
               minWidth: value.trim() ? 80 : 160,
               width: calculateWidth,
               cursor: !focus ? "pointer" : "text",
-              padding: focus ? undefined : 0
+              padding: focus ? undefined : 0,
             },
           }}
         />
 
-        {/* Edit icon when not focused */}
-        {!focus && !isPending && (
-          <ActionIcon
-            size="sm"
-            variant="subtle"
-            onClick={handleEditClick}
-            style={{
-              position: "absolute",
-              right: 4,
-              opacity: 0.6,
-            }}
-          >
-            <IconEdit size={14} />
-          </ActionIcon>
-        )}
+        <RoleGuard.Consumer>
+          {/* Edit icon when not focused */}
+          {!focus && !isPending && (
+            <ActionIcon
+              size="sm"
+              variant="subtle"
+              onClick={handleEditClick}
+              style={{
+                position: "absolute",
+                right: 4,
+                opacity: 0.6,
+              }}
+            >
+              <IconEdit size={14} />
+            </ActionIcon>
+          )}
+        </RoleGuard.Consumer>
       </Group>
     </>
   );

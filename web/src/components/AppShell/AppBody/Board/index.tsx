@@ -226,7 +226,7 @@ export default function Board() {
 
   return (
     <>
-      <Container size="xl" py="md" fluid>
+      <Container size="xl" py="xs" fluid>
         <Group justify="space-between" align="center" w="100%">
           <Title order={2} mb="md">
             Kanban Board

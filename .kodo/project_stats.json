@@ -1,9 +1,9 @@
 {
   "project_path": "/mnt/projects/Projects/Programming/KodoBoard",
-  "last_scan_at": "2025-08-23T10:33:26.857574142Z",
+  "last_scan_at": "2025-08-23T11:19:07.547446712Z",
   "git_branch": "main",
-  "git_commit": "d35d9e4f57a6ea7322397be852a5e627a442e025",
-  "git_commit_short": "d35d9e4",
+  "git_commit": "d292688e4491c3b2b6d6792ab250fd479999bccd",
+  "git_commit_short": "d292688",
   "total_items": 3,
   "items_by_status": {
     "done": 1,
@@ -791,8 +791,60 @@
           }
         ]
       }
+    },
+    {
+      "branch": "main",
+      "commit": "d292688e4491c3b2b6d6792ab250fd479999bccd",
+      "commit_short": "d292688",
+      "commit_message": "Implement note pin in backend",
+      "timestamp": "2025-08-23T10:33:40.959730033Z",
+      "stats": {
+        "total": 3,
+        "todo": 2,
+        "in_progress": 0,
+        "done": 1,
+        "by_type": {
+          "FEAT": 1,
+          "TODO": 2
+        },
+        "by_priority": {
+          "medium": 3
+        },
+        "items": [
+          {
+            "id": 1,
+            "type": "TODO",
+            "title": "implement note pin in backend",
+            "file": "web/src/api/notes.api.ts",
+            "line": 145,
+            "status": "done",
+            "priority": "medium",
+            "hash": "55537426af1e6288"
+          },
+          {
+            "id": 2,
+            "type": "FEAT",
+            "title": "store collapse",
+            "file": "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
+            "line": 12,
+            "status": "todo",
+            "priority": "medium",
+            "hash": "67fcec8da9b09d5"
+          },
+          {
+            "id": 3,
+            "type": "TODO",
+            "title": "implement in zustand and sync with onSuccess fn",
+            "file": "web/src/hooks/use-notes.ts",
+            "line": 130,
+            "status": "todo",
+            "priority": "medium",
+            "hash": "7c0968ba6977a500"
+          }
+        ]
+      }
     }
   ],
   "created_at": "2025-08-18T01:06:39.516646427+03:30",
-  "updated_at": "2025-08-23T10:33:26.858193237Z"
+  "updated_at": "2025-08-23T11:19:07.547872368Z"
 }

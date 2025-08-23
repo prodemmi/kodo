@@ -19,7 +19,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import { useFolders, useNotes } from "../../../../hooks/use-notes";
 import { useNoteStore } from "../../../../states/note.state";
 import { useEffect } from "react";
-import HistoryDrawer from "./HistoryModal";
+import HistoryDrawer from "./HistoryDrawer";
 
 export default function Notes() {
   const isSmall = useMediaQuery("(max-width: 920px)");

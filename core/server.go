@@ -19,14 +19,16 @@ import (
 )
 
 type Server struct {
+	config      Config
 	scanner     *Scanner
 	staticFiles embed.FS
 
 	logger *zap.Logger
 }
 
-func NewServer(logger *zap.Logger, staticFiles embed.FS, scanner *Scanner) *Server {
+func NewServer(config Config, logger *zap.Logger, staticFiles embed.FS, scanner *Scanner) *Server {
 	return &Server{
+		config:      config,
 		staticFiles: staticFiles,
 		scanner:     scanner,
 		logger:      logger,
@@ -34,7 +36,6 @@ func NewServer(logger *zap.Logger, staticFiles embed.FS, scanner *Scanner) *Serv
 }
 
 func (s *Server) StartServer() {
-	// Middleware برای CORS
 	cors := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -50,7 +51,6 @@ func (s *Server) StartServer() {
 		})
 	}
 
-	// فایل‌های استاتیک
 	fileHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := strings.TrimPrefix(r.URL.Path, "/")
 		if path == "" {
@@ -109,6 +109,8 @@ func (s *Server) StartServer() {
 
 	http.Handle("/", cors(fileHandler))
 
+	http.Handle("/api/investor", cors(http.HandlerFunc(s.handleInvestor)))
+
 	http.Handle("/api/items", cors(http.HandlerFunc(s.handleItems)))
 	http.Handle("/api/items/update", cors(http.HandlerFunc(s.handleUpdateTodo)))
 	http.Handle("/api/refresh", cors(http.HandlerFunc(s.handleRefresh)))
@@ -158,6 +160,11 @@ func (s *Server) StartServer() {
 	s.scanner.LoadExistingStats()
 
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+}
+
+func (s *Server) handleInvestor(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]bool{"investor": s.config.Flags.Investor})
 }
 
 func (s *Server) handleItems(w http.ResponseWriter, r *http.Request) {

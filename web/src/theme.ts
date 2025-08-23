@@ -221,7 +221,7 @@ export const theme = createTheme({
     // Interactive components
     Button: Button.extend({
       defaultProps: {
-        variant: "default",
+        variant: "filled",
       },
       styles: {
         root: {
@@ -470,6 +470,6 @@ export const theme = createTheme({
           transition: "width 300ms ease",
         },
       },
-    }),       
+    }),
   },
 });

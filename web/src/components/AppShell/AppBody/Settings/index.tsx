@@ -15,7 +15,6 @@ import {
   ActionIcon,
   ColorSwatch,
   Modal,
-  Flex,
   Textarea,
   Badge,
   Card,
@@ -26,9 +25,6 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import {
-  IconSettings,
-  IconCode,
-  IconGitBranch,
   IconPlus,
   IconTrash,
   IconUser,
@@ -57,7 +53,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-// Enhanced types for practical settings
 interface UserSettings {
   // Personal productivity
   preferredIde: string;

@@ -65,6 +65,7 @@ type TaskItem struct {
 
 // ProjectTracker handles project statistics and persistence
 type ProjectTracker struct {
+	config      Config
 	scanner     *Scanner
 	logger      *zap.Logger
 	kodoDir     string
@@ -73,11 +74,12 @@ type ProjectTracker struct {
 }
 
 // NewProjectTracker creates a new project tracker
-func NewProjectTracker(scanner *Scanner, logger *zap.Logger) *ProjectTracker {
+func NewProjectTracker(config Config, scanner *Scanner, logger *zap.Logger) *ProjectTracker {
 	wd, _ := os.Getwd()
 	kodoDir := filepath.Join(wd, ".kodo")
 
 	return &ProjectTracker{
+		config:      config,
 		scanner:     scanner,
 		logger:      logger,
 		kodoDir:     kodoDir,

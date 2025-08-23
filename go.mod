@@ -4,4 +4,7 @@ go 1.22.2
 
 require go.uber.org/zap v1.27.0
 
-require go.uber.org/multierr v1.11.0 // indirect
+require (
+	github.com/spf13/pflag v1.0.7 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+)
