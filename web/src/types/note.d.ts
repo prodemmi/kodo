@@ -53,6 +53,7 @@ export interface UpdateNoteParams {
   author: string;
   tags: string[];
   category: string;
+  pinned: boolean;
   folderId: number | null;
 }
 

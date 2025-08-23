@@ -12,6 +12,7 @@ type Note struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 	Tags      []string  `json:"tags"`
 	Category  string    `json:"category"`
+	Pinned    bool      `json:"pinned"`
 	FolderID  *int      `json:"folderId"`
 	GitBranch *string   `json:"gitBranch,omitempty"`
 	GitCommit *string   `json:"gitCommit,omitempty"`

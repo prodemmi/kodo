@@ -877,12 +877,11 @@ func (s *Server) createNoteWithHistory(title, content string, tags []string, cat
 }
 
 // Enhanced note update with history
-func (s *Server) updateNoteWithHistory(id int, title, content string, tags []string, category string, folderId *int) (*Note, error) {
+func (s *Server) updateNoteWithHistory(id int, title, content string, tags []string, category string, pinned bool, folderId *int) (*Note, error) {
 	storage, err := s.loadEnhancedNoteStorage()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("changes")
 
 	// Find the note
 	noteIndex := -1
@@ -910,6 +909,9 @@ func (s *Server) updateNoteWithHistory(id int, title, content string, tags []str
 	if oldNote.Category != category {
 		changes["category"] = map[string]interface{}{"from": oldNote.Category, "to": category}
 	}
+	if oldNote.Pinned != pinned {
+		changes["pinned"] = map[string]interface{}{"from": oldNote.Pinned, "to": pinned}
+	}
 	if !equalSlices(oldNote.Tags, tags) {
 		changes["tags"] = map[string]interface{}{"from": oldNote.Tags, "to": tags}
 	}
@@ -923,6 +925,7 @@ func (s *Server) updateNoteWithHistory(id int, title, content string, tags []str
 	storage.Notes[noteIndex].Content = content
 	storage.Notes[noteIndex].Tags = tags
 	storage.Notes[noteIndex].Category = category
+	storage.Notes[noteIndex].Pinned = pinned
 	storage.Notes[noteIndex].FolderID = folderId
 	storage.Notes[noteIndex].UpdatedAt = time.Now()
 	storage.Notes[noteIndex].GitBranch = &branch

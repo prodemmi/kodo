@@ -143,3 +143,4 @@ export const getNoteHistory = async (noteId: number) => {
 };
 
 // TODO: implement note pin in backend
+// DONE 2025-08-23 10:33 by prodemmi

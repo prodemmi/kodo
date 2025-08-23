@@ -700,6 +700,7 @@ func (s *Server) handleNoteUpdate(w http.ResponseWriter, r *http.Request) {
 		Content  string   `json:"content"`
 		Tags     []string `json:"tags"`
 		Category string   `json:"category"`
+		Pinned   bool     `json:"pinned"`
 		FolderID *int     `json:"folderId"`
 	}
 
@@ -718,10 +719,9 @@ func (s *Server) handleNoteUpdate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Title is required", http.StatusBadRequest)
 		return
 	}
-	fmt.Println("updateReq", updateReq.ID)
 
 	// Use history-enabled method
-	note, err := s.updateNoteWithHistory(updateReq.ID, updateReq.Title, updateReq.Content, updateReq.Tags, updateReq.Category, updateReq.FolderID)
+	note, err := s.updateNoteWithHistory(updateReq.ID, updateReq.Title, updateReq.Content, updateReq.Tags, updateReq.Category, updateReq.Pinned, updateReq.FolderID)
 	if err != nil {
 		s.logger.Error("Failed to update note", zap.Int("id", updateReq.ID), zap.Error(err))
 		if err.Error() == "note not found" {

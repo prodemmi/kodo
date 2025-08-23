@@ -35,25 +35,21 @@ export default function Folders() {
   const selectedFolder = useNoteStore((s) => s.selectedFolder);
   const setIsFolderModalOpen = useNewFolderModalStore((s) => s.openModal);
   const isSmall = useMediaQuery("(max-width: 920px)");
-  const { data: remoteFolderTree, isError, isPending } = useFolderTree();
+  const { data: remoteFolderTree, isError, isPending, isLoading } = useFolderTree();
 
   // Get pinned and unpinned notes
   const pinnedNotes = useMemo(
     () => storeNotes.filter((note) => note.pinned),
     [storeNotes]
   );
-  const unpinnedNotes = useMemo(
-    () => storeNotes.filter((note) => !note.pinned),
-    [storeNotes]
-  );
 
   useEffect(() => {
-    if (!isError && !isPending) {
+    if (remoteFolderTree && !isError && !isLoading) {
       setFolderTree(remoteFolderTree.tree);
     }
-  }, [remoteFolderTree, isError, isPending, setFolderTree]);
+  }, [remoteFolderTree, isError, isLoading, setFolderTree]);
 
-  if (isPending) return <LoadingOverlay />;
+  if (isLoading) return <LoadingOverlay />;
 
   return (
     <ScrollArea h={isSmall ? undefined : "100%"} w="40%" p="sm" pt="md">

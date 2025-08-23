@@ -1,12 +1,13 @@
 {
   "project_path": "/mnt/projects/Projects/Programming/KodoBoard",
-  "last_scan_at": "2025-08-22T21:44:18.486253143Z",
+  "last_scan_at": "2025-08-23T10:33:26.857574142Z",
   "git_branch": "main",
-  "git_commit": "cbc9fe159f819bcd0f95b673d1829d71268619b1",
-  "git_commit_short": "cbc9fe1",
+  "git_commit": "d35d9e4f57a6ea7322397be852a5e627a442e025",
+  "git_commit_short": "d35d9e4",
   "total_items": 3,
   "items_by_status": {
-    "todo": 3
+    "done": 1,
+    "todo": 2
   },
   "items_by_type": {
     "FEAT": 1,
@@ -24,7 +25,7 @@
       "title": "implement note pin in backend",
       "file": "web/src/api/notes.api.ts",
       "line": 145,
-      "status": "todo",
+      "status": "done",
       "priority": "medium",
       "hash": "55537426af1e6288"
     },
@@ -738,8 +739,60 @@
           }
         ]
       }
+    },
+    {
+      "branch": "main",
+      "commit": "d35d9e4f57a6ea7322397be852a5e627a442e025",
+      "commit_short": "d35d9e4",
+      "commit_message": "add settings base and note pin in frontend",
+      "timestamp": "2025-08-22T21:44:47.334868722Z",
+      "stats": {
+        "total": 3,
+        "todo": 3,
+        "in_progress": 0,
+        "done": 0,
+        "by_type": {
+          "FEAT": 1,
+          "TODO": 2
+        },
+        "by_priority": {
+          "medium": 3
+        },
+        "items": [
+          {
+            "id": 1,
+            "type": "TODO",
+            "title": "implement note pin in backend",
+            "file": "web/src/api/notes.api.ts",
+            "line": 145,
+            "status": "todo",
+            "priority": "medium",
+            "hash": "55537426af1e6288"
+          },
+          {
+            "id": 2,
+            "type": "FEAT",
+            "title": "store collapse",
+            "file": "web/src/components/AppShell/AppBody/Board/sections/DroppableColumn/index.tsx",
+            "line": 12,
+            "status": "todo",
+            "priority": "medium",
+            "hash": "67fcec8da9b09d5"
+          },
+          {
+            "id": 3,
+            "type": "TODO",
+            "title": "implement in zustand and sync with onSuccess fn",
+            "file": "web/src/hooks/use-notes.ts",
+            "line": 130,
+            "status": "todo",
+            "priority": "medium",
+            "hash": "7c0968ba6977a500"
+          }
+        ]
+      }
     }
   ],
   "created_at": "2025-08-18T01:06:39.516646427+03:30",
-  "updated_at": "2025-08-22T21:44:18.487273606Z"
+  "updated_at": "2025-08-23T10:33:26.858193237Z"
 }

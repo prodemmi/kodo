@@ -29,7 +29,6 @@ import {
   IconSearch,
   IconTags,
   IconPin,
-  IconPinned,
   IconPinFilled,
 } from "@tabler/icons-react";
 import { RoleGuard } from "../../../../Investor";
@@ -43,12 +42,13 @@ import { useMediaQuery } from "@mantine/hooks";
 import { useMemo, useRef } from "react";
 import debounce from "lodash.debounce";
 import { selectHasSearch } from "../../../../../states/note.selector";
+import { useUpdateNote } from "../../../../../hooks/use-notes";
+import { Note } from "../../../../../types/note";
 
 export default function NoteList() {
   const notes = useNoteStore((s) => s.notes);
   const selectedNote = useNoteStore((s) => s.selectedNote);
   const setIsEditingNote = useNoteStore((s) => s.setIsEditingNote);
-  const togglePinNote = useNoteStore((s) => s.togglePinNote);
   const isPinned = useNoteStore((s) => s.isPinned);
   const selectNote = useNoteStore((s) => s.selectNote);
   const selectedFolder = useNoteStore((s) => s.selectedFolder);
@@ -66,6 +66,16 @@ export default function NoteList() {
   const clearSearch = useNoteStore((s) => s.clearSearch);
   const hasSearch = useNoteStore(selectHasSearch);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  const { mutate: updateNote } = useUpdateNote();
+
+  const togglePinNote = (note: Note) => {
+    updateNote({
+      ...note,
+      id: note.id,
+      pinned: !note.pinned,
+    });
+  };
 
   const notesInDirectory = useMemo(() => {
     if (selectedFolder) {
@@ -234,7 +244,7 @@ export default function NoteList() {
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      togglePinNote(note.id);
+                      togglePinNote(note);
                     }}
                   >
                     {isPinned(note.id) ? (
