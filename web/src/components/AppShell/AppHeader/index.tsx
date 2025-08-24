@@ -1,5 +1,4 @@
 import {
-  ActionIcon,
   AppShell,
   Text,
   Button,
@@ -12,6 +11,7 @@ import { useAppState } from "../../../states/app.state";
 import { IconSettings } from "@tabler/icons-react";
 import { RoleGuard } from "../../Investor";
 import { useCallback } from "react";
+import packageJson from "../../../../package.json";
 
 type Props = {};
 
@@ -47,19 +47,27 @@ export default function AppHeader({}: Props) {
           <Button onClick={() => setActiveTab(1)} bg={buttonBg(1)}>
             Notes
           </Button>
-        </ButtonGroup>
 
-        <RoleGuard.Consumer>
-          <ActionIcon onClick={() => setActiveTab(2)} c={buttonBg(2)} variant="subtle">
-            <IconSettings />
-          </ActionIcon>
-        </RoleGuard.Consumer>
+          <RoleGuard.Consumer>
+            <Button
+              onClick={() => setActiveTab(2)}
+              bg={buttonBg(2)}
+              rightSection={<IconSettings />}
+            >
+              Settings
+            </Button>
+          </RoleGuard.Consumer>
+        </ButtonGroup>
 
         <RoleGuard.Investor>
           <Box bg="red" color="white" px="xs" py="3">
             <Text size="xs">View Only</Text>
           </Box>
         </RoleGuard.Investor>
+
+        <Box px="xs" py="3">
+          <Text size="xs">V{packageJson.version}</Text>
+        </Box>
       </Flex>
     </AppShell.Header>
   );
