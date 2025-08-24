@@ -78,9 +78,7 @@ export default function Folders() {
               <Text size="sm" fw={500}>
                 Pinned Notes
               </Text>
-              <Badge size="xs" variant="light">
-                {pinnedNotes.length}
-              </Badge>
+              <Badge size="xs">{pinnedNotes.length}</Badge>
             </Group>
 
             {pinnedNotes.map((note: Note) => (
@@ -99,7 +97,9 @@ export default function Folders() {
           <Group gap="xs">
             <IconFileText
               size={16}
-              color={!selectedFolder ? primaryColor : "var(--mantine-color-gray-4)"}
+              color={
+                !selectedFolder ? primaryColor : "var(--mantine-color-gray-4)"
+              }
             />
             <Text size="sm" fw={400}>
               All Notes

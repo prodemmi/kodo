@@ -101,8 +101,8 @@ export default function FolderItem({ folder, level = 0 }: Props) {
             <RoleGuard.Consumer>
               <Menu position="right-start">
                 <MenuTarget>
-                  <ActionIcon>
-                    <IconDotsVertical size={14} />
+                  <ActionIcon size="xs" variant="subtle">
+                    <IconDotsVertical size={12} />
                   </ActionIcon>
                 </MenuTarget>
                 <MenuDropdown>

@@ -22,6 +22,8 @@ import {
   Divider,
   Code,
   Alert,
+  useMantineColorScheme,
+  ScrollArea,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import {
@@ -371,8 +373,18 @@ function Settings() {
 
   const [activeTab, setActiveTab] = useState<string | null>("workspace");
   const [deleteColumnId, setDeleteColumnId] = useState<string | null>(null);
+  const theme = useAppState((s) => s.theme);
+  const setTheme = useAppState((s) => s.setTheme);
   const primaryColor = useAppState((s) => s.primaryColor);
   const setPrimaryColor = useAppState((s) => s.setPrimaryColor);
+
+  const { setColorScheme } = useMantineColorScheme({
+    keepTransitions: true,
+  });
+
+  useEffect(() => {
+    setColorScheme(theme);
+  }, [theme]);
 
   // User settings form
   const userForm = useForm<UserSettings>({
@@ -487,500 +499,483 @@ function Settings() {
     });
   };
 
-  const colors = ["dark", "blue", "orange", "green", "red", "gray"];
+  const colors = ["dark", "blue", "orange", "green", "red"];
 
   return (
-    <Container size="lg" py="xl">
-      <Title order={2} mb="xl">
-        Project Settings
-      </Title>
+    <>
+      <ScrollArea>
+        <Container size="lg" py="xl">
+          <Title order={2} mb="xl">
+            Project Settings
+          </Title>
 
-      <Tabs
-        value={activeTab}
-        onChange={setActiveTab}
-        variant="pills"
-        radius="md"
-      >
-        <Tabs.List mb="lg">
-          <Tabs.Tab value="workspace" leftSection={<IconFolder size={16} />}>
-            Workspace & Sync
-          </Tabs.Tab>
-          <Tabs.Tab value="kanban" leftSection={<IconNote size={16} />}>
-            Kanban Board
-          </Tabs.Tab>
-          <Tabs.Tab value="scanning" leftSection={<IconSearch size={16} />}>
-            Code Scanning
-          </Tabs.Tab>
-        </Tabs.List>
-
-        {/* Code Scanning Tab */}
-        <Tabs.Panel value="scanning">
-          <Paper shadow="sm" p="lg" radius="md" withBorder>
-            <Stack gap="lg">
-              <Text fw={600} size="lg">
-                Code Comment Scanning
-              </Text>
-
-              <MultiSelect
-                label="Comment Keywords"
-                description="Keywords that create kanban items from comments"
-                data={[
-                  "TODO",
-                  "FIXME",
-                  "BUG",
-                  "FEAT",
-                  "NOTE",
-                  "HACK",
-                  "REFACTOR",
-                  "OPTIMIZE",
-                  "IN PROGRESS",
-                  "DONE",
-                  "BLOCKED",
-                ]}
-                placeholder="Select keywords..."
-                {...codeScanForm.getInputProps("commentKeywords")}
-              />
-
-              <MultiSelect
-                label="File Extensions"
-                description="File types to scan for comments"
-                data={[
-                  ".js",
-                  ".ts",
-                  ".jsx",
-                  ".tsx",
-                  ".py",
-                  ".java",
-                  ".cpp",
-                  ".c",
-                  ".php",
-                  ".rb",
-                  ".go",
-                  ".rs",
-                ]}
-                placeholder="Select file types..."
-                {...codeScanForm.getInputProps("fileExtensions")}
-              />
-
-              <Group grow>
-                <div>
-                  <Text fw={500} size="sm" mb="xs">
-                    Exclude Directories
-                  </Text>
-                  <Textarea
-                    description="Directories to ignore (one per line)"
-                    placeholder="node_modules&#10;.git&#10;dist&#10;build"
-                    autosize
-                    minRows={2}
-                    maxRows={6}
-                    value={codeScanForm.values.excludeDirectories.join("\n")}
-                    onChange={(e) =>
-                      codeScanForm.setFieldValue(
-                        "excludeDirectories",
-                        e.target.value.split("\n").filter(Boolean)
-                      )
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Text fw={500} size="sm" mb="xs">
-                    Exclude Files
-                  </Text>
-                  <Textarea
-                    description="File patterns to ignore (one per line)"
-                    placeholder="*.min.js&#10;*.bundle.js&#10;*.d.ts"
-                    autosize
-                    minRows={2}
-                    maxRows={6}
-                    value={codeScanForm.values.excludeFiles.join("\n")}
-                    onChange={(e) =>
-                      codeScanForm.setFieldValue(
-                        "excludeFiles",
-                        e.target.value.split("\n").filter(Boolean)
-                      )
-                    }
-                  />
-                </div>
-              </Group>
-
-              <Switch
-                label="Case Sensitive Matching"
-                description="Match keywords exactly as typed"
-                {...codeScanForm.getInputProps("caseSensitive", {
-                  type: "checkbox",
-                })}
-              />
-
-              <Divider label="Comment Patterns" />
-
-              <Text size="sm" c="dimmed">
-                Select which comment patterns to recognize:
-              </Text>
-
-              <Stack gap="md">
-                {commentPatterns.map((pattern) => (
-                  <Card
-                    key={pattern.id}
-                    padding="md"
-                    withBorder
-                    style={{
-                      cursor: "pointer",
-                      backgroundColor:
-                        codeScanForm.values.selectedPatterns.includes(
-                          pattern.id
-                        )
-                          ? "var(--mantine-color-blue-0)"
-                          : undefined,
-                      borderColor:
-                        codeScanForm.values.selectedPatterns.includes(
-                          pattern.id
-                        )
-                          ? "var(--mantine-color-blue-6)"
-                          : undefined,
-                    }}
-                    onClick={() => {
-                      const current = codeScanForm.values.selectedPatterns;
-                      const updated = current.includes(pattern.id)
-                        ? current.filter((id) => id !== pattern.id)
-                        : [...current, pattern.id];
-                      codeScanForm.setFieldValue("selectedPatterns", updated);
-                    }}
-                  >
-                    <Group justify="space-between" align="flex-start">
-                      <Stack gap="xs" style={{ flex: 1 }}>
-                        <Group gap="sm">
-                          <Text fw={500}>{pattern.name}</Text>
-                          {codeScanForm.values.selectedPatterns.includes(
-                            pattern.id
-                          ) && (
-                            <Badge
-                              
-                              size="sm"
-                              leftSection={<IconCheck size={12} />}
-                            >
-                              Active
-                            </Badge>
-                          )}
-                        </Group>
-                        <Text size="sm" c="dimmed">
-                          {pattern.description}
-                        </Text>
-                        <Code block>{pattern.example}</Code>
-                        <Group gap="xs">
-                          <Text size="xs" c="dimmed">
-                            Keywords:
-                          </Text>
-                          {pattern.keywords.map((keyword) => (
-                            <Badge key={keyword} size="xs" variant="outline">
-                              {keyword}
-                            </Badge>
-                          ))}
-                        </Group>
-                      </Stack>
-                    </Group>
-                  </Card>
-                ))}
-              </Stack>
-
-              <Divider label="Notes Template" />
-
-              <Textarea
-                label="Notes Template"
-                description="Default template for new project notes"
-                minRows={6}
-                placeholder="# {title}&#10;&#10;## Overview&#10;&#10;## Tasks&#10;- [ ] &#10;&#10;## Notes"
-                {...codeScanForm.getInputProps("notesTemplate")}
-              />
-
-              <Group justify="flex-end">
-                <Button
-                  onClick={() => handleCodeScanSubmit(codeScanForm.values)}
-                >
-                  Save Scanning Settings
-                </Button>
-              </Group>
-            </Stack>
-          </Paper>
-        </Tabs.Panel>
-
-        {/* Workspace & Sync Tab */}
-        <Tabs.Panel value="workspace">
-          <Paper shadow="sm" p="lg" radius="md" withBorder>
-            <Stack gap="lg">
-              <Text fw={600} size="lg">
-                Workspace Configuration
-              </Text>
-
-              <Group grow>
-                <TextInput
-                  label="Project Name"
-                  description="Display name for this project"
-                  placeholder="My Awesome Project"
-                  {...workspaceForm.getInputProps("projectName")}
-                />
-
-                <div>
-                  <Text fw={500} size="sm" mb="xs">
-                    Primary Color
-                  </Text>
-                  <Group>
-                    {colors.map((color) => (
-                      <ColorSwatch
-                        key={color}
-                        color={`var(--mantine-color-${color}-6)`}
-                        bd={primaryColor === color ? "2px solid white" : "none"}
-                        size={25}
-                        style={{ cursor: "pointer" }}
-                        onClick={() => setPrimaryColor(color)}
-                        component="button"
-                        type="button"
-                      >
-                        {primaryColor === color && (
-                          <Text c="white" size="xs">
-                            ✓
-                          </Text>
-                        )}
-                      </ColorSwatch>
-                    ))}
-                  </Group>
-                </div>
-              </Group>
-
-              <Divider label="Provider Sync" />
-
-              <Alert
-                icon={<IconBrandGithub size={16} />}
-                title="Sync with Version Control"
-                
-                variant="light"
+          <Tabs
+            value={activeTab}
+            onChange={setActiveTab}
+            variant="pills"
+            radius="md"
+          >
+            <Tabs.List mb="lg">
+              <Tabs.Tab
+                value="workspace"
+                leftSection={<IconFolder size={16} />}
               >
-                <Text c="var(--mantine-color-dark-0)">
-                  Connect your project with GitHub, GitLab, or other providers
-                  to automatically create issues from code comments and sync
-                  task status with branches.
-                </Text>
-              </Alert>
+                Workspace & Sync
+              </Tabs.Tab>
+              <Tabs.Tab value="kanban" leftSection={<IconNote size={16} />}>
+                Kanban Board
+              </Tabs.Tab>
+              <Tabs.Tab value="scanning" leftSection={<IconSearch size={16} />}>
+                Code Scanning
+              </Tabs.Tab>
+            </Tabs.List>
 
-              <Group grow align="flex-end">
-                <Select
-                  label="Sync Provider"
-                  description="Choose your version control provider"
-                  data={[
-                    { value: "github", label: "GitHub" },
-                    { value: "gitlab", label: "GitLab" },
-                    { value: "bitbucket", label: "Bitbucket" },
-                    { value: "azure-devops", label: "Azure DevOps" },
-                  ]}
-                  {...workspaceForm.getInputProps("syncProvider")}
-                />
+            {/* Code Scanning Tab */}
+            <Tabs.Panel value="scanning">
+              <Paper shadow="sm" p="lg" radius="md" withBorder>
+                <Stack gap="lg">
+                  <Text fw={600} size="lg">
+                    Code Comment Scanning
+                  </Text>
 
-                <Switch
-                  label="Enable Sync"
-                  description="Sync tasks with your repository"
-                  {...workspaceForm.getInputProps("syncEnabled", {
-                    type: "checkbox",
-                  })}
-                />
-              </Group>
+                  <MultiSelect
+                    label="Comment Keywords"
+                    description="Keywords that create kanban items from comments"
+                    data={[
+                      "TODO",
+                      "FIXME",
+                      "BUG",
+                      "FEAT",
+                      "NOTE",
+                      "HACK",
+                      "REFACTOR",
+                      "OPTIMIZE",
+                      "IN PROGRESS",
+                      "DONE",
+                      "BLOCKED",
+                    ]}
+                    placeholder="Select keywords..."
+                    {...codeScanForm.getInputProps("commentKeywords")}
+                  />
 
-              {workspaceForm.values.syncEnabled && (
-                <Stack gap="md">
+                  <MultiSelect
+                    label="File Extensions"
+                    description="File types to scan for comments"
+                    data={[
+                      ".js",
+                      ".ts",
+                      ".jsx",
+                      ".tsx",
+                      ".py",
+                      ".java",
+                      ".cpp",
+                      ".c",
+                      ".php",
+                      ".rb",
+                      ".go",
+                      ".rs",
+                    ]}
+                    placeholder="Select file types..."
+                    {...codeScanForm.getInputProps("fileExtensions")}
+                  />
+
+                  <Group grow>
+                    <div>
+                      <Text fw={500} size="sm" mb="xs">
+                        Exclude Directories
+                      </Text>
+                      <Textarea
+                        description="Directories to ignore (one per line)"
+                        placeholder="node_modules&#10;.git&#10;dist&#10;build"
+                        autosize
+                        minRows={2}
+                        maxRows={6}
+                        value={codeScanForm.values.excludeDirectories.join(
+                          "\n"
+                        )}
+                        onChange={(e) =>
+                          codeScanForm.setFieldValue(
+                            "excludeDirectories",
+                            e.target.value.split("\n").filter(Boolean)
+                          )
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <Text fw={500} size="sm" mb="xs">
+                        Exclude Files
+                      </Text>
+                      <Textarea
+                        description="File patterns to ignore (one per line)"
+                        placeholder="*.min.js&#10;*.bundle.js&#10;*.d.ts"
+                        autosize
+                        minRows={2}
+                        maxRows={6}
+                        value={codeScanForm.values.excludeFiles.join("\n")}
+                        onChange={(e) =>
+                          codeScanForm.setFieldValue(
+                            "excludeFiles",
+                            e.target.value.split("\n").filter(Boolean)
+                          )
+                        }
+                      />
+                    </div>
+                  </Group>
+
                   <Switch
-                    label="Auto-create Issues"
-                    description="Create repository issues from TODO comments"
-                    {...workspaceForm.getInputProps("autoCreateIssues", {
+                    label="Case Sensitive Matching"
+                    description="Match keywords exactly as typed"
+                    {...codeScanForm.getInputProps("caseSensitive", {
                       type: "checkbox",
                     })}
                   />
 
-                  <MultiSelect
-                    label="Issue Labels"
-                    description="Default labels for auto-created issues"
-                    data={[
-                      "ENHANCEMENT",
-                      "BUG",
-                      "TODO",
-                      "FEATURE|FEAT",
-                      "DOC|DOCUMENTATION",
-                      "HELP",
-                    ]}
-                    placeholder="Select default labels..."
-                    {...workspaceForm.getInputProps("issueLabels")}
-                  />
-                </Stack>
-              )}
+                  <Divider label="Comment Patterns" />
 
-              <Divider label="Git Integration" />
+                  <Text size="sm" c="dimmed">
+                    Select which comment patterns to recognize:
+                  </Text>
 
-              <Switch
-                label="Auto Commit"
-                description="Auto-commit when tasks are moved to Done"
-                {...workspaceForm.getInputProps("autoCommit", {
-                  type: "checkbox",
-                })}
-              />
-
-              <Group grow>
-                <TextInput
-                  label="Commit Template"
-                  description="Template for automatic commits"
-                  placeholder="feat: {description}"
-                  {...workspaceForm.getInputProps("commitTemplate")}
-                />
-
-                <TextInput
-                  label="Branch Naming"
-                  description="Template for branch names"
-                  placeholder="feature/{ticket}-{description}"
-                  {...workspaceForm.getInputProps("branchNaming")}
-                />
-              </Group>
-
-              <MultiSelect
-                label="Team Members"
-                description="People who can be assigned tasks"
-                data={["prodemmi", "john.doe", "jane.smith"]}
-                placeholder="Add team members..."
-                {...workspaceForm.getInputProps("teamMembers")}
-              />
-
-              <Group justify="flex-end">
-                <Button
-                  onClick={() => handleWorkspaceSubmit(workspaceForm.values)}
-                >
-                  Save Workspace Settings
-                </Button>
-              </Group>
-            </Stack>
-
-            <Stack gap="lg">
-              <Text fw={600} size="lg">
-                Personal Settings
-              </Text>
-
-              <Group grow>
-                <Select
-                  label="Preferred IDE"
-                  description="Your main development environment"
-                  data={[
-                    { value: "vscode", label: "VS Code" },
-                    { value: "intellij", label: "IntelliJ IDEA" },
-                    { value: "sublime", label: "Sublime Text" },
-                    { value: "atom", label: "Atom" },
-                    { value: "vim", label: "Vim/Neovim" },
-                  ]}
-                  {...userForm.getInputProps("preferredIde")}
-                />
-
-                <Select
-                  label="Theme"
-                  description="Interface appearance"
-                  data={[
-                    { value: "auto", label: "Auto (System)" },
-                    { value: "light", label: "Light" },
-                    { value: "dark", label: "Dark" },
-                  ]}
-                  {...userForm.getInputProps("theme")}
-                />
-              </Group>
-
-              <NumberInput
-                label="Auto-save Interval"
-                description="Minutes between automatic saves"
-                min={1}
-                max={30}
-                suffix=" min"
-                {...userForm.getInputProps("autoSaveInterval")}
-              />
-
-              <Switch
-                label="Show Line Preview"
-                description="Show code context in kanban cards"
-                {...userForm.getInputProps("showLinePreview", {
-                  type: "checkbox",
-                })}
-              />
-
-              <Group justify="flex-end">
-                <Button onClick={() => handleUserSubmit(userForm.values)}>
-                  Save User Settings
-                </Button>
-              </Group>
-            </Stack>
-          </Paper>
-        </Tabs.Panel>
-
-        {/* Kanban Board Tab */}
-        <Tabs.Panel value="kanban">
-          <Paper shadow="sm" p="lg" radius="md" withBorder>
-            <Stack gap="lg">
-              <Text fw={600} size="lg">
-                Kanban Board Setup
-              </Text>
-
-              <Group align="flex-end">
-                <TextInput
-                  label="Column Name"
-                  placeholder="e.g., Code Review"
-                  style={{ flex: 1 }}
-                  {...columnForm.getInputProps("name")}
-                />
-                <TextInput
-                  label="Auto-assign Pattern"
-                  placeholder="e.g., REVIEW:"
-                  style={{ flex: 1 }}
-                  {...columnForm.getInputProps("pattern")}
-                />
-                <Button
-                  leftSection={<IconPlus size={16} />}
-                  onClick={() => {
-                    if (!columnForm.validate().hasErrors) {
-                      handleAddColumn(columnForm.values);
-                    }
-                  }}
-                >
-                  Add Column
-                </Button>
-              </Group>
-
-              <Alert
-                icon={<IconAlertCircle size={16} />}
-                
-                variant="light"
-              >
-                Drag the grip (⋮⋮) to reorder columns. Auto-assign patterns
-                automatically move items containing those keywords.
-              </Alert>
-
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={kanbanColumns.map((col) => col.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <Stack>
-                    {kanbanColumns.map((column) => (
-                      <SortableColumn
-                        key={column.id}
-                        column={column}
-                        onNameChange={handleColumnNameChange}
-                        onColorChange={handleColumnColorChange}
-                        onPatternChange={handleColumnPatternChange}
-                        onDelete={handleDeleteColumn}
-                        colors={colors}
-                      />
+                  <Stack gap="md">
+                    {commentPatterns.map((pattern) => (
+                      <Card
+                        key={pattern.id}
+                        padding="md"
+                        withBorder
+                        style={{
+                          cursor: "pointer",
+                          backgroundColor:
+                            codeScanForm.values.selectedPatterns.includes(
+                              pattern.id
+                            )
+                              ? "var(--mantine-color-blue-0)"
+                              : undefined,
+                          borderColor:
+                            codeScanForm.values.selectedPatterns.includes(
+                              pattern.id
+                            )
+                              ? "var(--mantine-color-blue-6)"
+                              : undefined,
+                        }}
+                        onClick={() => {
+                          const current = codeScanForm.values.selectedPatterns;
+                          const updated = current.includes(pattern.id)
+                            ? current.filter((id) => id !== pattern.id)
+                            : [...current, pattern.id];
+                          codeScanForm.setFieldValue(
+                            "selectedPatterns",
+                            updated
+                          );
+                        }}
+                      >
+                        <Group justify="space-between" align="flex-start">
+                          <Stack gap="xs" style={{ flex: 1 }}>
+                            <Group gap="sm">
+                              <Text fw={500}>{pattern.name}</Text>
+                              {codeScanForm.values.selectedPatterns.includes(
+                                pattern.id
+                              ) && (
+                                <Badge
+                                  size="sm"
+                                  leftSection={<IconCheck size={12} />}
+                                >
+                                  Active
+                                </Badge>
+                              )}
+                            </Group>
+                            <Text size="sm" c="dimmed">
+                              {pattern.description}
+                            </Text>
+                            <Code block>{pattern.example}</Code>
+                            <Group gap="xs">
+                              <Text size="xs" c="dimmed">
+                                Keywords:
+                              </Text>
+                              {pattern.keywords.map((keyword) => (
+                                <Badge
+                                  key={keyword}
+                                  size="xs"
+                                  variant="outline"
+                                >
+                                  {keyword}
+                                </Badge>
+                              ))}
+                            </Group>
+                          </Stack>
+                        </Group>
+                      </Card>
                     ))}
                   </Stack>
-                </SortableContext>
-              </DndContext>
-            </Stack>
-          </Paper>
-        </Tabs.Panel>
-      </Tabs>
+
+                  <Divider label="Notes Template" />
+
+                  <Textarea
+                    label="Notes Template"
+                    description="Default template for new project notes"
+                    minRows={6}
+                    placeholder="# {title}&#10;&#10;## Overview&#10;&#10;## Tasks&#10;- [ ] &#10;&#10;## Notes"
+                    {...codeScanForm.getInputProps("notesTemplate")}
+                  />
+
+                  <Group justify="flex-end">
+                    <Button
+                      onClick={() => handleCodeScanSubmit(codeScanForm.values)}
+                    >
+                      Save Scanning Settings
+                    </Button>
+                  </Group>
+                </Stack>
+              </Paper>
+            </Tabs.Panel>
+
+            {/* Workspace & Sync Tab */}
+            <Tabs.Panel value="workspace">
+              <Paper shadow="sm" p="lg" radius="md" withBorder>
+                <Stack gap="lg">
+                  <Text fw={600} size="lg">
+                    Workspace Configuration
+                  </Text>
+
+                  <Group grow>
+                    <TextInput
+                      label="Project Name"
+                      description="Display name for this project"
+                      placeholder="My Awesome Project"
+                      {...workspaceForm.getInputProps("projectName")}
+                    />
+
+                    <div>
+                      <Text fw={500} size="sm" mb="xs">
+                        Primary Color
+                      </Text>
+                      <Group>
+                        {colors.map((color) => (
+                          <ColorSwatch
+                            key={color}
+                            color={`var(--mantine-color-${color}-6)`}
+                            bd={
+                              primaryColor === color
+                                ? "2px solid white"
+                                : "none"
+                            }
+                            size={25}
+                            style={{ cursor: "pointer" }}
+                            onClick={() => setPrimaryColor(color)}
+                            component="button"
+                            type="button"
+                          >
+                            {primaryColor === color && (
+                              <Text c="white" size="xs">
+                                ✓
+                              </Text>
+                            )}
+                          </ColorSwatch>
+                        ))}
+                      </Group>
+                    </div>
+                  </Group>
+
+                  <Divider label="Provider Sync" />
+
+                  <Alert
+                    icon={<IconBrandGithub size={16} />}
+                    title="Sync with Version Control"
+                    variant="light"
+                  >
+                    <Text c="var(--mantine-color-dark-0)">
+                      Connect your project with GitHub, GitLab, or other
+                      providers to automatically create issues from code
+                      comments and sync task status with branches.
+                    </Text>
+                  </Alert>
+
+                  <Group grow align="flex-end">
+                    <Select
+                      label="Sync Provider"
+                      description="Choose your version control provider"
+                      data={[
+                        { value: "github", label: "GitHub" },
+                        { value: "gitlab", label: "GitLab" },
+                        { value: "bitbucket", label: "Bitbucket" },
+                        { value: "azure-devops", label: "Azure DevOps" },
+                      ]}
+                      {...workspaceForm.getInputProps("syncProvider")}
+                    />
+
+                    <Switch
+                      label="Enable Sync"
+                      description="Sync tasks with your repository"
+                      {...workspaceForm.getInputProps("syncEnabled", {
+                        type: "checkbox",
+                      })}
+                    />
+                  </Group>
+
+                  {workspaceForm.values.syncEnabled && (
+                    <Stack gap="md">
+                      <Switch
+                        label="Auto-create Issues"
+                        description="Create repository issues from TODO comments"
+                        {...workspaceForm.getInputProps("autoCreateIssues", {
+                          type: "checkbox",
+                        })}
+                      />
+
+                      <MultiSelect
+                        label="Issue Labels"
+                        description="Default labels for auto-created issues"
+                        data={[
+                          "ENHANCEMENT",
+                          "BUG",
+                          "TODO",
+                          "FEATURE|FEAT",
+                          "DOC|DOCUMENTATION",
+                          "HELP",
+                        ]}
+                        placeholder="Select default labels..."
+                        {...workspaceForm.getInputProps("issueLabels")}
+                      />
+                    </Stack>
+                  )}
+
+                  <Group justify="flex-end">
+                    <Button
+                      onClick={() =>
+                        handleWorkspaceSubmit(workspaceForm.values)
+                      }
+                    >
+                      Save Workspace Settings
+                    </Button>
+                  </Group>
+                </Stack>
+
+                <Stack gap="lg">
+                  <Text fw={600} size="lg">
+                    Personal Settings
+                  </Text>
+
+                  <Group grow>
+                    <Select
+                      label="Preferred IDE"
+                      description="Your main development environment"
+                      data={[
+                        { value: "vscode", label: "VS Code" },
+                        { value: "intellij", label: "IntelliJ IDEA" },
+                        { value: "sublime", label: "Sublime Text" },
+                        { value: "atom", label: "Atom" },
+                        { value: "vim", label: "Vim/Neovim" },
+                      ]}
+                      {...userForm.getInputProps("preferredIde")}
+                    />
+
+                    <Select
+                      label="Theme"
+                      description="Interface appearance"
+                      value={theme}
+                      data={[
+                        { value: "auto", label: "Auto (System)" },
+                        { value: "light", label: "Light" },
+                        { value: "dark", label: "Dark" },
+                      ]}
+                      onChange={(value) => setTheme(value as any)}
+                    />
+                  </Group>
+
+                  <NumberInput
+                    label="Auto-save Interval"
+                    description="Minutes between automatic saves"
+                    min={1}
+                    max={30}
+                    suffix=" min"
+                    {...userForm.getInputProps("autoSaveInterval")}
+                  />
+
+                  <Switch
+                    label="Show Line Preview"
+                    description="Show code context in kanban cards"
+                    {...userForm.getInputProps("showLinePreview", {
+                      type: "checkbox",
+                    })}
+                  />
+
+                  <Group justify="flex-end">
+                    <Button onClick={() => handleUserSubmit(userForm.values)}>
+                      Save User Settings
+                    </Button>
+                  </Group>
+                </Stack>
+              </Paper>
+            </Tabs.Panel>
+
+            {/* Kanban Board Tab */}
+            <Tabs.Panel value="kanban">
+              <Paper shadow="sm" p="lg" radius="md" withBorder>
+                <Stack gap="lg">
+                  <Text fw={600} size="lg">
+                    Kanban Board Setup
+                  </Text>
+
+                  <Group align="flex-end">
+                    <TextInput
+                      label="Column Name"
+                      placeholder="e.g., Code Review"
+                      style={{ flex: 1 }}
+                      {...columnForm.getInputProps("name")}
+                    />
+                    <TextInput
+                      label="Auto-assign Pattern"
+                      placeholder="e.g., REVIEW:"
+                      style={{ flex: 1 }}
+                      {...columnForm.getInputProps("pattern")}
+                    />
+                    <Button
+                      leftSection={<IconPlus size={16} />}
+                      onClick={() => {
+                        if (!columnForm.validate().hasErrors) {
+                          handleAddColumn(columnForm.values);
+                        }
+                      }}
+                    >
+                      Add Column
+                    </Button>
+                  </Group>
+
+                  <Alert icon={<IconAlertCircle size={16} />} variant="light">
+                    Drag the grip (⋮⋮) to reorder columns. Auto-assign patterns
+                    automatically move items containing those keywords.
+                  </Alert>
+
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={kanbanColumns.map((col) => col.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <Stack>
+                        {kanbanColumns.map((column) => (
+                          <SortableColumn
+                            key={column.id}
+                            column={column}
+                            onNameChange={handleColumnNameChange}
+                            onColorChange={handleColumnColorChange}
+                            onPatternChange={handleColumnPatternChange}
+                            onDelete={handleDeleteColumn}
+                            colors={colors}
+                          />
+                        ))}
+                      </Stack>
+                    </SortableContext>
+                  </DndContext>
+                </Stack>
+              </Paper>
+            </Tabs.Panel>
+          </Tabs>
+        </Container>
+      </ScrollArea>
 
       {/* Delete Confirmation Modal */}
       <Modal
@@ -1005,7 +1000,7 @@ function Settings() {
           </Group>
         </Stack>
       </Modal>
-    </Container>
+    </>
   );
 }
 

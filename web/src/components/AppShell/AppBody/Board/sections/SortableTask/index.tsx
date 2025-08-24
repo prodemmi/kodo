@@ -169,8 +169,6 @@ export default function SortableTask({
           ? `${CSS.Transform.toString(transform)} rotate(5deg) scale(1.02)`
           : CSS.Transform.toString(transform),
         transition: "all 0.4 ease",
-        backgroundColor: isDragging ? "#2c2c2c" : "var(--mantine-color-dark-6)",
-        borderColor: isDragging ? "#228be6" : "transparent",
       }}
     >
       <Stack gap="xs">
@@ -186,7 +184,6 @@ export default function SortableTask({
                     outline: "unset",
                     marginLeft: -4,
                     cursor: isDragging ? "grabbing" : "grab",
-                    color: isDragging ? "#228be6" : "#868e96",
                   }}
                 />
               </RoleGuard.Consumer>
@@ -216,15 +213,8 @@ export default function SortableTask({
         </Group>
         {item.description && (
           <Box
-            bd="1px solid var(--mantine-color-dark-7)"
             bdrs="sm"
             p="xs"
-            style={{
-              ":hover": {
-                backgroundColor: "#2f9e44",
-                cursor: "pointer",
-              },
-            }}
             onClick={() => onItemClick(item)}
           >
             <Text

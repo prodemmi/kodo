@@ -67,7 +67,7 @@ export default function NoteList() {
   const clearSearch = useNoteStore((s) => s.clearSearch);
   const hasSearch = useNoteStore(selectHasSearch);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const { primaryColor } = useMantineTheme();
+  const { primaryColor, colors } = useMantineTheme();
 
   const { mutate: updateNote } = useUpdateNote();
 
@@ -157,6 +157,7 @@ export default function NoteList() {
       w="60%"
       p="sm"
       pt="md"
+      pr="xs"
       gap="xs"
       style={{ height: "calc(100dvh - 44px)" }}
     >
@@ -166,7 +167,7 @@ export default function NoteList() {
           <Popover position="right-start">
             <PopoverTarget>
               <ActionIcon size="sm" c={hasSearch ? primaryColor : undefined}>
-                <IconFilter size={14} />
+                <IconFilter size={14} color="white" />
               </ActionIcon>
             </PopoverTarget>
             <PopoverDropdown>
@@ -218,7 +219,7 @@ export default function NoteList() {
       </Group>
 
       <ScrollArea style={{ flex: 1 }} h={isSmall ? undefined : "100%"}>
-        <Box pr="xs">
+        <Box>
           {filteredNotes.map((note: any) => (
             <Card
               key={note.id}
@@ -228,8 +229,8 @@ export default function NoteList() {
                 cursor: "pointer",
                 border:
                   selectedNote?.id === note.id
-                    ? `1px solid ${primaryColor}`
-                    : "1px solid var(--mantine-color-gray-8)",
+                    ? `1px solid ${colors[primaryColor][5]}`
+                    : `1px solid ${colors[primaryColor][0]}`,
               }}
               onClick={() => {
                 selectNote(note);
@@ -324,8 +325,8 @@ export default function NoteList() {
               </Group>
 
               <Group justify="space-between" align="center">
-                <Group gap="xs">
-                  <Avatar size={16}>
+                <Group gap="xs" align="center">
+                  <Avatar size={18}>
                     {note.author.charAt(0).toUpperCase()}
                   </Avatar>
                   <Text size="xs" c="dimmed">

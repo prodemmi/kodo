@@ -158,48 +158,46 @@ export default function NoteInfo({ editor }: Props) {
             </Button>
           </RoleGuard.Investor>
           <RoleGuard.Consumer>
-            <Group gap="sm">
-              {!isEditingNote ? (
-                <Group>
-                  <Button
-                    leftSection={<IconHistory size={16} />}
-                    onClick={() => openHistoryForNote(selectedNote)}
-                  >
-                    History
-                  </Button>
-                  <Button
-                    leftSection={<IconEdit size={16} />}
-                    onClick={() => setIsEditingNote(true)}
-                  >
-                    Edit
-                  </Button>
-                </Group>
-              ) : (
-                <Group gap="sm">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setIsEditingNote(false);
-                      editor?.commands.setContent(selectedNote.content);
-                      setError(null);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button size="sm" onClick={onSubmit} loading={loading}>
-                    Save
-                  </Button>
-                </Group>
-              )}
-            </Group>
+            {!isEditingNote ? (
+              <Group gap="xs">
+                <Button
+                  leftSection={<IconHistory size={16} />}
+                  onClick={() => openHistoryForNote(selectedNote)}
+                >
+                  History
+                </Button>
+                <Button
+                  leftSection={<IconEdit size={16} />}
+                  onClick={() => setIsEditingNote(true)}
+                >
+                  Edit
+                </Button>
+              </Group>
+            ) : (
+              <Group gap="xs">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditingNote(false);
+                    editor?.commands.setContent(selectedNote.content);
+                    setError(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={onSubmit} loading={loading}>
+                  Save
+                </Button>
+              </Group>
+            )}
           </RoleGuard.Consumer>
         </Group>
 
         <Group justify="space-between">
           <Group gap="sm" align="flex-start">
             <Group gap="xs">
-              <Avatar size={24} >
+              <Avatar size={24}>
                 {selectedNote.author.charAt(0).toUpperCase()}
               </Avatar>
               <div>
@@ -231,10 +229,14 @@ export default function NoteInfo({ editor }: Props) {
           <RoleGuard.Consumer>
             <Menu>
               <MenuTarget>
-                <Badge color={getCategoryColor(selectedNote.category)} pr={0}>
+                <Badge
+                  color={getCategoryColor(selectedNote.category)}
+                  pr={0}
+                  variant="light"
+                >
                   <Group align="center" gap="0" justify="space-between">
                     <Text size="xs">{selectedNote.category}</Text>
-                    <ActionIcon m={0}>
+                    <ActionIcon m={0} variant="transparent">
                       <IconEdit size={12} />
                     </ActionIcon>
                   </Group>
