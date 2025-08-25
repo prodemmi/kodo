@@ -67,8 +67,6 @@ export default function SortableTask({
         return "red";
       case "FIXME":
         return "pink";
-      case "HACK":
-        return "yellow";
 
       // Features & Enhancements
       case "TODO":

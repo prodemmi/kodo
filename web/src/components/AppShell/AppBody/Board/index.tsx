@@ -26,10 +26,12 @@ import {
   Button,
 } from "@mantine/core";
 import { IconAlertCircle, IconHistory } from "@tabler/icons-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Item } from "../../../../types/item";
 import { useItems, useUpdateItem } from "../../../../hooks/use-items";
 import ItemDetailDrawer from "./sections/ItemDetailDrawer";
 import SortableTask from "./sections/SortableTask";
+import { useSettings } from "../../../../hooks/use-settings";
 
 const DroppableColumn = lazy(() => import("./sections/DroppableColumn"));
 const HistoryDrawer = lazy(() => import("./sections/HistoryDrawer"));
@@ -37,10 +39,24 @@ const HistoryDrawer = lazy(() => import("./sections/HistoryDrawer"));
 interface Column {
   title: string;
   tasks: Item[];
+  color?: string;
 }
 
 export default function Board() {
-  const { data } = useItems();
+  const queryClient = useQueryClient();
+  const {
+    data: items,
+    isSuccess: isSuccessItems,
+    isLoading: isLoadingItems,
+    error: itemsError,
+  } = useItems();
+  const {
+    data: settings,
+    isSuccess: isSuccessSettings,
+    isLoading: isLoadingSettings,
+    error: settingsError,
+  } = useSettings();
+  
   const [columns, setColumns] = useState<Record<string, Column>>({});
   const [columnOrder, setColumnOrder] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,27 +81,45 @@ export default function Board() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const newColumns: Record<string, Column> = {
-          todo: { title: "To Do", tasks: [] },
-          "in-progress": { title: "In Progress", tasks: [] },
-          done: { title: "Done", tasks: [] },
-        };
+        
+        if (!settings || !items) {
+          setLoading(false);
+          return;
+        }
 
-        data?.forEach((item) => {
+        const newColumns: Record<string, Column> = {};
+        const newColumnOrder: string[] = [];
+
+        // Create columns from settings
+        settings.kanban_columns.forEach((column) => {
+          newColumns[column.id] = {
+            title: column.name,
+            tasks: [],
+            color: column.color,
+          };
+          newColumnOrder.push(column.id);
+        });
+
+        // Distribute items into columns
+        items.forEach((item) => {
           if (newColumns[item.status]) {
             newColumns[item.status].tasks.push(item);
           }
         });
+
         setColumns(newColumns);
-        setColumnOrder(["todo", "in-progress", "done"]);
+        setColumnOrder(newColumnOrder);
       } catch (err) {
         setError("Failed to fetch items");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, [data]);
+    
+    if (isSuccessItems && isSuccessSettings) {
+      fetchData();
+    }
+  }, [items, settings, isSuccessItems, isSuccessSettings]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -174,20 +208,72 @@ export default function Board() {
     // Add to destination at the end
     destTasks.push(updatedTask);
 
-    // Update state
+    // Update state optimistically
     setColumns({
       ...columns,
       [activeColumnId]: { ...columns[activeColumnId], tasks: sourceTasks },
       [overColumnId]: { ...columns[overColumnId], tasks: destTasks },
     });
 
-    // Call the API update
+    // Call the API update with optimistic update handling
     updateItemStatus(Number(updatedTask.id), updatedTask.status);
   };
 
   function updateItemStatus(itemId: number, status: string) {
     console.log("Calling API - itemId:", itemId, "status:", status);
-    mutate({ id: itemId, status });
+    
+    mutate(
+      { id: itemId, status },
+      {
+        onMutate: async (newItem) => {
+          // Cancel any outgoing refetches
+          await queryClient.cancelQueries({ queryKey: ['items'] });
+
+          // Snapshot the previous value
+          const previousItems = queryClient.getQueryData(['items']);
+
+          // Optimistically update the cache
+          queryClient.setQueryData(['items'], (old: Item[] | undefined) => {
+            if (!old) return old;
+            return old.map(item => 
+              item.id === newItem.id 
+                ? { ...item, status: newItem.status }
+                : item
+            );
+          });
+
+          return { previousItems };
+        },
+        onError: (err, newItem, context) => {
+          // Rollback on error
+          queryClient.setQueryData(['items'], context?.previousItems);
+          
+          // Also rollback local state
+          if (items && settings) {
+            const rollbackColumns: Record<string, Column> = {};
+            settings.kanban_columns.forEach((column) => {
+              rollbackColumns[column.id] = {
+                title: column.name,
+                tasks: [],
+                color: column.color,
+              };
+            });
+
+            items.forEach((item) => {
+              if (rollbackColumns[item.status]) {
+                rollbackColumns[item.status].tasks.push(item);
+              }
+            });
+
+            setColumns(rollbackColumns);
+          }
+        },
+        onSettled: () => {
+          // Refetch to ensure consistency
+          queryClient.invalidateQueries({ queryKey: ['items'] });
+        },
+      }
+    );
   }
 
   const handleItemClick = (item: Item) => {
@@ -198,7 +284,7 @@ export default function Board() {
   const columnHeader = useCallback((column: Column) => {
     return (
       <Group justify="space-between">
-        <Text fw={600} size="sm" c="dark.3">
+        <Text fw={600} size="sm">
           {column.title}
         </Text>
         <Badge variant="light" size="sm" color="gray">
@@ -208,20 +294,28 @@ export default function Board() {
     );
   }, []);
 
-  if (loading) {
+  // Loading states
+  if (isLoadingItems || isLoadingSettings || loading) {
     return (
-      <LoadingOverlay zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+      <LoadingOverlay visible zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
     );
   }
 
-  if (error) {
+  // Error states
+  const combinedError = error || itemsError || settingsError;
+  if (combinedError) {
     return (
       <Container size="xl" py="md">
         <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red">
-          {error}
+          {typeof combinedError === 'string' ? combinedError : combinedError.message || "An error occurred"}
         </Alert>
       </Container>
     );
+  }
+
+  // Success check
+  if (!isSuccessItems || !isSuccessSettings || !settings) {
+    return <LoadingOverlay visible />;
   }
 
   return (
@@ -247,6 +341,8 @@ export default function Board() {
           <Group align="start" gap="lg">
             {columnOrder.map((columnId) => {
               const column = columns[columnId];
+              if (!column) return null;
+              
               return (
                 <Paper
                   shadow="sm"
@@ -259,6 +355,7 @@ export default function Board() {
                   key={columnId}
                 >
                   <DroppableColumn
+                    color={column.color!}
                     columnId={columnId}
                     header={columnHeader(column)}
                   >
@@ -303,7 +400,7 @@ export default function Board() {
                 style={{
                   transform: "rotate(5deg)",
                   opacity: 0.9,
-                  transition: "all 0.4 ease",
+                  transition: "all 0.4s ease",
                 }}
               >
                 <SortableTask item={activeItem} onItemClick={() => {}} />

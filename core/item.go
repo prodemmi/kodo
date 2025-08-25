@@ -36,7 +36,6 @@ const (
 	// Bug Fixes & Issues
 	TypeBug   ItemType = "BUG"   // Known bug that needs fixing
 	TypeFixme ItemType = "FIXME" // Broken code that needs immediate attention
-	TypeHack  ItemType = "HACK"  // Temporary workaround
 
 	// Features & Enhancements
 	TypeTodo    ItemType = "TODO"    // General task or feature to implement
@@ -180,7 +179,7 @@ func GetPriorityFromType(itemType ItemType) ItemPriority {
 		return PriorityHigh
 
 	// Important - should be addressed soon
-	case TypeRefactor, TypeDebt, TypeArchitecture, TypeHack, TypeDeploy:
+	case TypeRefactor, TypeDebt, TypeArchitecture, TypeDeploy:
 		return PriorityMedium
 
 	// Low priority - nice to have
@@ -196,7 +195,7 @@ func GetPriorityFromType(itemType ItemType) ItemPriority {
 // GetTypeCategory returns the broader category for grouping
 func GetTypeCategory(itemType ItemType) string {
 	switch itemType {
-	case TypeBug, TypeFixme, TypeHack:
+	case TypeBug, TypeFixme:
 		return "Bug Fixes"
 	case TypeRefactor, TypeOptimize, TypeCleanup, TypeDeprecated:
 		return "Code Quality"
@@ -226,7 +225,6 @@ func GetTypeDescription(itemType ItemType) string {
 		TypeDeprecated:   "Mark old code for removal or replacement",
 		TypeBug:          "Known bug that needs fixing",
 		TypeFixme:        "Broken code that needs immediate attention",
-		TypeHack:         "Temporary workaround that should be properly fixed",
 		TypeTodo:         "General task or feature to implement",
 		TypeFeature:      "New functionality to add",
 		TypeEnhance:      "Improve or extend existing functionality",

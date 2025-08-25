@@ -230,7 +230,7 @@ export default function NoteList() {
                 border:
                   selectedNote?.id === note.id
                     ? `1px solid ${colors[primaryColor][5]}`
-                    : `1px solid ${colors[primaryColor][0]}`,
+                    : `1px solid ${colors.dark[5]}`,
               }}
               onClick={() => {
                 selectNote(note);
@@ -269,8 +269,7 @@ export default function NoteList() {
                       </Menu.Target>
                       <Menu.Dropdown>
                         <Menu.Item
-                          leftSection={<IconTrash size={14} />}
-                          color="red"
+                          leftSection={<IconTrash size={14} color="red" />}
                           onClick={(e) => {
                             e.stopPropagation();
                             openForNote(note);

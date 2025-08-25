@@ -208,7 +208,7 @@ export default function ItemDetailDrawer({
                       leftSection={<IconCode size={16} />}
                       onClick={() => gotoFile(selectedItem)}
                     >
-                      Go to Line
+                      Go to Code
                     </Button>
                   </Group>
                 </Group>

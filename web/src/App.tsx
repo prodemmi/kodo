@@ -4,28 +4,15 @@ import "@mantine/notifications/styles.css";
 import { MantineProvider } from "@mantine/core";
 import { createTheme } from "./theme";
 import AppShell from "./components/AppShell";
-import { QueryClient } from "@tanstack/react-query";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { Notifications } from "@mantine/notifications";
-import { useAppState } from "./states/app.state";
-import { useEffect, useState } from "react";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      gcTime: 1000 * 60 * 60 * 24, // 24 hours
-    },
-  },
-});
-
-const persister = createAsyncStoragePersister({
-  storage: window.localStorage,
-});
+import { useEffect, useMemo, useState } from "react";
+import { useSettingsState } from "./states/settings.state";
 
 export default function App() {
   const [isDark, setIsDark] = useState(true);
-  const primaryColor = useAppState((s) => s.primaryColor);
+  const workspace_settings = useSettingsState((s) => s.workspace_settings);
+  console.log('workspace_settings ===>', workspace_settings);
+  
 
   useEffect(() => {
     const html = document.documentElement;
@@ -43,17 +30,15 @@ export default function App() {
     return () => observer.disconnect();
   }, []);
 
-  const theme = createTheme(primaryColor, isDark);
+  const theme = useMemo(
+    () => createTheme(workspace_settings.primary_color, isDark),
+    [workspace_settings, isDark]
+  );
 
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{ persister }}
-    >
-      <MantineProvider theme={theme} defaultColorScheme="dark">
-        <Notifications />
-        <AppShell>App</AppShell>
-      </MantineProvider>
-    </PersistQueryClientProvider>
+    <MantineProvider theme={theme} defaultColorScheme="dark">
+      <Notifications />
+      <AppShell />
+    </MantineProvider>
   );
 }

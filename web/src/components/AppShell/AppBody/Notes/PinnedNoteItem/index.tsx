@@ -107,7 +107,7 @@ export default function PinnedNoteItem({ note }: Props) {
                     Unpin Note
                   </MenuItem>
                   <MenuItem leftSection={<IconEdit size={12} />}>Edit</MenuItem>
-                  <MenuItem color="red" leftSection={<IconTrash size={12} />}>
+                  <MenuItem leftSection={<IconTrash size={12} color="red" />}>
                     Delete
                   </MenuItem>
                 </MenuDropdown>

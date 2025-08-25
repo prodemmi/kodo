@@ -135,8 +135,7 @@ function FileItem({
                     <>
                       <Menu.Divider />
                       <MenuItem
-                        leftSection={<IconTrash size={14} />}
-                        color="red"
+                        leftSection={<IconTrash size={14} color="red" />}
                         onClick={() => onDelete(item)}
                       >
                         Delete
@@ -291,8 +290,7 @@ function FileItemCompact({
                   <>
                     <Menu.Divider />
                     <MenuItem
-                      leftSection={<IconTrash size={14} />}
-                      color="red"
+                      leftSection={<IconTrash size={14} color="red" />}
                       onClick={() => onDelete(item)}
                     >
                       Delete

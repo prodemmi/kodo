@@ -130,7 +130,7 @@ function StickyNoteCard({
           touchAction: "none",
         }}
       >
-        <IconGripVertical size={16}  />
+        <IconGripVertical size={16} />
       </Box>
 
       {/* Actions Menu */}
@@ -190,7 +190,6 @@ function StickyNoteCard({
         <ActionIcon
           size="sm"
           variant="subtle"
-          
           onClick={() => setIsEditing(!isEditing)}
         >
           <IconEdit size={14} />
@@ -199,10 +198,9 @@ function StickyNoteCard({
         <ActionIcon
           size="sm"
           variant="subtle"
-          color="red"
           onClick={() => onDelete(note.id)}
         >
-          <IconTrash size={14} />
+          <IconTrash size={14} color="red" />
         </ActionIcon>
       </Group>
 
@@ -316,7 +314,7 @@ export default function NotesStickyView() {
     "var(--mantine-color-teal-2)",
     "var(--mantine-color-pink-2)",
   ];
-  
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {

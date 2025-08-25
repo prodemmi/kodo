@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Item,
   ItemContext,
+  ItemStatus,
   OpenFileParams,
   OpenFileResponse,
   UpdateItemParams,
@@ -51,11 +52,11 @@ export function useUpdateItem() {
     mutationKey: ["items"],
     mutationFn: ({ id, status }) => updateItem(id, status),
 
-    onSuccess: (_, variables) => {
+    onSuccess: ({ status }, variables) => {
       queryClient.setQueryData<Item[]>(["items"], (oldItems) =>
         oldItems?.map((item) =>
           item.id === variables.id
-            ? { ...item }
+            ? { ...item, status: status as ItemStatus }
             : item
         )
       );

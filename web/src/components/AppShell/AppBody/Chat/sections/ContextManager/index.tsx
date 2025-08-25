@@ -178,7 +178,7 @@ export default function ContextManager({ opened, onClose }: Props) {
 
                     <Group gap={4}>
                       <Tooltip label="Add to Context">
-                        <ActionIcon size={20} variant="subtle" >
+                        <ActionIcon size={20} variant="subtle">
                           <IconFileText size={12} />
                         </ActionIcon>
                       </Tooltip>
@@ -217,8 +217,7 @@ export default function ContextManager({ opened, onClose }: Props) {
                           </MenuItem>
                           <Menu.Divider />
                           <MenuItem
-                            leftSection={<IconTrash size={14} />}
-                            color="red"
+                            leftSection={<IconTrash size={14} color="red" />}
                             onClick={() => removeContext(context.id)}
                           >
                             Delete

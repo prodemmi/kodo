@@ -113,9 +113,8 @@ export default function FolderItem({ folder, level = 0 }: Props) {
                     Edit
                   </MenuItem>
                   <MenuItem
-                    color="red"
                     onClick={openDeleteModal}
-                    leftSection={<IconTrash size={12} />}
+                    leftSection={<IconTrash size={12} color="red" />}
                   >
                     Delete
                   </MenuItem>

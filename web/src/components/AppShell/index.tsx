@@ -1,13 +1,11 @@
-import { ReactNode, useEffect } from "react";
+import { useEffect } from "react";
 import AppHeader from "./AppHeader";
 import { AppShell } from "@mantine/core";
 import AppBody from "./AppBody";
 import { useInvestor } from "../../hooks/use-config";
 import { useAppState } from "../../states/app.state";
 
-type Props = {
-  children: ReactNode;
-};
+type Props = {};
 
 export default function ({}: Props) {
   const { data: investor, isError, isLoading } = useInvestor();

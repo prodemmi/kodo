@@ -27,14 +27,17 @@ type Server struct {
 	staticFiles embed.FS
 
 	logger *zap.Logger
+
+	settingsManager *SettingsManager
 }
 
 func NewServer(config Config, logger *zap.Logger, staticFiles embed.FS, scanner *Scanner) *Server {
 	return &Server{
-		config:      config,
-		staticFiles: staticFiles,
-		scanner:     scanner,
-		logger:      logger,
+		config:          config,
+		staticFiles:     staticFiles,
+		scanner:         scanner,
+		logger:          logger,
+		settingsManager: NewSettingsManager(config, logger),
 	}
 }
 
@@ -154,6 +157,9 @@ func (s *Server) StartServer() {
 	http.Handle("/api/categories", cors(http.HandlerFunc(s.handleCategories)))
 
 	http.Handle("/api/chat/project-files", cors(http.HandlerFunc(s.handleProjectFiles)))
+
+	http.Handle("/api/settings", cors(http.HandlerFunc(s.handleSettings)))
+	http.Handle("/api/settings/update", cors(http.HandlerFunc(s.handleSettingsUpdate)))
 
 	port := 8080
 	url := fmt.Sprintf("http://%s:%d", s.getLocalIP(), port)
@@ -1470,5 +1476,52 @@ func (s *Server) handleCleanupHistory(w http.ResponseWriter, r *http.Request) {
 		"removed_entries":   removedCount,
 		"remaining_entries": len(filteredHistory),
 		"message":           fmt.Sprintf("Removed %d old history entries", removedCount),
+	})
+}
+
+func (s *Server) handleSettings(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	switch r.Method {
+	case "GET":
+		settings := s.settingsManager.LoadSettings()
+		json.NewEncoder(w).Encode(settings)
+
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+// handleSettingsUpdate handles PUT requests to update settings
+func (s *Server) handleSettingsUpdate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "PUT" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var updateReq map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&updateReq); err != nil {
+		s.logger.Error("Invalid JSON for settings update", zap.Error(err))
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	s.logger.Info("Updating settings", zap.Any("updates", updateReq))
+
+	// Update settings using partial update
+	updatedSettings, err := s.settingsManager.UpdatePartialSettings(updateReq)
+	if err != nil {
+		s.logger.Error("Failed to update settings", zap.Error(err))
+		http.Error(w, "Failed to update settings", http.StatusInternalServerError)
+		return
+	}
+
+	s.logger.Info("Settings updated successfully")
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":   "success",
+		"settings": updatedSettings,
+		"message":  "Settings updated successfully",
 	})
 }

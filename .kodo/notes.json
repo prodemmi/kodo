@@ -1,22 +1,6 @@
 {
   "notes": [
     {
-      "id": 6,
-      "title": "Flags",
-      "content": "\u003cp\u003eAdd run flags to control app behavior.\u003c/p\u003e\u003cul class=\"m_8b44009a mantine-RichTextEditor-taskList\" data-type=\"taskList\"\u003e\u003cli class=\"test-item\" data-checked=\"false\" data-type=\"taskItem\"\u003e\u003clabel\u003e\u003cinput type=\"checkbox\"\u003e\u003cspan\u003e\u003c/span\u003e\u003c/label\u003e\u003cdiv\u003e\u003cp\u003e--config | -c, To set .kodo/ config file (default ./)\u003c/p\u003e\u003c/div\u003e\u003c/li\u003e\u003cli class=\"test-item\" data-checked=\"false\" data-type=\"taskItem\"\u003e\u003clabel\u003e\u003cinput type=\"checkbox\"\u003e\u003cspan\u003e\u003c/span\u003e\u003c/label\u003e\u003cdiv\u003e\u003cp\u003e--read-only | -r, to run kodo in read only mode (default false)\u003c/p\u003e\u003c/div\u003e\u003c/li\u003e\u003c/ul\u003e\u003cp\u003e\u003c/p\u003e",
-      "author": "prodemmi \u003cprodemmi@gmail.com\u003e",
-      "createdAt": "2025-08-22T11:38:01.839589129Z",
-      "updatedAt": "2025-08-23T13:07:10.100014007Z",
-      "tags": [
-        "test"
-      ],
-      "category": "feature",
-      "pinned": true,
-      "folderId": 5,
-      "gitBranch": "main",
-      "gitCommit": "0fe5023"
-    },
-    {
       "id": 13,
       "title": "Assign",
       "content": "\u003ch1\u003eAssign\u003c/h1\u003e\u003cp\u003eAdd a keyword to assign a task to a user.\u003cbr\u003eExample:\u003cbr\u003e// ASSIGN: prodemmi\u003c/p\u003e",
@@ -201,36 +185,71 @@
         }
       },
       "old_value": {
-        "id": 13,
-        "title": "Assign",
-        "content": "\u003ch1\u003eAssign\u003c/h1\u003e\u003cp\u003eAdd a keyword to assign a task to a user.\u003cbr\u003eExample:\u003cbr\u003e// ASSIGN: prodemmi\u003c/p\u003e",
         "author": "prodemmi \u003cprodemmi@gmail.com\u003e",
-        "createdAt": "2025-08-22T20:57:03.238462001Z",
-        "updatedAt": "2025-08-23T13:18:48.807996836Z",
-        "tags": [],
         "category": "feature",
-        "pinned": false,
+        "content": "\u003ch1\u003eAssign\u003c/h1\u003e\u003cp\u003eAdd a keyword to assign a task to a user.\u003cbr\u003eExample:\u003cbr\u003e// ASSIGN: prodemmi\u003c/p\u003e",
+        "createdAt": "2025-08-22T20:57:03.238462001Z",
         "folderId": 5,
         "gitBranch": "main",
-        "gitCommit": "0fe5023"
+        "gitCommit": "0fe5023",
+        "id": 13,
+        "pinned": false,
+        "tags": [],
+        "title": "Assign",
+        "updatedAt": "2025-08-23T13:18:48.807996836Z"
       },
       "new_value": {
-        "id": 13,
-        "title": "Assign",
-        "content": "\u003ch1\u003eAssign\u003c/h1\u003e\u003cp\u003eAdd a keyword to assign a task to a user.\u003cbr\u003eExample:\u003cbr\u003e// ASSIGN: prodemmi\u003c/p\u003e",
         "author": "prodemmi \u003cprodemmi@gmail.com\u003e",
+        "category": "feature",
+        "content": "\u003ch1\u003eAssign\u003c/h1\u003e\u003cp\u003eAdd a keyword to assign a task to a user.\u003cbr\u003eExample:\u003cbr\u003e// ASSIGN: prodemmi\u003c/p\u003e",
         "createdAt": "2025-08-22T20:57:03.238462001Z",
-        "updatedAt": "2025-08-23T13:18:58.105397778Z",
+        "folderId": 5,
+        "gitBranch": "main",
+        "gitCommit": "0fe5023",
+        "id": 13,
+        "pinned": true,
         "tags": [],
+        "title": "Assign",
+        "updatedAt": "2025-08-23T13:18:58.105397778Z"
+      },
+      "message": "Note updated"
+    },
+    {
+      "id": 5,
+      "note_id": 6,
+      "action": "deleted",
+      "author": "prodemmi \u003cprodemmi@gmail.com\u003e",
+      "timestamp": "2025-08-24T21:53:40.254231447Z",
+      "git_branch": "main",
+      "git_commit": "addfe6f",
+      "changes": {
+        "deleted_note": {
+          "category": "feature",
+          "tags": [
+            "test"
+          ],
+          "title": "Flags"
+        }
+      },
+      "old_value": {
+        "id": 6,
+        "title": "Flags",
+        "content": "\u003cp\u003eAdd run flags to control app behavior.\u003c/p\u003e\u003cul class=\"m_8b44009a mantine-RichTextEditor-taskList\" data-type=\"taskList\"\u003e\u003cli class=\"test-item\" data-checked=\"false\" data-type=\"taskItem\"\u003e\u003clabel\u003e\u003cinput type=\"checkbox\"\u003e\u003cspan\u003e\u003c/span\u003e\u003c/label\u003e\u003cdiv\u003e\u003cp\u003e--config | -c, To set .kodo/ config file (default ./)\u003c/p\u003e\u003c/div\u003e\u003c/li\u003e\u003cli class=\"test-item\" data-checked=\"false\" data-type=\"taskItem\"\u003e\u003clabel\u003e\u003cinput type=\"checkbox\"\u003e\u003cspan\u003e\u003c/span\u003e\u003c/label\u003e\u003cdiv\u003e\u003cp\u003e--read-only | -r, to run kodo in read only mode (default false)\u003c/p\u003e\u003c/div\u003e\u003c/li\u003e\u003c/ul\u003e\u003cp\u003e\u003c/p\u003e",
+        "author": "prodemmi \u003cprodemmi@gmail.com\u003e",
+        "createdAt": "2025-08-22T11:38:01.839589129Z",
+        "updatedAt": "2025-08-23T13:07:10.100014007Z",
+        "tags": [
+          "test"
+        ],
         "category": "feature",
         "pinned": true,
         "folderId": 5,
         "gitBranch": "main",
         "gitCommit": "0fe5023"
       },
-      "message": "Note updated"
+      "message": "Note deleted"
     }
   ],
   "next_id": 23,
-  "next_history_id": 5
+  "next_history_id": 6
 }

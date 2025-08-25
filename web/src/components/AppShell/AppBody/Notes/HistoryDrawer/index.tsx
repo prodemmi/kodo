@@ -94,7 +94,7 @@ export default function HistoryDrawer() {
         return <IconEdit size={16} />;
       case "delete":
       case "deleted":
-        return <IconTrash size={16} />;
+        return <IconTrash size={16} color="red" />;
       default:
         return <IconHistory size={16} />;
     }

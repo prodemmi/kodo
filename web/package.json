@@ -37,6 +37,8 @@
     "@tiptap/suggestion": "^3.2.2",
     "axios": "^1.11.0",
     "lodash.debounce": "^4.0.8",
+    "lodash.groupby": "^4.6.0",
+    "lodash.snakecase": "^4.1.1",
     "lowlight": "^3.3.0",
     "react": "18",
     "react-dom": "18",
@@ -46,6 +48,8 @@
   },
   "devDependencies": {
     "@types/lodash.debounce": "^4.0.9",
+    "@types/lodash.groupby": "^4.6.9",
+    "@types/lodash.snakecase": "^4.1.9",
     "@types/react": "18",
     "@types/react-dom": "18",
     "@vitejs/plugin-react": "^4.5.2",

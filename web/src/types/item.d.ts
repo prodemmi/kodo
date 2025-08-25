@@ -8,7 +8,6 @@ export type ItemType =
   | "DEPRECATED"
   | "BUG"
   | "FIXME"
-  | "HACK"
   | "TODO"
   | "FEATURE"
   | "ENHANCE"

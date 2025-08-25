@@ -1,18 +1,31 @@
 import { useState, useCallback, useMemo } from "react";
-import { Box, Group, ActionIcon, Collapse } from "@mantine/core";
+import {
+  Box,
+  Group,
+  ActionIcon,
+  Collapse,
+  Title,
+  LoadingOverlay,
+} from "@mantine/core";
 import { useDroppable } from "@dnd-kit/core";
 import { IconChevronDown } from "@tabler/icons-react";
+import { useSettings } from "../../../../../../hooks/use-settings";
 
 interface Props {
+  color: string;
   columnId: string;
   header: React.ReactNode;
   children: React.ReactNode;
 }
 
-// FEAT: store collapse
-// The collapse should store in localStorage (using zustand persist)
-export default function DroppableColumn({ columnId, header, children }: Props) {
+export default function DroppableColumn({
+  color,
+  columnId,
+  header,
+  children,
+}: Props) {
   const [collapsed, setCollapsed] = useState(false);
+  const { data: settings, isLoading, isSuccess } = useSettings();
 
   const { setNodeRef, isOver } = useDroppable({
     id: columnId,
@@ -52,32 +65,38 @@ export default function DroppableColumn({ columnId, header, children }: Props) {
     [collapsed]
   );
 
-  return (
-    <Box ref={setNodeRef} style={boxStyles}>
-      <Group
-        style={groupStyles}
-        justify="space-between"
-        mb={collapsed ? undefined : "md"}
-      >
-        {header}
-        <ActionIcon
-          size="xs"
-          variant="transparent"
-          onClick={toggleCollapsed}
-          style={actionIconStyles}
-          aria-label={collapsed ? "Expand column" : "Collapse column"}
-        >
-          <IconChevronDown />
-        </ActionIcon>
-      </Group>
+  if (isLoading || !isSuccess) return <LoadingOverlay />;
 
-      <Collapse
-        in={!collapsed}
-        transitionDuration={250}
-        transitionTimingFunction="cubic-bezier(0.4, 0, 0.2, 1)"
-      >
-        {children}
-      </Collapse>
-    </Box>
+  return (
+    settings && (
+      <Box ref={setNodeRef} style={boxStyles}>
+        <Group
+          style={groupStyles}
+          justify="space-between"
+          mb={collapsed ? undefined : "md"}
+        >
+          <Title size="h7" c={color}>
+            {header}
+          </Title>
+          <ActionIcon
+            size="xs"
+            variant="transparent"
+            onClick={toggleCollapsed}
+            style={actionIconStyles}
+            aria-label={collapsed ? "Expand column" : "Collapse column"}
+          >
+            <IconChevronDown />
+          </ActionIcon>
+        </Group>
+
+        <Collapse
+          in={!collapsed}
+          transitionDuration={250}
+          transitionTimingFunction="cubic-bezier(0.4, 0, 0.2, 1)"
+        >
+          {children}
+        </Collapse>
+      </Box>
+    )
   );
 }

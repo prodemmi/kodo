@@ -151,7 +151,6 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
               leftSection={<IconTrash size={16} />}
               onClick={() => cleanupStats()}
               variant="light"
-              color="orange"
             >
               Cleanup Old Stats
             </Button>
@@ -188,7 +187,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                       justify="space-between"
                       h="100%"
                     >
-                      <ThemeIcon size="xl" variant="light" >
+                      <ThemeIcon size="xl" variant="light">
                         <IconHistory />
                       </ThemeIcon>
                       <Text size="xl" fw={700}>
@@ -209,7 +208,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                       justify="space-between"
                       h="100%"
                     >
-                      <ThemeIcon size="xl" variant="light" >
+                      <ThemeIcon size="xl" variant="light">
                         <IconGitBranch />
                       </ThemeIcon>
                       <Text size="md" fw={700}>
@@ -400,7 +399,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                                       <Badge color="green" size="sm">
                                         {snapshot.stats.done} done
                                       </Badge>
-                                      <Badge  size="sm">
+                                      <Badge size="sm">
                                         {snapshot.stats.in_progress} in progress
                                       </Badge>
                                       <Badge color="orange" size="sm">
@@ -488,11 +487,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                                       </Text>
                                     </Table.Td>
                                     <Table.Td>
-                                      <Progress
-                                        value={entry.rate}
-                                        size="sm"
-                                        
-                                      />
+                                      <Progress value={entry.rate} size="sm" />
                                     </Table.Td>
                                   </Table.Tr>
                                 ))}
@@ -575,7 +570,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                         <Grid.Col span={4}>
                           <Card withBorder p="md">
                             <Stack align="center">
-                              <ThemeIcon variant="light" size="md" >
+                              <ThemeIcon variant="light" size="md">
                                 <IconTrendingUp color="white" size={18} />
                               </ThemeIcon>
                               <Text size="xl" fw={700}>
@@ -589,8 +584,8 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                         <Grid.Col span={4}>
                           <Card withBorder p="md">
                             <Stack align="center">
-                              <ThemeIcon variant="light" size="md" >
-                                <IconTrash color="white" size={18} />
+                              <ThemeIcon variant="light" size="md">
+                                <IconTrash color="red" size={18} />
                               </ThemeIcon>
                               <Text size="xl" fw={700}>
                                 {changes.summary.removed}
@@ -603,13 +598,13 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                         <Grid.Col span={4}>
                           <Card withBorder p="md">
                             <Stack align="center">
-                              <ThemeIcon variant="light" size="md" >
+                              <ThemeIcon variant="light" size="md">
                                 <IconCheck color="white" size={18} />
                               </ThemeIcon>
                               <Text size="xl" fw={700}>
                                 {changes.summary.status_changed}
                               </Text>
-                              <Text >Status Changes</Text>
+                              <Text>Status Changes</Text>
                             </Stack>
                           </Card>
                         </Grid.Col>
@@ -710,7 +705,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                             <Accordion.Item value="status-changed">
                               <Accordion.Control>
                                 <Group>
-                                  <ThemeIcon  size="sm">
+                                  <ThemeIcon size="sm">
                                     <IconCheck size={12} />
                                   </ThemeIcon>
                                   <Text>
@@ -780,7 +775,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                           <Card withBorder>
                             <Stack>
                               <Group>
-                                <ThemeIcon >
+                                <ThemeIcon>
                                   <IconGitCommit color="white" />
                                 </ThemeIcon>
                                 <div>
@@ -811,7 +806,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                                   </Text>
                                 </Stack>
                                 <Stack align="center">
-                                  <Text size="xl" fw={700} >
+                                  <Text size="xl" fw={700}>
                                     {comparison.current.stats.in_progress}
                                   </Text>
                                   <Text size="sm" c="dimmed">
@@ -878,7 +873,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                                   </Text>
                                 </Stack>
                                 <Stack align="center">
-                                  <Text size="xl" fw={700} >
+                                  <Text size="xl" fw={700}>
                                     {comparison.previous.stats.in_progress}
                                   </Text>
                                   <Text size="sm" c="dimmed">
