@@ -75,7 +75,7 @@ export default function FolderItem({ folder, level = 0 }: Props) {
             >
               <IconFolder
                 size={16}
-                color={isSelected ? primaryColor : colors.gray[4]}
+                color={isSelected ? `var(--mantine-color-${primaryColor}-4)` : colors.gray[4]}
               />
 
               <Text size="sm" fw={400}>

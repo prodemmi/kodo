@@ -10,6 +10,7 @@ import {
   Modal,
   Text,
   LoadingOverlay,
+  Code,
 } from "@mantine/core";
 import { IconArrowRight, IconCheck, IconPlus } from "@tabler/icons-react";
 import { useState } from "react";
@@ -24,6 +25,7 @@ import {
   useSettings,
   useUpdateSettings,
 } from "../../../../../../hooks/use-settings";
+import { DemoPatterns } from "./sections/DemoPatterns";
 // import snakeCase from "lodash.snakecase";
 // import { KanbanColumn } from "../../../../../../types/settings";
 
@@ -151,6 +153,7 @@ export function KanbanSettings() {
                 updateSettings({ priority_patterns })
               }
             />
+            <DemoPatterns />
           </Stack>
         </Container>
 

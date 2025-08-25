@@ -23,7 +23,9 @@ export function CodeScanSettings() {
 
   useEffect(() => {
     if (isSuccess && settings) {
-      setExcludeDirs(settings.code_scan_settings.exclude_directories.join("\n"));
+      setExcludeDirs(
+        settings.code_scan_settings.exclude_directories.join("\n")
+      );
       setExcludeFiles(settings.code_scan_settings.exclude_files.join("\n"));
     }
   }, [isSuccess, settings]);

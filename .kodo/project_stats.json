@@ -1,9 +1,9 @@
 {
   "project_path": "/mnt/projects/Projects/Programming/KodoBoard",
-  "last_scan_at": "2025-08-25T15:34:17.07445001Z",
+  "last_scan_at": "2025-08-25T15:36:26.15341093Z",
   "git_branch": "main",
-  "git_commit": "2b8ded1c9806cdfa7a630d601dac14784b18b141",
-  "git_commit_short": "2b8ded1",
+  "git_commit": "04ed0039e6ea64085cc6ff268e1de5f378e94f78",
+  "git_commit_short": "04ed003",
   "total_items": 3,
   "items_by_status": {
     "in_progress": 1,
@@ -1348,8 +1348,71 @@
           }
         ]
       }
+    },
+    {
+      "branch": "main",
+      "commit": "04ed0039e6ea64085cc6ff268e1de5f378e94f78",
+      "commit_short": "04ed003",
+      "commit_message": "sync kanban with settings",
+      "timestamp": "2025-08-25T15:35:26.654132581Z",
+      "stats": {
+        "total": 3,
+        "by_status": {
+          "in_progress": 1,
+          "todo": 2
+        },
+        "by_type": {
+          "FIXME": 1,
+          "TODO": 2
+        },
+        "by_priority": {
+          "HIGH": 1,
+          "LOW": 2
+        },
+        "items": [
+          {
+            "id": 1,
+            "type": "FIXME",
+            "title": "test fixme",
+            "file": "web/src/App.tsx",
+            "line": 11,
+            "status": "todo",
+            "priority": "LOW",
+            "is_done": false,
+            "done_at": null,
+            "done_by": null,
+            "hash": "-6072d3424a8f25ae"
+          },
+          {
+            "id": 2,
+            "type": "TODO",
+            "title": "implement note pin in backend",
+            "file": "web/src/api/notes.api.ts",
+            "line": 145,
+            "status": "in_progress",
+            "priority": "LOW",
+            "is_done": false,
+            "done_at": null,
+            "done_by": null,
+            "hash": "55537426af1e6288"
+          },
+          {
+            "id": 3,
+            "type": "TODO",
+            "title": "implement in zustand and sync with onSuccess fn",
+            "file": "web/src/hooks/use-notes.ts",
+            "line": 130,
+            "status": "todo",
+            "priority": "HIGH",
+            "is_done": false,
+            "done_at": null,
+            "done_by": null,
+            "hash": "7c0968ba6977a500"
+          }
+        ]
+      }
     }
   ],
   "created_at": "2025-08-18T01:06:39.516646427+03:30",
-  "updated_at": "2025-08-25T15:34:17.07603164Z"
+  "updated_at": "2025-08-25T15:36:26.156548143Z"
 }

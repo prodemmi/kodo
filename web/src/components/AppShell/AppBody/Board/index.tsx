@@ -56,7 +56,7 @@ export default function Board() {
     isLoading: isLoadingSettings,
     error: settingsError,
   } = useSettings();
-  
+
   const [columns, setColumns] = useState<Record<string, Column>>({});
   const [columnOrder, setColumnOrder] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +81,7 @@ export default function Board() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         if (!settings || !items) {
           setLoading(false);
           return;
@@ -115,7 +115,7 @@ export default function Board() {
         setLoading(false);
       }
     };
-    
+
     if (isSuccessItems && isSuccessSettings) {
       fetchData();
     }
@@ -221,22 +221,22 @@ export default function Board() {
 
   function updateItemStatus(itemId: number, status: string) {
     console.log("Calling API - itemId:", itemId, "status:", status);
-    
+
     mutate(
       { id: itemId, status },
       {
         onMutate: async (newItem) => {
           // Cancel any outgoing refetches
-          await queryClient.cancelQueries({ queryKey: ['items'] });
+          await queryClient.cancelQueries({ queryKey: ["items"] });
 
           // Snapshot the previous value
-          const previousItems = queryClient.getQueryData(['items']);
+          const previousItems = queryClient.getQueryData(["items"]);
 
           // Optimistically update the cache
-          queryClient.setQueryData(['items'], (old: Item[] | undefined) => {
+          queryClient.setQueryData(["items"], (old: Item[] | undefined) => {
             if (!old) return old;
-            return old.map(item => 
-              item.id === newItem.id 
+            return old.map((item) =>
+              item.id === newItem.id
                 ? { ...item, status: newItem.status }
                 : item
             );
@@ -246,8 +246,8 @@ export default function Board() {
         },
         onError: (err, newItem, context) => {
           // Rollback on error
-          queryClient.setQueryData(['items'], context?.previousItems);
-          
+          queryClient.setQueryData(["items"], context?.previousItems);
+
           // Also rollback local state
           if (items && settings) {
             const rollbackColumns: Record<string, Column> = {};
@@ -270,7 +270,7 @@ export default function Board() {
         },
         onSettled: () => {
           // Refetch to ensure consistency
-          queryClient.invalidateQueries({ queryKey: ['items'] });
+          queryClient.invalidateQueries({ queryKey: ["items"] });
         },
       }
     );
@@ -297,7 +297,11 @@ export default function Board() {
   // Loading states
   if (isLoadingItems || isLoadingSettings || loading) {
     return (
-      <LoadingOverlay visible zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+      <LoadingOverlay
+        visible
+        zIndex={1000}
+        overlayProps={{ radius: "sm", blur: 2 }}
+      />
     );
   }
 
@@ -307,7 +311,9 @@ export default function Board() {
     return (
       <Container size="xl" py="md">
         <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red">
-          {typeof combinedError === 'string' ? combinedError : combinedError.message || "An error occurred"}
+          {typeof combinedError === "string"
+            ? combinedError
+            : combinedError.message || "An error occurred"}
         </Alert>
       </Container>
     );
@@ -320,7 +326,7 @@ export default function Board() {
 
   return (
     <>
-      <Container size="xl" py="xs" fluid>
+      <Container size="xl" py="lg">
         <Group justify="space-between" align="center" w="100%">
           <Title order={2} mb="md">
             Kanban Board
@@ -342,7 +348,7 @@ export default function Board() {
             {columnOrder.map((columnId) => {
               const column = columns[columnId];
               if (!column) return null;
-              
+
               return (
                 <Paper
                   shadow="sm"

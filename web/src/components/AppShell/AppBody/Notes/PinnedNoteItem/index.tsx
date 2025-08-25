@@ -60,7 +60,7 @@ export default function PinnedNoteItem({ note }: Props) {
           <Group gap="xs">
             <IconFileText
               size={16}
-              color={isSelected ? primaryColor : "var(--mantine-color-gray-4)"}
+              color={isSelected ? `var(--mantine-color-${primaryColor}-4)` : "var(--mantine-color-gray-4)"}
             />
             <Text
               size="sm"

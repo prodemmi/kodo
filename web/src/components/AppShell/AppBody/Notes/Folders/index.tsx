@@ -98,7 +98,7 @@ export default function Folders() {
             <IconFileText
               size={16}
               color={
-                !selectedFolder ? primaryColor : "var(--mantine-color-gray-4)"
+                !selectedFolder ? `var(--mantine-color-${primaryColor}-4)` : "var(--mantine-color-gray-4)"
               }
             />
             <Text size="sm" fw={400}>
