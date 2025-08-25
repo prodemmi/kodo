@@ -78,9 +78,9 @@ func (sm *SettingsManager) GetDefaultSettings() *Settings {
 	defaultAutoAssignPattern := "TODO|FIXME"
 	return &Settings{
 		KanbanColumns: []KanbanColumn{
-			{ID: "todo", Name: "Todo", Color: "dark", AutoAssignPattern: &defaultAutoAssignPattern},
-			{ID: "in_progress", Name: "In Progress", Color: "blue"},
-			{ID: "done", Name: "Done", Color: "green"},
+			{ID: "todo", Name: "TODO", Color: "dark", AutoAssignPattern: &defaultAutoAssignPattern},
+			{ID: "in_progress", Name: "IN PROGRESS", Color: "blue"},
+			{ID: "done", Name: "DONE", Color: "green"},
 		},
 		PriorityPatterns: PriorityPatterns{
 			Low:    "LOW",

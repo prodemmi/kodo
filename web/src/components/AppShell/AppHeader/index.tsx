@@ -52,7 +52,7 @@ export default function AppHeader({}: Props) {
             <Button
               onClick={() => setActiveTab(2)}
               bg={buttonBg(2)}
-              rightSection={<IconSettings />}
+              rightSection={<IconSettings size={18} />}
             >
               Settings
             </Button>
