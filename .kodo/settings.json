@@ -2,18 +2,18 @@
   "kanban_columns": [
     {
       "id": "todo",
-      "name": "Todo",
+      "name": "TODO",
       "color": "dark",
-      "auto_assign_pattern": "TODO|FIXME"
+      "auto_assign_pattern": "TODO|FIXME|BUG|FEATURE"
     },
     {
-      "id": "in-progress",
-      "name": "In Progress",
+      "id": "in_progress",
+      "name": "IN PROGRESS",
       "color": "blue"
     },
     {
       "id": "done",
-      "name": "Done",
+      "name": "DONE",
       "color": "green"
     }
   ],
@@ -25,17 +25,28 @@
   "code_scan_settings": {
     "exclude_directories": [
       "node_modules",
+      ".kodo",
       ".git",
       "dist",
       "build",
       "vendor",
       ".next",
-      "target"
+      "target",
+      "public",
+      ".yarn"
     ],
     "exclude_files": [
       "*.min.js",
       "*.min.css",
+      "*.png",
+      "*.jpg",
+      "*.jpeg",
+      "*.webp",
+      "*.svg",
       "*.map",
+      "go.md",
+      "go.sum",
+      ".gitignore",
       "package-lock.json",
       "yarn.lock"
     ],
@@ -45,5 +56,5 @@
     "token": ""
   },
   "created_at": "2025-08-24T17:22:40.785298392Z",
-  "updated_at": "2025-08-24T20:12:37.104854614Z"
+  "updated_at": "2025-08-25T15:33:17.167441885Z"
 }

@@ -52,6 +52,7 @@ export default function DroppableColumn({
       marginBottom: collapsed ? undefined : "md",
       transition: "margin-bottom 250ms cubic-bezier(0.4, 0, 0.2, 1)",
       width: "100%",
+      cursor: "pointer",
     }),
     [collapsed]
   );
@@ -74,6 +75,7 @@ export default function DroppableColumn({
           style={groupStyles}
           justify="space-between"
           mb={collapsed ? undefined : "md"}
+          onClick={toggleCollapsed}
         >
           <Title size="h7" c={color}>
             {header}
@@ -81,7 +83,6 @@ export default function DroppableColumn({
           <ActionIcon
             size="xs"
             variant="transparent"
-            onClick={toggleCollapsed}
             style={actionIconStyles}
             aria-label={collapsed ? "Expand column" : "Collapse column"}
           >

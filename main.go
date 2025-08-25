@@ -54,7 +54,9 @@ func main() {
 		logger = core.NewLogger()
 	}
 
-	scanner := core.NewScanner(config, logger)
-	server := core.NewServer(config, logger, staticFiles, scanner)
+	settingsManager := core.NewSettingsManager(config, logger)
+	tracker := core.NewProjectTracker(config, logger)
+	scanner := core.NewScanner(config, settingsManager, tracker, logger)
+	server := core.NewServer(config, logger, tracker, staticFiles, scanner)
 	server.StartServer()
 }

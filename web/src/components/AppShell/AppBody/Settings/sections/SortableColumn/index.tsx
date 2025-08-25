@@ -1,21 +1,19 @@
-import { CSS } from "@dnd-kit/utilities";
-import { useSortable } from "@dnd-kit/sortable";
-import { IconGripVertical } from "@tabler/icons-react";
+import { useEffect, useState, useCallback } from "react";
+import debounce from "lodash.debounce";
 import {
+  Text,
+  LoadingOverlay,
   Paper,
   Stack,
   Group,
   TextInput,
-  ActionIcon,
   ColorSwatch,
-  Text,
-  LoadingOverlay,
 } from "@mantine/core";
+import snakeCase from "lodash.snakecase";
 import {
   useSettings,
   useUpdateSettings,
 } from "../../../../../../hooks/use-settings";
-import { useCallback } from "react";
 
 export function SortableColumn({
   column,
@@ -26,24 +24,28 @@ export function SortableColumn({
 }) {
   const { data: settings, isLoading, isSuccess } = useSettings();
   const updateSettings = useUpdateSettings();
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: column.id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+  // --- Local states
+  const [localName, setLocalName] = useState(column.name);
+  const [localPattern, setLocalPattern] = useState(
+    column.auto_assign_pattern || ""
+  );
+
+  // Sync when column prop changes (after remote update)
+  useEffect(() => {
+    setLocalName(column.name);
+    setLocalPattern(column.auto_assign_pattern || "");
+  }, [column.name, column.auto_assign_pattern]);
+
+  const handleNameChange = (val: string) => {
+    setLocalName(val);
   };
 
-  const handleNameChange = (name: string) => {
+  const handleNameBlur = () => {
     const cols = settings?.kanban_columns.map((col) =>
-      col.id === column.id ? { ...col, name } : col
+      col.id === column.id
+        ? { ...col, name: localName, id: snakeCase(localName) }
+        : col
     );
     updateSettings({ kanban_columns: cols });
   };
@@ -55,45 +57,34 @@ export function SortableColumn({
     updateSettings({ kanban_columns: cols });
   };
 
-  const debouncedPatternChange = useCallback(
-    (pattern: string) => {
+  const debouncedPatternUpdate = useCallback(
+    debounce((pattern: string) => {
       const cols = settings?.kanban_columns.map((col) =>
         col.id === column.id ? { ...col, auto_assign_pattern: pattern } : col
       );
       updateSettings({ kanban_columns: cols });
-    },
+    }, 400),
     [settings, column.id, updateSettings]
   );
+
+  const handlePatternChange = (val: string) => {
+    setLocalPattern(val);
+    debouncedPatternUpdate(val);
+  };
 
   const colors = ["dark", "blue", "orange", "green", "red"];
 
   if (!isSuccess || isLoading) return <LoadingOverlay />;
 
   return (
-    <Paper
-      shadow="xs"
-      p="md"
-      mt="xs"
-      radius="md"
-      withBorder
-      ref={setNodeRef}
-      style={style}
-    >
+    <Paper shadow="xs" p="md" mt="xs" radius="md" withBorder>
       <Stack gap="sm">
         <Group justify="space-between">
           <Group gap="xs" style={{ flex: 1 }}>
-            <ActionIcon
-              {...attributes}
-              {...listeners}
-              style={{ cursor: "grab", padding: "4px" }}
-              size="md"
-              variant="transparent"
-            >
-              <IconGripVertical />
-            </ActionIcon>
             <TextInput
-              value={column.name}
+              value={localName}
               onChange={(e) => handleNameChange(e.currentTarget.value)}
+              onBlur={handleNameBlur}
               placeholder="Column name"
               size="sm"
               radius="md"
@@ -101,15 +92,17 @@ export function SortableColumn({
             />
           </Group>
         </Group>
+
         {showPatternInput && (
           <TextInput
-            value={column.auto_assign_pattern || ""}
-            onChange={(e) => debouncedPatternChange(e.currentTarget.value)}
+            value={localPattern}
+            onChange={(e) => handlePatternChange(e.currentTarget.value)}
             placeholder="Auto-assign pattern (e.g., 'TODO:')"
             size="sm"
             radius="md"
           />
         )}
+
         <Group gap="xs">
           <Text size="sm" c="dimmed">
             Color:

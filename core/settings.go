@@ -27,10 +27,10 @@ type Settings struct {
 
 // KanbanColumn represents a kanban board column
 type KanbanColumn struct {
-	ID                string `json:"id"`
-	Name              string `json:"name"`
-	Color             string `json:"color"`
-	AutoAssignPattern string `json:"auto_assign_pattern,omitempty"`
+	ID                string  `json:"id"`
+	Name              string  `json:"name"`
+	Color             string  `json:"color"`
+	AutoAssignPattern *string `json:"auto_assign_pattern,omitempty"`
 }
 
 // PriorityPatterns represents priority patterns for task detection
@@ -75,16 +75,17 @@ func NewSettingsManager(config Config, logger *zap.Logger) *SettingsManager {
 
 // GetDefaultSettings returns the default application settings
 func (sm *SettingsManager) GetDefaultSettings() *Settings {
+	defaultAutoAssignPattern := "TODO|FIXME"
 	return &Settings{
 		KanbanColumns: []KanbanColumn{
-			{ID: "todo", Name: "Todo", Color: "blue", AutoAssignPattern: "TODO"},
-			{ID: "progress", Name: "In Progress", Color: "orange"},
-			{ID: "done", Name: "Done", Color: "dark"},
+			{ID: "todo", Name: "Todo", Color: "dark", AutoAssignPattern: &defaultAutoAssignPattern},
+			{ID: "in_progress", Name: "In Progress", Color: "blue"},
+			{ID: "done", Name: "Done", Color: "green"},
 		},
 		PriorityPatterns: PriorityPatterns{
-			Low:    "low:",
-			Medium: "medium:",
-			High:   "high:",
+			Low:    "LOW",
+			Medium: "MEDIUM",
+			High:   "HIGH",
 		},
 		CodeScanSettings: CodeScanConfig{
 			ExcludeDirectories: []string{
@@ -207,7 +208,7 @@ func (sm *SettingsManager) UpdatePartialSettings(updates map[string]interface{})
 						column.Color = color
 					}
 					if pattern, ok := colMap["auto_assign_pattern"].(string); ok {
-						column.AutoAssignPattern = pattern
+						column.AutoAssignPattern = &pattern
 					}
 					columns = append(columns, column)
 				}

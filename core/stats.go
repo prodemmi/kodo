@@ -43,9 +43,7 @@ type BranchSnapshot struct {
 // ItemStats represents count statistics and detailed items
 type ItemStats struct {
 	Total      int            `json:"total"`
-	Todo       int            `json:"todo"`
-	InProgress int            `json:"in_progress"`
-	Done       int            `json:"done"`
+	ByStatus   map[string]int `json:"by_status"`
 	ByType     map[string]int `json:"by_type"`
 	ByPriority map[string]int `json:"by_priority"`
 	Items      []TaskItem     `json:"items"`
@@ -60,13 +58,15 @@ type TaskItem struct {
 	Line     int          `json:"line"`
 	Status   ItemStatus   `json:"status"`
 	Priority ItemPriority `json:"priority"`
+	IsDone   bool         `json:"is_done"`
+	DoneAt   *time.Time   `json:"done_at"`
+	DoneBy   *string      `json:"done_by"`
 	Hash     string       `json:"hash"` // For tracking item identity across commits
 }
 
 // ProjectTracker handles project statistics and persistence
 type ProjectTracker struct {
 	config      Config
-	scanner     *Scanner
 	logger      *zap.Logger
 	kodoDir     string
 	statsFile   string
@@ -74,13 +74,12 @@ type ProjectTracker struct {
 }
 
 // NewProjectTracker creates a new project tracker
-func NewProjectTracker(config Config, scanner *Scanner, logger *zap.Logger) *ProjectTracker {
+func NewProjectTracker(config Config, logger *zap.Logger) *ProjectTracker {
 	wd, _ := os.Getwd()
 	kodoDir := filepath.Join(wd, config.Flags.Config)
 
 	return &ProjectTracker{
 		config:      config,
-		scanner:     scanner,
 		logger:      logger,
 		kodoDir:     kodoDir,
 		statsFile:   filepath.Join(kodoDir, "project_stats.json"),
@@ -127,14 +126,19 @@ func (pt *ProjectTracker) generateItemHash(item *Item) string {
 	return fmt.Sprintf("%x", hash)
 }
 
-// GetTaskItemsAnalysis provides detailed analysis of task items
-func (pt *ProjectTracker) GetTaskItemsAnalysis() map[string]interface{} {
+// GetTaskItemsAnalysis provides detailed analysis of task items dynamically based on settings
+func (pt *ProjectTracker) GetTaskItemsAnalysis(settings *SettingsManager) map[string]interface{} {
 	stats := pt.LoadStats()
 	if stats == nil {
 		return map[string]interface{}{
 			"error": "No stats available",
 		}
 	}
+
+	currentSettings := settings.LoadSettings()
+
+	// Prepare dynamic priority key
+	highPriorityKey := ItemPriority(currentSettings.PriorityPatterns.High)
 
 	analysis := map[string]interface{}{
 		"total_items":     len(stats.CurrentItems),
@@ -145,12 +149,19 @@ func (pt *ProjectTracker) GetTaskItemsAnalysis() map[string]interface{} {
 		"recent_changes":  pt.getRecentItemChanges(),
 	}
 
-	// Group items by various criteria
-	itemsByFile := make(map[string][]TaskItem)
-	itemsByType := make(map[string][]TaskItem)
-	itemsByStatus := make(map[string][]TaskItem)
-	var highPriority []TaskItem
+	itemsByFile := analysis["items_by_file"].(map[string][]TaskItem)
+	itemsByType := analysis["items_by_type"].(map[string][]TaskItem)
+	itemsByStatus := analysis["items_by_status"].(map[string][]TaskItem)
+	highPriority := analysis["high_priority"].([]TaskItem)
 
+	// Build dynamic status keys from KanbanColumns
+	statusKeys := make(map[ItemStatus]string)
+	for _, col := range currentSettings.KanbanColumns {
+		key := ItemStatus(strings.ToUpper(col.Name))
+		statusKeys[key] = strings.ToLower(strings.ReplaceAll(col.Name, " ", "_"))
+	}
+
+	// Iterate items and group dynamically
 	for _, item := range stats.CurrentItems {
 		// Group by file
 		itemsByFile[item.File] = append(itemsByFile[item.File], item)
@@ -158,11 +169,15 @@ func (pt *ProjectTracker) GetTaskItemsAnalysis() map[string]interface{} {
 		// Group by type
 		itemsByType[string(item.Type)] = append(itemsByType[string(item.Type)], item)
 
-		// Group by status
-		itemsByStatus[string(item.Status)] = append(itemsByStatus[string(item.Status)], item)
+		// Group by status dynamically
+		statusKey, ok := statusKeys[item.Status]
+		if !ok {
+			statusKey = strings.ToLower(string(item.Status)) // fallback
+		}
+		itemsByStatus[statusKey] = append(itemsByStatus[statusKey], item)
 
-		// Collect high priority items
-		if item.Priority == PriorityHigh {
+		// Collect high priority items dynamically
+		if item.Priority == highPriorityKey {
 			highPriority = append(highPriority, item)
 		}
 	}
@@ -240,7 +255,7 @@ func (pt *ProjectTracker) getRecentItemChanges() map[string]interface{} {
 }
 
 // GetItemsByFile returns items grouped by file with additional metadata
-func (pt *ProjectTracker) GetItemsByFile() map[string]interface{} {
+func (pt *ProjectTracker) GetItemsByFile(settings *SettingsManager) map[string]interface{} {
 	stats := pt.LoadStats()
 	if stats == nil {
 		return map[string]interface{}{
@@ -248,34 +263,50 @@ func (pt *ProjectTracker) GetItemsByFile() map[string]interface{} {
 		}
 	}
 
+	currentSettings := settings.LoadSettings()
+
+	// Prepare dynamic status keys from KanbanColumns
+	statusKeys := make(map[ItemStatus]string)
+	for _, col := range currentSettings.KanbanColumns {
+		key := ItemStatus(strings.ToUpper(col.Name))
+		statusKeys[key] = strings.ToLower(strings.ReplaceAll(col.Name, " ", "_"))
+	}
+
+	// Prepare dynamic high priority key
+	highPriorityKey := ItemPriority(currentSettings.PriorityPatterns.High)
+
 	fileGroups := make(map[string]map[string]interface{})
 
 	for _, item := range stats.CurrentItems {
 		if _, exists := fileGroups[item.File]; !exists {
+			// Initialize dynamic status counts
+			statusCounts := map[string]int{}
+			for _, k := range statusKeys {
+				statusCounts[k] = 0
+			}
+
 			fileGroups[item.File] = map[string]interface{}{
 				"items":         []TaskItem{},
 				"total":         0,
-				"todo":          0,
-				"in_progress":   0,
-				"done":          0,
 				"high_priority": 0,
+				"status_counts": statusCounts, // dynamic status counters
 			}
 		}
 
 		group := fileGroups[item.File]
+
+		// Append item
 		group["items"] = append(group["items"].([]TaskItem), item)
 		group["total"] = group["total"].(int) + 1
 
-		switch item.Status {
-		case StatusTodo:
-			group["todo"] = group["todo"].(int) + 1
-		case StatusInProgress:
-			group["in_progress"] = group["in_progress"].(int) + 1
-		case StatusDone:
-			group["done"] = group["done"].(int) + 1
+		// Update dynamic status count
+		statusKey, ok := statusKeys[item.Status]
+		if ok {
+			group["status_counts"].(map[string]int)[statusKey]++
 		}
 
-		if item.Priority == PriorityHigh {
+		// Update high priority count dynamically
+		if item.Priority == highPriorityKey {
 			group["high_priority"] = group["high_priority"].(int) + 1
 		}
 	}
@@ -287,12 +318,27 @@ func (pt *ProjectTracker) GetItemsByFile() map[string]interface{} {
 }
 
 // GetItemTrends analyzes trends over time
-func (pt *ProjectTracker) GetItemTrends() map[string]interface{} {
+func (pt *ProjectTracker) GetItemTrends(settings *SettingsManager) map[string]interface{} {
 	history := pt.GetBranchHistory()
 	if len(history) < 2 {
 		return map[string]interface{}{
 			"error": "Not enough history for trend analysis",
 		}
+	}
+
+	currentSettings := settings.LoadSettings()
+	kanbanCols := currentSettings.KanbanColumns
+	if len(kanbanCols) == 0 {
+		return map[string]interface{}{
+			"error": "No Kanban columns configured",
+		}
+	}
+
+	doneColumnID := kanbanCols[len(kanbanCols)-1].ID
+
+	statusKeys := make(map[string]string)
+	for _, col := range kanbanCols {
+		statusKeys[col.ID] = col.Name
 	}
 
 	trends := map[string]interface{}{
@@ -303,28 +349,43 @@ func (pt *ProjectTracker) GetItemTrends() map[string]interface{} {
 
 	for _, snapshot := range history {
 		timelineEntry := map[string]interface{}{
-			"timestamp":   snapshot.Timestamp,
-			"commit":      snapshot.CommitShort,
-			"branch":      snapshot.Branch,
-			"total":       snapshot.Stats.Total,
-			"todo":        snapshot.Stats.Todo,
-			"in_progress": snapshot.Stats.InProgress,
-			"done":        snapshot.Stats.Done,
+			"timestamp": snapshot.Timestamp,
+			"commit":    snapshot.CommitShort,
+			"branch":    snapshot.Branch,
+			"total":     snapshot.Stats.Total,
 		}
+
+		for statusID, name := range statusKeys {
+			count := 0
+			for _, item := range snapshot.Stats.Items {
+				if string(item.Status) == statusID {
+					count++
+				} else if statusID == doneColumnID && item.IsDone {
+					count++
+				}
+			}
+			timelineEntry[name] = count
+		}
+
 		trends["timeline"] = append(trends["timeline"].([]map[string]interface{}), timelineEntry)
 
-		// Calculate completion rate
-		completionRate := float64(0)
-		if snapshot.Stats.Total > 0 {
-			completionRate = float64(snapshot.Stats.Done) / float64(snapshot.Stats.Total) * 100
+		doneCount := 0
+		for _, item := range snapshot.Stats.Items {
+			if item.IsDone {
+				doneCount++
+			}
 		}
 
-		completionEntry := map[string]interface{}{
+		completionRate := 0.0
+		if snapshot.Stats.Total > 0 {
+			completionRate = float64(doneCount) / float64(snapshot.Stats.Total) * 100
+		}
+
+		trends["completion_rate"] = append(trends["completion_rate"].([]map[string]interface{}), map[string]interface{}{
 			"timestamp": snapshot.Timestamp,
 			"commit":    snapshot.CommitShort,
 			"rate":      completionRate,
-		}
-		trends["completion_rate"] = append(trends["completion_rate"].([]map[string]interface{}), completionEntry)
+		})
 
 		// Track type trends
 		for itemType, count := range snapshot.Stats.ByType {
@@ -348,12 +409,12 @@ func (pt *ProjectTracker) GetItemTrends() map[string]interface{} {
 }
 
 // SaveStats saves current project statistics
-func (pt *ProjectTracker) SaveStats() error {
+func (pt *ProjectTracker) SaveStats(items []*Item, settings *SettingsManager) error {
 	if err := pt.Initialize(); err != nil {
 		return err
 	}
 
-	stats, err := pt.generateStats()
+	stats, err := pt.generateStats(items)
 	if err != nil {
 		return fmt.Errorf("failed to generate stats: %v", err)
 	}
@@ -375,7 +436,7 @@ func (pt *ProjectTracker) SaveStats() error {
 			CommitShort:   stats.GitCommitShort,
 			CommitMessage: pt.getCommitMessage(stats.GitCommit),
 			Timestamp:     time.Now(),
-			Stats:         pt.generateItemStats(),
+			Stats:         pt.generateItemStats(items, settings),
 		}
 
 		stats.BranchHistory = append(stats.BranchHistory, snapshot)
@@ -427,7 +488,7 @@ func (pt *ProjectTracker) LoadStats() *ProjectStats {
 }
 
 // generateStats creates current project statistics
-func (pt *ProjectTracker) generateStats() (*ProjectStats, error) {
+func (pt *ProjectTracker) generateStats(items []*Item) (*ProjectStats, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err
@@ -439,7 +500,6 @@ func (pt *ProjectTracker) generateStats() (*ProjectStats, error) {
 	gitCommitShort := pt.getGitCommitShort()
 
 	// Generate item statistics
-	items := pt.scanner.GetItems()
 	itemsByStatus := make(map[string]int)
 	itemsByType := make(map[string]int)
 	itemsByFile := make(map[string]int)
@@ -465,6 +525,9 @@ func (pt *ProjectTracker) generateStats() (*ProjectStats, error) {
 			Status:   item.Status,
 			Priority: item.Priority,
 			Hash:     pt.generateItemHash(item),
+			IsDone:   item.IsDone,
+			DoneAt:   item.DoneAt,
+			DoneBy:   item.DoneBy,
 		}
 		taskItems = append(taskItems, taskItem)
 	}
@@ -484,29 +547,47 @@ func (pt *ProjectTracker) generateStats() (*ProjectStats, error) {
 }
 
 // generateItemStats creates ItemStats for history tracking
-func (pt *ProjectTracker) generateItemStats() ItemStats {
-	items := pt.scanner.GetItems()
+func (pt *ProjectTracker) generateItemStats(items []*Item, settings *SettingsManager) ItemStats {
+	currentSettings := settings.LoadSettings()
+
+	// Prepare dynamic status keys from KanbanColumns
+	statusKeys := make(map[ItemStatus]struct{})
+	for _, col := range currentSettings.KanbanColumns {
+		statusKeys[ItemStatus(col.Name)] = struct{}{}
+	}
+
+	byStatus := make(map[string]int)
+	byPriority := make(map[string]int)
+	byType := make(map[string]int)
+
 	stats := ItemStats{
 		Total:      len(items),
-		ByType:     make(map[string]int),
-		ByPriority: make(map[string]int),
+		ByType:     byType,
+		ByPriority: byPriority,
 		Items:      make([]TaskItem, 0, len(items)),
 	}
 
 	for _, item := range items {
-		switch item.Status {
-		case StatusTodo:
-			stats.Todo++
-		case StatusInProgress:
-			stats.InProgress++
-		case StatusDone:
-			stats.Done++
+		// Update status count dynamically
+		statusStr := string(item.Status)
+		if _, ok := byStatus[statusStr]; ok {
+			byStatus[statusStr]++
+		} else {
+			byStatus[statusStr] = 1
 		}
 
-		stats.ByType[string(item.Type)]++
-		stats.ByPriority[string(item.Priority)]++
+		// Update type count dynamically
+		byType[string(item.Type)]++
 
-		// Add detailed task item
+		// Update priority count dynamically
+		priorityStr := string(item.Priority)
+		if _, ok := byPriority[priorityStr]; ok {
+			byPriority[priorityStr]++
+		} else {
+			byPriority[priorityStr] = 1
+		}
+
+		// Add detailed TaskItem
 		taskItem := TaskItem{
 			ID:       item.ID,
 			Type:     item.Type,
@@ -516,15 +597,21 @@ func (pt *ProjectTracker) generateItemStats() ItemStats {
 			Status:   item.Status,
 			Priority: item.Priority,
 			Hash:     pt.generateItemHash(item),
+			IsDone:   item.IsDone,
+			DoneAt:   item.DoneAt,
+			DoneBy:   item.DoneBy,
 		}
 		stats.Items = append(stats.Items, taskItem)
 	}
 
+	stats.ByStatus = byStatus
+	stats.ByPriority = byPriority
+
 	return stats
 }
 
-// GetStatsSummary returns a summary of current stats
-func (pt *ProjectTracker) GetStatsSummary() map[string]interface{} {
+// GetProjectStats returns a summary of current stats
+func (pt *ProjectTracker) GetProjectStats(settings *SettingsManager) map[string]interface{} {
 	stats := pt.LoadStats()
 	if stats == nil {
 		return map[string]interface{}{
@@ -532,15 +619,32 @@ func (pt *ProjectTracker) GetStatsSummary() map[string]interface{} {
 		}
 	}
 
-	// Calculate progress percentage
-	total := stats.TotalItems
-	done := stats.ItemsByStatus["done"]
-	inProgress := stats.ItemsByStatus["in-progress"]
-	todo := stats.ItemsByStatus["todo"]
+	currentSettings := settings.LoadSettings()
 
-	var progressPercent float64
+	itemsByStatus := make(map[string]int)
+	for _, col := range currentSettings.KanbanColumns {
+		itemsByStatus[col.ID] = 0
+	}
+
+	total := stats.TotalItems
+	lastStatusID := currentSettings.KanbanColumns[len(currentSettings.KanbanColumns)-1].ID
+
+	for _, item := range stats.CurrentItems {
+		if item.IsDone {
+			itemsByStatus[lastStatusID]++
+		} else {
+			statusID := string(item.ID)
+			if _, ok := itemsByStatus[statusID]; ok {
+				itemsByStatus[statusID]++
+			} else {
+				itemsByStatus[statusID] = 1
+			}
+		}
+	}
+
+	progressPercent := 0.0
 	if total > 0 {
-		progressPercent = float64(done) / float64(total) * 100
+		progressPercent = float64(itemsByStatus[lastStatusID]) / float64(total) * 100
 	}
 
 	return map[string]interface{}{
@@ -549,9 +653,7 @@ func (pt *ProjectTracker) GetStatsSummary() map[string]interface{} {
 		"git_branch":       stats.GitBranch,
 		"git_commit_short": stats.GitCommitShort,
 		"total_items":      total,
-		"done":             done,
-		"in_progress":      inProgress,
-		"todo":             todo,
+		"items_by_status":  itemsByStatus,
 		"progress_percent": progressPercent,
 		"items_by_type":    stats.ItemsByType,
 		"items_by_file":    stats.ItemsByFile,
@@ -633,7 +735,7 @@ func (pt *ProjectTracker) getCommitMessage(commit string) string {
 }
 
 // CompareWithPreviousCommit compares current stats with previous commit
-func (pt *ProjectTracker) CompareWithPreviousCommit() map[string]interface{} {
+func (pt *ProjectTracker) CompareWithPreviousCommit(settings *SettingsManager) map[string]interface{} {
 	history := pt.GetBranchHistory()
 	if len(history) < 2 {
 		return map[string]interface{}{
@@ -644,7 +746,41 @@ func (pt *ProjectTracker) CompareWithPreviousCommit() map[string]interface{} {
 	current := history[len(history)-1]
 	previous := history[len(history)-2]
 
-	comparison := map[string]interface{}{
+	currentSettings := settings.LoadSettings()
+	kanbanCols := currentSettings.KanbanColumns
+	if len(kanbanCols) == 0 {
+		return map[string]interface{}{
+			"error": "No Kanban columns configured",
+		}
+	}
+
+	doneColumnID := kanbanCols[len(kanbanCols)-1].ID
+
+	changes := make(map[string]int)
+	for _, col := range kanbanCols {
+		currentCount := 0
+		previousCount := 0
+
+		for _, item := range current.Stats.Items {
+			if string(item.Status) == col.ID {
+				currentCount++
+			} else if col.ID == doneColumnID && item.IsDone {
+				currentCount++
+			}
+		}
+
+		for _, item := range previous.Stats.Items {
+			if string(item.Status) == col.ID {
+				previousCount++
+			} else if col.ID == doneColumnID && item.IsDone {
+				previousCount++
+			}
+		}
+
+		changes[col.Name] = currentCount - previousCount
+	}
+
+	return map[string]interface{}{
 		"current": map[string]interface{}{
 			"commit":    current.CommitShort,
 			"branch":    current.Branch,
@@ -657,15 +793,8 @@ func (pt *ProjectTracker) CompareWithPreviousCommit() map[string]interface{} {
 			"timestamp": previous.Timestamp,
 			"stats":     previous.Stats,
 		},
-		"changes": map[string]interface{}{
-			"total":       current.Stats.Total - previous.Stats.Total,
-			"done":        current.Stats.Done - previous.Stats.Done,
-			"in_progress": current.Stats.InProgress - previous.Stats.InProgress,
-			"todo":        current.Stats.Todo - previous.Stats.Todo,
-		},
+		"changes": changes,
 	}
-
-	return comparison
 }
 
 // CleanupOldStats removes old statistics (keeps last 30 days)
@@ -703,4 +832,8 @@ func (pt *ProjectTracker) CleanupOldStats() error {
 	}
 
 	return nil
+}
+
+func (s *ProjectTracker) CompareWithPrevious(settings *SettingsManager) map[string]interface{} {
+	return s.CompareWithPreviousCommit(settings)
 }

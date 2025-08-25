@@ -29,14 +29,16 @@ type Server struct {
 	logger *zap.Logger
 
 	settingsManager *SettingsManager
+	tracker         *ProjectTracker
 }
 
-func NewServer(config Config, logger *zap.Logger, staticFiles embed.FS, scanner *Scanner) *Server {
+func NewServer(config Config, logger *zap.Logger, tracker *ProjectTracker, staticFiles embed.FS, scanner *Scanner) *Server {
 	return &Server{
 		config:          config,
 		staticFiles:     staticFiles,
 		scanner:         scanner,
 		logger:          logger,
+		tracker:         tracker,
 		settingsManager: NewSettingsManager(config, logger),
 	}
 }
@@ -167,7 +169,7 @@ func (s *Server) StartServer() {
 
 	s.logger.Debug("found items in the project", zap.Int("length", s.scanner.GetItemsLength()))
 
-	s.scanner.LoadExistingStats()
+	s.tracker.Initialize()
 
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
@@ -217,7 +219,14 @@ func (s *Server) handleInvestor(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleItems(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	s.scanner.Rescan()
+	err := s.scanner.Rescan()
+
+	if err != nil {
+		s.logger.Error("Failed to get items", zap.Error(err))
+		http.Error(w, "Failed to get items", http.StatusInternalServerError)
+		return
+	}
+
 	json.NewEncoder(w).Encode(s.scanner.GetItems())
 }
 
@@ -258,17 +267,7 @@ func (s *Server) handleUpdateTodo(w http.ResponseWriter, r *http.Request) {
 	s.logger.Info("Found item", zap.String("file", targetItem.File), zap.Int("line", targetItem.Line), zap.String("current_status", string(targetItem.Status)))
 
 	// Update todo status using scanner methods
-	var err error
-	switch updateReq.Status {
-	case "done":
-		err = s.scanner.MarkAsDone(targetItem)
-	case "in-progress":
-		err = s.scanner.MarkAsInProgress(targetItem)
-	case "todo":
-		err = s.scanner.MarkAsUndone(targetItem)
-	default:
-		err = s.scanner.MarkAsUndone(targetItem)
-	}
+	err := s.scanner.UpdateItemStatus(targetItem, updateReq.Status)
 
 	if err != nil {
 		s.logger.Error("Failed to update status", zap.Int("id", targetItem.ID), zap.String("status", updateReq.Status), zap.Error(err))
@@ -277,7 +276,7 @@ func (s *Server) handleUpdateTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save stats after successful update
-	if err := s.scanner.GetTracker().SaveStats(); err != nil {
+	if err := s.tracker.SaveStats(s.scanner.GetItems(), s.settingsManager); err != nil {
 		s.logger.Warn("Failed to save stats after item update", zap.Error(err))
 	}
 
@@ -405,12 +404,6 @@ func (s *Server) getCodeContext(filePath string, itemLine int) map[string]interf
 	}
 }
 
-// indentationLevel counts leading spaces (tabs count as 4 spaces).
-func (s *Server) indentationLevel(line string) int {
-	line = strings.ReplaceAll(line, "\t", "    ")
-	return len(line) - len(strings.TrimLeft(line, " "))
-}
-
 // contains checks if a slice contains a string
 func (s *Server) contains(list []string, str string) bool {
 	for _, v := range list {
@@ -493,12 +486,12 @@ func (s *Server) handleStats(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		// Return current stats
-		stats := s.scanner.GetProjectStats()
+		stats := s.tracker.GetProjectStats(s.settingsManager)
 		json.NewEncoder(w).Encode(stats)
 	} else if r.Method == "POST" {
 		// Force refresh stats
 		s.scanner.Rescan()
-		stats := s.scanner.GetProjectStats()
+		stats := s.tracker.GetProjectStats(s.settingsManager)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "refreshed",
 			"stats":  stats,
@@ -516,7 +509,7 @@ func (s *Server) handleStatsHistory(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	history := s.scanner.GetBranchHistory()
+	history := s.tracker.GetBranchHistory()
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"history": history,
 		"count":   len(history),
@@ -531,7 +524,7 @@ func (s *Server) handleStatsCompare(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	comparison := s.scanner.CompareWithPrevious()
+	comparison := s.tracker.CompareWithPrevious(s.settingsManager)
 	json.NewEncoder(w).Encode(comparison)
 }
 
@@ -541,7 +534,7 @@ func (s *Server) handleStatsCleanup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tracker := s.scanner.GetTracker()
+	tracker := s.tracker
 	if err := tracker.CleanupOldStats(); err != nil {
 		s.logger.Error("Failed to cleanup old stats", zap.Error(err))
 		http.Error(w, "Failed to cleanup stats", http.StatusInternalServerError)
@@ -568,10 +561,10 @@ func (s *Server) handleProjectInfo(w http.ResponseWriter, r *http.Request) {
 	categories := s.scanner.GetItemsByCategory()
 
 	// Get project stats
-	projectStats := s.scanner.GetProjectStats()
+	projectStats := s.tracker.GetProjectStats(s.settingsManager)
 
 	// Get recent history
-	history := s.scanner.GetBranchHistory()
+	history := s.tracker.GetBranchHistory()
 	recentHistory := history
 	if len(history) > 10 {
 		recentHistory = history[len(history)-10:]
@@ -583,8 +576,8 @@ func (s *Server) handleProjectInfo(w http.ResponseWriter, r *http.Request) {
 		"project_stats":  projectStats,
 		"recent_history": recentHistory,
 		"git_info": map[string]string{
-			"branch": s.scanner.GetTracker().getGitBranch(),
-			"commit": s.scanner.GetTracker().getGitCommitShort(),
+			"branch": s.tracker.getGitBranch(),
+			"commit": s.tracker.getGitCommitShort(),
 		},
 	}
 
@@ -599,8 +592,8 @@ func (s *Server) handleStatsItems(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	tracker := s.scanner.GetTracker()
-	analysis := tracker.GetTaskItemsAnalysis()
+	tracker := s.tracker
+	analysis := tracker.GetTaskItemsAnalysis(s.settingsManager)
 	json.NewEncoder(w).Encode(analysis)
 }
 
@@ -612,8 +605,8 @@ func (s *Server) handleStatsItemsByFile(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 
-	tracker := s.scanner.GetTracker()
-	fileGroups := tracker.GetItemsByFile()
+	tracker := s.tracker
+	fileGroups := tracker.GetItemsByFile(s.settingsManager)
 	json.NewEncoder(w).Encode(fileGroups)
 }
 
@@ -626,8 +619,8 @@ func (s *Server) handleStatsTrends(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	tracker := s.scanner.GetTracker()
-	trends := tracker.GetItemTrends()
+	tracker := s.tracker
+	trends := tracker.GetItemTrends(s.settingsManager)
 	json.NewEncoder(w).Encode(trends)
 }
 
@@ -640,7 +633,7 @@ func (s *Server) handleStatsChanges(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	tracker := s.scanner.GetTracker()
+	tracker := s.tracker
 	changes := tracker.getRecentItemChanges()
 	json.NewEncoder(w).Encode(changes)
 }
@@ -1507,9 +1500,17 @@ func (s *Server) handleSettingsUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.logger.Info("Updating settings", zap.Any("updates", updateReq))
+	oldSettings := s.settingsManager.LoadSettings()
 
 	// Update settings using partial update
 	updatedSettings, err := s.settingsManager.UpdatePartialSettings(updateReq)
+	if err != nil {
+		s.logger.Error("Failed to update settings", zap.Error(err))
+		http.Error(w, "Failed to update settings", http.StatusInternalServerError)
+		return
+	}
+
+	err = s.scanner.UpdateOldStatuses(oldSettings, updatedSettings)
 	if err != nil {
 		s.logger.Error("Failed to update settings", zap.Error(err))
 		http.Error(w, "Failed to update settings", http.StatusInternalServerError)

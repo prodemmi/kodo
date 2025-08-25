@@ -22,6 +22,7 @@ export function useUpdateSettings() {
   const mutation = useMutation({
     mutationFn: updateSettings,
     onSuccess: () => {
+      client.invalidateQueries({ queryKey: ["items"] });
       client.invalidateQueries({ queryKey: ["settings"] });
     },
   });

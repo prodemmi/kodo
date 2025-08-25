@@ -1,4 +1,4 @@
-export type ItemStatus = "todo" | "in-progress" | "done";
+export type ItemStatus = "todo" | "in_progress" | "done";
 export type ItemPriority = "low" | "medium" | "high";
 
 export type ItemType =

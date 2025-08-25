@@ -1,11 +1,13 @@
-import { useState } from "react";
 import { KanbanSettings } from "./sections/KanbanSettings";
 import { CodeScanSettings } from "./sections/CodeScanSettings";
 import { WorkspaceSettings } from "./sections/WorkspaceSettings";
 import { Container, Title, Tabs, ScrollArea, Paper } from "@mantine/core";
+import { useAppState } from "../../../../states/app.state";
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState<string | null>("workspace");
+  const { settingsActiveTab, setSettingsActiveTab } = useAppState(
+    (state) => state
+  );
 
   return (
     <ScrollArea>
@@ -14,8 +16,8 @@ export default function Settings() {
           Project Settings
         </Title>
         <Tabs
-          value={activeTab}
-          onChange={setActiveTab}
+          value={settingsActiveTab}
+          onChange={(value) => setSettingsActiveTab(value!)}
           variant="pills"
           radius="md"
         >

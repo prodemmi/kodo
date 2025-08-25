@@ -17,6 +17,7 @@ import { useOpenFile, useUpdateItem } from "../../../../../../hooks/use-items";
 import { useCallback } from "react";
 import { RoleGuard } from "../../../../../Investor";
 import { useElementSize, useMergedRef } from "@mantine/hooks";
+import { useSettings } from "../../../../../../hooks/use-settings";
 
 export default function SortableTask({
   item,
@@ -43,6 +44,7 @@ export default function SortableTask({
   const { ref, width } = useElementSize();
   const cardRef = useMergedRef(setNodeRef, ref);
   const { mutate } = useUpdateItem();
+  const { data: settings, isError, isLoading } = useSettings();
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -51,76 +53,13 @@ export default function SortableTask({
   };
 
   const getTypeColor = (type: string) => {
-    switch (type) {
-      // Code Quality & Maintenance
-      case "REFACTOR":
-        return "blue";
-      case "OPTIMIZE":
-        return "teal";
-      case "CLEANUP":
-        return "gray";
-      case "DEPRECATED":
-        return "orange";
-
-      // Bug Fixes & Issues
-      case "BUG":
-        return "red";
-      case "FIXME":
-        return "pink";
-
-      // Features & Enhancements
-      case "TODO":
-        return "indigo";
-      case "FEATURE":
-        return "green";
-      case "ENHANCE":
-        return "cyan";
-
-      // Documentation & Testing
-      case "DOC":
-        return "violet";
-      case "TEST":
-        return "lime";
-      case "EXAMPLE":
-        return "grape";
-
-      // Security & Compliance
-      case "SECURITY":
-        return "darkred";
-      case "COMPLIANCE":
-        return "brown";
-
-      // Technical Debt & Architecture
-      case "DEBT":
-        return "darkorange";
-      case "ARCHITECTURE":
-        return "navy";
-
-      // Operations & Infrastructure
-      case "CONFIG":
-        return "darkcyan";
-      case "DEPLOY":
-        return "darkgreen";
-      case "MONITOR":
-        return "slateblue";
-
-      // General & Miscellaneous
-      case "NOTE":
-        return "gray";
-      case "QUESTION":
-        return "purple";
-      case "IDEA":
-        return "gold";
-      case "REVIEW":
-        return "blueviolet";
-
-      default:
-        return "black"; // fallback
-    }
+    return (
+      settings?.kanban_columns.find((col) => col.id === type)?.color || "black"
+    );
   };
 
   const getPriorityColor = (priority: string) => {
-    switch (priority) {
+    switch (priority?.toLowerCase() || "") {
       case "high":
         return "red";
       case "medium":
@@ -132,11 +71,12 @@ export default function SortableTask({
     }
   };
 
-  const statusOptions = [
-    { value: "todo", label: "To Do" },
-    { value: "in-progress", label: "In Progress" },
-    { value: "done", label: "Done" },
-  ];
+  const statusOptions = settings
+    ? settings.kanban_columns.map((col) => ({
+        value: col.id,
+        label: col.name,
+      }))
+    : [];
 
   async function updateItemStatus(itemId: number, status: string) {
     mutate({ id: itemId, status });
@@ -196,7 +136,7 @@ export default function SortableTask({
             </Group>
 
             <Group gap="4" mt="2">
-              <ActionIcon size="xs" variant="subtle" >
+              <ActionIcon size="xs" variant="subtle">
                 <IconEye onClick={() => onItemClick(item)} />
               </ActionIcon>
               <ActionIcon
@@ -210,11 +150,7 @@ export default function SortableTask({
           </Group>
         </Group>
         {item.description && (
-          <Box
-            bdrs="sm"
-            p="xs"
-            onClick={() => onItemClick(item)}
-          >
+          <Box bdrs="sm" p="xs" onClick={() => onItemClick(item)}>
             <Text
               size="xs"
               c="dimmed"
@@ -233,6 +169,7 @@ export default function SortableTask({
             value={item.status}
             data={statusOptions}
             size="xs"
+            allowDeselect={false}
           />
         </RoleGuard.Consumer>
 

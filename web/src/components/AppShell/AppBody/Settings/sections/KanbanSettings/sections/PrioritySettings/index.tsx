@@ -1,5 +1,6 @@
 import { Group, TextInput } from "@mantine/core";
 import { Settings } from "../../../../../../../../types/settings";
+import { useState, useEffect } from "react";
 
 export function PrioritySettings({
   priority_patterns,
@@ -8,20 +9,31 @@ export function PrioritySettings({
   priority_patterns: Settings["priority_patterns"];
   setPriorities: (priority_patterns: Settings["priority_patterns"]) => void;
 }) {
+  const [localProprities, setLocalProprities] = useState(priority_patterns);
+
+  useEffect(() => {
+    setLocalProprities(priority_patterns);
+  }, [priority_patterns]);
+
   const handlePatternChange = (level: string, pattern: string) => {
-    setPriorities({ ...priority_patterns, [level]: pattern });
+    const updated = { ...localProprities, [level]: pattern };
+    setLocalProprities(updated);
+    setPriorities(updated);
   };
+
   return (
-    priority_patterns && (
+    localProprities && (
       <Group justify="space-between">
-        {["low", "medium", "high"].map((level) => (
+        {["Low", "Medium", "High"].map((level) => (
           <TextInput
             flex={1}
             key={level}
-            label={level.charAt(0).toUpperCase() + level.slice(1)}
+            label={level}
             // @ts-ignore
-            value={priority_patterns[level] || ""}
-            onChange={(e) => handlePatternChange(level, e.currentTarget.value)}
+            value={localProprities[level.toLowerCase()] || ""}
+            onChange={(e) =>
+              handlePatternChange(level.toLowerCase(), e.currentTarget.value)
+            }
             placeholder={`Pattern for ${level} priority`}
           />
         ))}

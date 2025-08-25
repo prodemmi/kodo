@@ -82,7 +82,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
     switch (status) {
       case "done":
         return "green";
-      case "in-progress":
+      case "in_progress":
         return "blue";
       case "todo":
         return "gray";
