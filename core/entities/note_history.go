@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// NoteHistoryAction represents the type of action performed on a note
 type NoteHistoryAction string
 
 const (
@@ -13,10 +12,9 @@ const (
 	ActionDeleted NoteHistoryAction = "deleted"
 	ActionMoved   NoteHistoryAction = "moved"
 	ActionTagged  NoteHistoryAction = "tagged"
-	ActionSynced  NoteHistoryAction = "synced" // New action for GitHub sync
+	ActionSynced  NoteHistoryAction = "synced"
 )
 
-// NoteHistoryEntry represents a single history entry for a note
 type NoteHistoryEntry struct {
 	ID        int               `json:"id"`
 	NoteID    int               `json:"note_id"`
@@ -26,17 +24,14 @@ type NoteHistoryEntry struct {
 	GitBranch *string           `json:"git_branch,omitempty"`
 	GitCommit *string           `json:"git_commit,omitempty"`
 
-	// Change details
 	Changes  map[string]interface{} `json:"changes,omitempty"`
 	OldValue interface{}            `json:"old_value,omitempty"`
 	NewValue interface{}            `json:"new_value,omitempty"`
 
-	// Additional context
 	Message  string                 `json:"message,omitempty"`
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
-// NoteHistoryFilter represents filters for querying note history
 type NoteHistoryFilter struct {
 	NoteID    *int               `json:"note_id,omitempty"`
 	Action    *NoteHistoryAction `json:"action,omitempty"`
@@ -48,7 +43,6 @@ type NoteHistoryFilter struct {
 	Offset    int                `json:"offset,omitempty"`
 }
 
-// NoteHistoryStats represents statistics about note history
 type NoteHistoryStats struct {
 	TotalEntries    int                       `json:"total_entries"`
 	ByAction        map[NoteHistoryAction]int `json:"by_action"`
@@ -59,7 +53,6 @@ type NoteHistoryStats struct {
 	RecentActivity  []NoteHistoryEntry        `json:"recent_activity"`
 }
 
-// NoteActivitySummary represents activity summary for a note
 type NoteActivitySummary struct {
 	NoteID      int       `json:"note_id"`
 	NoteTitle   string    `json:"note_title"`
@@ -68,13 +61,11 @@ type NoteActivitySummary struct {
 	Authors     []string  `json:"authors"`
 }
 
-// Enhanced Note structure with history tracking
 type NoteWithHistory struct {
 	Note
 	History []NoteHistoryEntry `json:"history,omitempty"`
 }
 
-// Update the existing NoteStorage to include history
 type EnhancedNoteStorage struct {
 	Notes         []Note             `json:"notes"`
 	Folders       []Folder           `json:"folders"`

@@ -11,7 +11,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// SettingsService handles settings persistence and management
 type SettingsService struct {
 	config       *entities.Config
 	logger       *zap.Logger
@@ -19,7 +18,6 @@ type SettingsService struct {
 	settingsFile string
 }
 
-// NewSettingsService creates a new settings manager
 func NewSettingsService(config *entities.Config, logger *zap.Logger) *SettingsService {
 	wd, _ := os.Getwd()
 	projectDir := wd
@@ -32,7 +30,6 @@ func NewSettingsService(config *entities.Config, logger *zap.Logger) *SettingsSe
 	}
 }
 
-// GetDefaultSettings returns the default application settings
 func (sm *SettingsService) GetDefaultSettings() *entities.Settings {
 	defaultAutoAssignPattern := "TODO|FIXME"
 	return &entities.Settings{
@@ -101,7 +98,6 @@ func (sm *SettingsService) GetDefaultSettings() *entities.Settings {
 	}
 }
 
-// LoadSettings loads settings from file or returns defaults
 func (sm *SettingsService) LoadSettings() *entities.Settings {
 	data, err := os.ReadFile(sm.settingsFile)
 	if err != nil {
@@ -119,19 +115,16 @@ func (sm *SettingsService) LoadSettings() *entities.Settings {
 		return sm.GetDefaultSettings()
 	}
 
-	// Validate and fix settings if needed
 	settings = *sm.validateSettings(&settings)
 
 	return &settings
 }
 
-// SaveSettings saves settings to file
 func (sm *SettingsService) SaveSettings(settings *entities.Settings) error {
-	// Validate settings before saving
+
 	settings = sm.validateSettings(settings)
 	settings.UpdatedAt = time.Now()
 
-	// Ensure CreatedAt is set
 	if settings.CreatedAt.IsZero() {
 		settings.CreatedAt = time.Now()
 	}
@@ -153,19 +146,16 @@ func (sm *SettingsService) SaveSettings(settings *entities.Settings) error {
 	return nil
 }
 
-// validateSettings ensures settings are valid and complete
 func (sm *SettingsService) validateSettings(settings *entities.Settings) *entities.Settings {
-	// Ensure we have at least the basic kanban columns
+
 	if len(settings.KanbanColumns) == 0 {
 		settings.KanbanColumns = sm.GetDefaultSettings().KanbanColumns
 	}
 
-	// Ensure we have default exclude directories if none set
 	if len(settings.CodeScanSettings.ExcludeDirectories) == 0 {
 		settings.CodeScanSettings.ExcludeDirectories = sm.GetDefaultSettings().CodeScanSettings.ExcludeDirectories
 	}
 
-	// Ensure we have default exclude files if none set
 	if len(settings.CodeScanSettings.ExcludeFiles) == 0 {
 		settings.CodeScanSettings.ExcludeFiles = sm.GetDefaultSettings().CodeScanSettings.ExcludeFiles
 	}
@@ -173,12 +163,10 @@ func (sm *SettingsService) validateSettings(settings *entities.Settings) *entiti
 	return settings
 }
 
-// UpdatePartialSettings updates only the provided fields in settings
 func (sm *SettingsService) UpdatePartialSettings(updates map[string]interface{}) (*entities.Settings, error) {
-	// Load current settings
+
 	settings := sm.LoadSettings()
 
-	// Apply updates
 	if kanbanColumns, ok := updates["kanban_columns"]; ok {
 		if columnsData, ok := kanbanColumns.([]interface{}); ok {
 			var columns []entities.KanbanColumn
@@ -252,7 +240,6 @@ func (sm *SettingsService) UpdatePartialSettings(updates map[string]interface{})
 		}
 	}
 
-	// Save updated settings
 	if err := sm.SaveSettings(settings); err != nil {
 		return nil, err
 	}
@@ -260,7 +247,6 @@ func (sm *SettingsService) UpdatePartialSettings(updates map[string]interface{})
 	return settings, nil
 }
 
-// GetSettingsSummary returns a summary of current settings
 func (sm *SettingsService) GetSettingsSummary() map[string]interface{} {
 	settings := sm.LoadSettings()
 

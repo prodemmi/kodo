@@ -57,17 +57,19 @@ func main() {
 		logger = services.NewLogger()
 	}
 
-	settingsManager := services.NewSettingsService(config, logger)
-	noteStorage := services.NewNoteStorage(config, logger)
-	itemHistoryService := services.NewProjectTracker(config, logger)
-	scannerService := services.NewScannerService(config, settingsManager, itemHistoryService, logger)
-	remoteManager := services.NewRemoteManager(logger, settingsManager, noteStorage)
+	settingsService := services.NewSettingsService(config, logger)
+	noteService := services.NewNoteService(config, logger)
+	historyService := services.NewHistoryService(config, logger)
+	scannerService := services.NewScannerService(config, settingsService, historyService, logger)
+	remoteService := services.NewRemoteManager(logger, settingsService, noteService)
 
-	noteHandler := handlers.NewNoteHandler(logger, noteStorage, remoteManager)
-	historyHandler := handlers.NewHistoryHandler(logger, scannerService, itemHistoryService, settingsManager)
+	noteHandler := handlers.NewNoteHandler(logger, noteService, remoteService)
+	historyHandler := handlers.NewHistoryHandler(logger, scannerService, historyService, settingsService)
 	chatHandler := handlers.NewChatHandler(logger)
 	settingsHandler := handlers.NewSettingHandler(logger)
-	itemHandler := handlers.NewItemHandler(logger, scannerService, itemHistoryService, settingsManager)
+	itemHandler := handlers.NewItemHandler(logger, scannerService, historyService, settingsService)
+
+	historyService.Initialize()
 
 	server := core.NewServer(config,
 		logger,

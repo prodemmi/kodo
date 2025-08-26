@@ -11,13 +11,13 @@ import (
 type HistoryHandler struct {
 	logger             *zap.Logger
 	scannerService     *services.ScannerService
-	itemHistoryService *services.ItemHistoryService
+	itemHistoryService *services.HistoryService
 	settingsService    *services.SettingsService
 }
 
 func NewHistoryHandler(logger *zap.Logger,
 	scannerService *services.ScannerService,
-	itemHistoryService *services.ItemHistoryService,
+	itemHistoryService *services.HistoryService,
 	settingsService *services.SettingsService) *HistoryHandler {
 	return &HistoryHandler{
 		logger:             logger,
@@ -31,11 +31,9 @@ func (s *HistoryHandler) HandleStats(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if r.Method == "GET" {
-		// Return current history
 		history := s.itemHistoryService.GetProjectStats(s.settingsService)
 		json.NewEncoder(w).Encode(history)
 	} else if r.Method == "POST" {
-		// Force refresh history
 		s.scannerService.Rescan()
 		history := s.itemHistoryService.GetProjectStats(s.settingsService)
 		json.NewEncoder(w).Encode(map[string]interface{}{
@@ -120,7 +118,6 @@ func (s *HistoryHandler) HandleStatsItemsByFile(w http.ResponseWriter, r *http.R
 	json.NewEncoder(w).Encode(fileGroups)
 }
 
-// Handler for item trends over time
 func (s *HistoryHandler) HandleStatsTrends(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -134,7 +131,6 @@ func (s *HistoryHandler) HandleStatsTrends(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(trends)
 }
 
-// Handler for recent item changes
 func (s *HistoryHandler) HandleStatsChanges(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

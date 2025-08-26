@@ -105,7 +105,6 @@ func SearchFilesRecursive(root string, search string) ([]ProjectFile, error) {
 				if err != nil {
 					return nil, err
 				}
-				// فقط فولدرهایی که child دارند یا خودشان match شدند برگردان
 				if len(children) > 0 {
 					pf.Children = children
 					files = append(files, pf)

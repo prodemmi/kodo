@@ -2,7 +2,6 @@ package entities
 
 import "time"
 
-// ItemsHistory represents the overall project statistics
 type ItemsHistory struct {
 	ProjectPath    string           `json:"project_path"`
 	LastScanAt     time.Time        `json:"last_scan_at"`
@@ -19,7 +18,6 @@ type ItemsHistory struct {
 	UpdatedAt      time.Time        `json:"updated_at"`
 }
 
-// BranchSnapshot represents history at a specific git state
 type BranchSnapshot struct {
 	Branch        string    `json:"branch"`
 	Commit        string    `json:"commit"`
@@ -29,7 +27,6 @@ type BranchSnapshot struct {
 	History       ItemStats `json:"history"`
 }
 
-// ItemStats represents count statistics and detailed items
 type ItemStats struct {
 	Total      int            `json:"total"`
 	ByStatus   map[string]int `json:"by_status"`
@@ -38,7 +35,6 @@ type ItemStats struct {
 	Items      []TaskItem     `json:"items"`
 }
 
-// TaskItem represents a simplified version of Item for history tracking
 type TaskItem struct {
 	ID       int          `json:"id"`
 	Type     ItemType     `json:"type"`
@@ -50,5 +46,5 @@ type TaskItem struct {
 	IsDone   bool         `json:"is_done"`
 	DoneAt   *time.Time   `json:"done_at"`
 	DoneBy   *string      `json:"done_by"`
-	Hash     string       `json:"hash"` // For tracking item identity across commits
+	Hash     string       `json:"hash"`
 }

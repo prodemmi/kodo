@@ -33,7 +33,6 @@ func (s *SettingHandler) HandleSettings(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-// HandleSettingsUpdate handles PUT requests to update settings
 func (s *SettingHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "PUT" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -50,7 +49,6 @@ func (s *SettingHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.Req
 	s.logger.Info("Updating settings", zap.Any("updates", updateReq))
 	oldSettings := s.settingsService.LoadSettings()
 
-	// Update settings using partial update
 	updatedSettings, err := s.settingsService.UpdatePartialSettings(updateReq)
 	if err != nil {
 		s.logger.Error("Failed to update settings", zap.Error(err))

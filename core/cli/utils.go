@@ -12,7 +12,7 @@ import (
 )
 
 func ShowServerInfo(url string, config *entities.Config) {
-	// Banner
+
 	banner := figure.NewFigure("KODO", "o8", true)
 	color.Cyan(banner.String())
 
@@ -33,20 +33,19 @@ func ShowServerInfo(url string, config *entities.Config) {
 	fmt.Println(color.GreenString("======================================"))
 }
 
-// cross-platform browser opener
 func OpenBrowser(url string) error {
 	var cmdName string
 	var args []string
 
 	switch runtime.GOOS {
 	case "darwin":
-		cmdName = "open" // macOS: open default browser
+		cmdName = "open"
 		args = []string{url}
 	case "windows":
-		cmdName = "cmd" // Windows: start default browser
+		cmdName = "cmd"
 		args = []string{"/C", "start", url}
-	default: // Linux
-		cmdName = "xdg-open" // Linux: open default browser
+	default:
+		cmdName = "xdg-open"
 		args = []string{url}
 	}
 

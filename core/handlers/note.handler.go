@@ -15,12 +15,12 @@ import (
 
 type NoteHandler struct {
 	logger        *zap.Logger
-	noteService   *services.NoteStorage
+	noteService   *services.NoteService
 	remoteService *services.RemoteService
 }
 
 func NewNoteHandler(logger *zap.Logger,
-	noteService *services.NoteStorage, remoteService *services.RemoteService) *NoteHandler {
+	noteService *services.NoteService, remoteService *services.RemoteService) *NoteHandler {
 	return &NoteHandler{
 		logger:        logger,
 		noteService:   noteService,
@@ -33,7 +33,7 @@ func (s *NoteHandler) HandleNotes(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		// Get all notes or filter by query parameters
+
 		category := r.URL.Query().Get("category")
 		tag := r.URL.Query().Get("tag")
 		folderId := r.URL.Query().Get("folderId")
@@ -51,7 +51,7 @@ func (s *NoteHandler) HandleNotes(w http.ResponseWriter, r *http.Request) {
 		})
 
 	case "POST":
-		// Create new note
+
 		var noteReq struct {
 			Title    string   `json:"title"`
 			Content  string   `json:"content"`
@@ -71,7 +71,6 @@ func (s *NoteHandler) HandleNotes(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Use history-enabled method
 		note, err := s.noteService.CreateNoteWithHistory(noteReq.Title, noteReq.Content, noteReq.Tags, noteReq.Category, noteReq.FolderID, nil)
 		if err != nil {
 			s.logger.Error("Failed to create note", zap.Error(err))
@@ -122,7 +121,6 @@ func (s *NoteHandler) HandleNoteUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use history-enabled method
 	note, err := s.noteService.UpdateNoteWithHistory(updateReq.ID, updateReq.Title, updateReq.Content, updateReq.Tags, updateReq.Category, updateReq.Pinned, updateReq.FolderID)
 	if err != nil {
 		s.logger.Error("Failed to update note", zap.Int("id", updateReq.ID), zap.Error(err))
@@ -164,7 +162,6 @@ func (s *NoteHandler) HandleNoteDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use history-enabled method
 	err := s.noteService.DeleteNoteWithHistory(deleteReq.ID)
 	if err != nil {
 		s.logger.Error("Failed to delete note", zap.Int("id", deleteReq.ID), zap.Error(err))
@@ -206,7 +203,6 @@ func (s *NoteHandler) HandleMoveNotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use history-enabled method
 	err := s.noteService.MoveNotesToFolderWithHistory(moveReq.NoteIds, moveReq.TargetFolderId)
 	if err != nil {
 		s.logger.Error("Failed to move notes", zap.Error(err))
@@ -254,7 +250,6 @@ func (s *NoteHandler) HandleExportNotes(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Set headers for file download
 	filename := fmt.Sprintf("notes-export-%s.json", time.Now().Format("2006-01-02"))
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
@@ -262,7 +257,6 @@ func (s *NoteHandler) HandleExportNotes(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(export)
 }
 
-// HandleNoteTags returns all unique tags from notes
 func (s *NoteHandler) HandleNoteTags(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -283,16 +277,12 @@ func (s *NoteHandler) HandleNoteTags(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Add these handlers to your server.go file
-
-// HandleNoteHistory retrieves note history with filtering
 func (s *NoteHandler) HandleNoteHistory(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Parse query parameters for filtering
 	var filter entities.NoteHistoryFilter
 
 	if noteIdStr := r.URL.Query().Get("noteId"); noteIdStr != "" {
@@ -331,7 +321,7 @@ func (s *NoteHandler) HandleNoteHistory(w http.ResponseWriter, r *http.Request) 
 			filter.Limit = limit
 		}
 	} else {
-		filter.Limit = 50 // Default limit
+		filter.Limit = 50
 	}
 
 	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
@@ -355,7 +345,6 @@ func (s *NoteHandler) HandleNoteHistory(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
-// HandleNoteHistoryStats retrieves note history statistics
 func (s *NoteHandler) HandleNoteHistoryStats(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -373,7 +362,6 @@ func (s *NoteHandler) HandleNoteHistoryStats(w http.ResponseWriter, r *http.Requ
 	json.NewEncoder(w).Encode(history)
 }
 
-// HandleNoteWithHistory retrieves a note with its complete history
 func (s *NoteHandler) HandleNoteWithHistory(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -392,7 +380,6 @@ func (s *NoteHandler) HandleNoteWithHistory(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// Get the note
 	storage, err := s.noteService.LoadEnhancedNoteStorage()
 	if err != nil {
 		s.logger.Error("Failed to load note storage", zap.Error(err))
@@ -413,7 +400,6 @@ func (s *NoteHandler) HandleNoteWithHistory(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// Get note history
 	filter := entities.NoteHistoryFilter{NoteID: &noteId}
 	history, err := s.noteService.GetNoteHistory(filter)
 	if err != nil {
@@ -434,7 +420,6 @@ func (s *NoteHandler) HandleNoteWithHistory(w http.ResponseWriter, r *http.Reque
 	})
 }
 
-// HandleAuthorActivity retrieves activity summary for a specific author
 func (s *NoteHandler) HandleAuthorActivity(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -447,7 +432,6 @@ func (s *NoteHandler) HandleAuthorActivity(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Get activity for specific author
 	filter := entities.NoteHistoryFilter{Author: &author, Limit: 100}
 	history, err := s.noteService.GetNoteHistory(filter)
 	if err != nil {
@@ -456,7 +440,6 @@ func (s *NoteHandler) HandleAuthorActivity(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Aggregate history
 	actionCount := make(map[entities.NoteHistoryAction]int)
 	noteCount := make(map[int]bool)
 	dayCount := make(map[string]int)
@@ -481,7 +464,6 @@ func (s *NoteHandler) HandleAuthorActivity(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(activity)
 }
 
-// HandleBranchActivity retrieves activity summary for a specific git branch
 func (s *NoteHandler) HandleBranchActivity(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -494,7 +476,6 @@ func (s *NoteHandler) HandleBranchActivity(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Get activity for specific branch
 	filter := entities.NoteHistoryFilter{GitBranch: &branch, Limit: 100}
 	history, err := s.noteService.GetNoteHistory(filter)
 	if err != nil {
@@ -503,7 +484,6 @@ func (s *NoteHandler) HandleBranchActivity(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Aggregate history
 	actionCount := make(map[entities.NoteHistoryAction]int)
 	authorCount := make(map[string]int)
 	noteCount := make(map[int]bool)
@@ -527,7 +507,6 @@ func (s *NoteHandler) HandleBranchActivity(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(activity)
 }
 
-// HandleCleanupHistory removes old history entries
 func (s *NoteHandler) HandleCleanupHistory(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -545,10 +524,10 @@ func (s *NoteHandler) HandleCleanupHistory(w http.ResponseWriter, r *http.Reques
 	}
 
 	if req.OlderThanDays <= 0 {
-		req.OlderThanDays = 90 // Default to 90 days
+		req.OlderThanDays = 90
 	}
 	if req.KeepMinimum <= 0 {
-		req.KeepMinimum = 10 // Keep at least 10 entries per note
+		req.KeepMinimum = 10
 	}
 
 	storage, err := s.noteService.LoadEnhancedNoteStorage()
@@ -560,26 +539,23 @@ func (s *NoteHandler) HandleCleanupHistory(w http.ResponseWriter, r *http.Reques
 
 	cutoff := time.Now().AddDate(0, 0, -req.OlderThanDays)
 
-	// Group history by note ID
 	noteHistory := make(map[int][]entities.NoteHistoryEntry)
 	for _, entry := range storage.History {
 		noteHistory[entry.NoteID] = append(noteHistory[entry.NoteID], entry)
 	}
 
-	// Keep recent entries and minimum number per note
 	var filteredHistory []entities.NoteHistoryEntry
 	removedCount := 0
 
 	for _, entries := range noteHistory {
-		// Sort entries by timestamp descending (newest first)
+
 		sort.Slice(entries, func(i, j int) bool {
 			return entries[i].Timestamp.After(entries[j].Timestamp)
 		})
 
 		keptCount := 0
 		for _, entry := range entries {
-			// Always keep minimum number of entries per note
-			// Also keep entries newer than cutoff
+
 			if keptCount < req.KeepMinimum || entry.Timestamp.After(cutoff) {
 				filteredHistory = append(filteredHistory, entry)
 				keptCount++
@@ -676,7 +652,6 @@ func (s *NoteHandler) HandleSyncNotes(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(history)
 }
 
-// Add these handler methods for folders
 func (s *NoteHandler) HandleFolders(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 

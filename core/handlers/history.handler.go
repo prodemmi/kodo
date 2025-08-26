@@ -18,13 +18,13 @@ import (
 type ItemHandler struct {
 	logger             *zap.Logger
 	scannerService     *services.ScannerService
-	itemHistoryService *services.ItemHistoryService
+	itemHistoryService *services.HistoryService
 	settingsService    *services.SettingsService
 }
 
 func NewItemHandler(logger *zap.Logger,
 	scannerService *services.ScannerService,
-	itemHistoryService *services.ItemHistoryService,
+	itemHistoryService *services.HistoryService,
 	settingsService *services.SettingsService) *ItemHandler {
 	return &ItemHandler{
 		logger:             logger,
@@ -66,7 +66,6 @@ func (s *ItemHandler) HandleUpdateTodo(w http.ResponseWriter, r *http.Request) {
 
 	s.logger.Info("Updating item status", zap.Int("id", updateReq.ID), zap.String("new_status", updateReq.Status))
 
-	// Find the item
 	var targetItem *entities.Item
 	for _, item := range s.scannerService.GetItems() {
 		if item.ID == updateReq.ID {
@@ -83,7 +82,6 @@ func (s *ItemHandler) HandleUpdateTodo(w http.ResponseWriter, r *http.Request) {
 
 	s.logger.Info("Found item", zap.String("file", targetItem.File), zap.Int("line", targetItem.Line), zap.String("current_status", string(targetItem.Status)))
 
-	// Update todo status using scannerService methods
 	err := s.scannerService.UpdateItemStatus(targetItem, updateReq.Status)
 
 	if err != nil {
@@ -92,7 +90,6 @@ func (s *ItemHandler) HandleUpdateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Save history after successful update
 	if err := s.itemHistoryService.SaveStats(s.scannerService.GetItems(), s.settingsService); err != nil {
 		s.logger.Warn("Failed to save history after item update", zap.Error(err))
 	}
@@ -131,11 +128,9 @@ func (s *ItemHandler) HandleOpenFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get absolute path
 	wd, _ := os.Getwd()
 	fullPath := filepath.Join(wd, req.File)
 
-	// Try to open in various IDEs/editors
 	opened := s.tryOpenInIDE(fullPath, req.Line)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -194,7 +189,6 @@ func (s *ItemHandler) getCodeContext(filePath string, itemLine int) map[string]i
 		}
 	}
 
-	// Get context around the TODO (±10 lines)
 	bound := 40
 	start := itemLine - 5
 	if start < 0 {
@@ -222,38 +216,37 @@ func (s *ItemHandler) getCodeContext(filePath string, itemLine int) map[string]i
 }
 
 func (s *ItemHandler) tryOpenInIDE(filePath string, line int) bool {
-	// List of IDE commands to try (in order of preference)
+
 	var commands [][]string
 
 	switch runtime.GOOS {
-	case "darwin": // macOS
+	case "darwin":
 		commands = [][]string{
-			{"code", "-g", fmt.Sprintf("%s:%d", filePath, line)}, // VS Code
-			{"subl", fmt.Sprintf("%s:%d", filePath, line)},       // Sublime Text
-			{"atom", fmt.Sprintf("%s:%d", filePath, line)},       // Atom
-			{"vim", fmt.Sprintf("+%d", line), filePath},          // Vim
-			{"nvim", fmt.Sprintf("+%d", line), filePath},         // Neovim
-			{"open", filePath}, // Default app
+			{"code", "-g", fmt.Sprintf("%s:%d", filePath, line)},
+			{"subl", fmt.Sprintf("%s:%d", filePath, line)},
+			{"atom", fmt.Sprintf("%s:%d", filePath, line)},
+			{"vim", fmt.Sprintf("+%d", line), filePath},
+			{"nvim", fmt.Sprintf("+%d", line), filePath},
+			{"open", filePath},
 		}
 	case "windows":
 		commands = [][]string{
-			{"code", "-g", fmt.Sprintf("%s:%d", filePath, line)}, // VS Code
-			{"notepad++", fmt.Sprintf("-n%d", line), filePath},   // Notepad++
-			{"notepad", filePath},                                // Notepad
+			{"code", "-g", fmt.Sprintf("%s:%d", filePath, line)},
+			{"notepad++", fmt.Sprintf("-n%d", line), filePath},
+			{"notepad", filePath},
 		}
-	default: // Linux/Unix
+	default:
 		commands = [][]string{
-			{"code", "-g", fmt.Sprintf("%s:%d", filePath, line)}, // VS Code
-			{"subl", fmt.Sprintf("%s:%d", filePath, line)},       // Sublime Text
-			{"atom", fmt.Sprintf("%s:%d", filePath, line)},       // Atom
-			{"vim", fmt.Sprintf("+%d", line), filePath},          // Vim
-			{"nvim", fmt.Sprintf("+%d", line), filePath},         // Neovim
-			{"gedit", fmt.Sprintf("+%d", line), filePath},        // Gedit
-			{"xdg-open", filePath},                               // Default app
+			{"code", "-g", fmt.Sprintf("%s:%d", filePath, line)},
+			{"subl", fmt.Sprintf("%s:%d", filePath, line)},
+			{"atom", fmt.Sprintf("%s:%d", filePath, line)},
+			{"vim", fmt.Sprintf("+%d", line), filePath},
+			{"nvim", fmt.Sprintf("+%d", line), filePath},
+			{"gedit", fmt.Sprintf("+%d", line), filePath},
+			{"xdg-open", filePath},
 		}
 	}
 
-	// Try each command until one works
 	for _, cmd := range commands {
 		if len(cmd) > 0 {
 			err := exec.Command(cmd[0], cmd[1:]...).Start()

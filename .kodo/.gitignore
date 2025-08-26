@@ -1,0 +1,7 @@
+# Kodo temporary files
+*.tmp
+*.log
+
+# Keep the history but ignore temporary data
+!items_history.json
+!branch_history.json

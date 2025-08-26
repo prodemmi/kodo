@@ -55,10 +55,8 @@ func NewServer(
 func (s *Server) Start() {
 	mux := http.NewServeMux()
 
-	// Static file handler
 	mux.Handle("/", s.withCORS(http.HandlerFunc(s.serveStatic)))
 
-	// Register API routes
 	s.registerItemRoutes(mux)
 	s.registerNoteRoutes(mux)
 	s.registerHistoryRoutes(mux)
@@ -77,7 +75,6 @@ func (s *Server) Start() {
 	}
 }
 
-// Middleware: add CORS
 func (s *Server) withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -93,7 +90,6 @@ func (s *Server) withCORS(next http.Handler) http.Handler {
 	})
 }
 
-// Static file serving
 func (s *Server) serveStatic(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimPrefix(r.URL.Path, "/")
 	if path == "" {
@@ -158,9 +154,6 @@ func (s *Server) handleInvestor(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// -------------------- ROUTE GROUPS --------------------
-
-// Items API
 func (s *Server) registerItemRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/items", s.withCORS(http.HandlerFunc(s.itemHandler.HandleItems)))
 	mux.Handle("/api/items/update", s.withCORS(http.HandlerFunc(s.itemHandler.HandleUpdateTodo)))
@@ -168,7 +161,6 @@ func (s *Server) registerItemRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/items/get-context", s.withCORS(http.HandlerFunc(s.itemHandler.HandleGetContext)))
 }
 
-// Notes API
 func (s *Server) registerNoteRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/notes", s.withCORS(http.HandlerFunc(s.noteHandler.HandleNotes)))
 	mux.Handle("/api/notes/search", s.withCORS(http.HandlerFunc(s.noteHandler.HandleNoteSearch)))
@@ -179,17 +171,14 @@ func (s *Server) registerNoteRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/notes/tags", s.withCORS(http.HandlerFunc(s.noteHandler.HandleNoteTags)))
 	mux.Handle("/api/notes/sync", s.withCORS(http.HandlerFunc(s.noteHandler.HandleSyncNotes)))
 
-	// Notes history
 	mux.Handle("/api/notes/history", s.withCORS(http.HandlerFunc(s.noteHandler.HandleNoteHistory)))
 	mux.Handle("/api/notes/history/history", s.withCORS(http.HandlerFunc(s.noteHandler.HandleNoteHistoryStats)))
 	mux.Handle("/api/notes/history/cleanup", s.withCORS(http.HandlerFunc(s.noteHandler.HandleCleanupHistory)))
 	mux.Handle("/api/notes/with-history", s.withCORS(http.HandlerFunc(s.noteHandler.HandleNoteWithHistory)))
 
-	// Activity tracking
 	mux.Handle("/api/notes/activity/author", s.withCORS(http.HandlerFunc(s.noteHandler.HandleAuthorActivity)))
 	mux.Handle("/api/notes/activity/branch", s.withCORS(http.HandlerFunc(s.noteHandler.HandleBranchActivity)))
 
-	// Folders & categories
 	mux.Handle("/api/notes/folders", s.withCORS(http.HandlerFunc(s.noteHandler.HandleFolders)))
 	mux.Handle("/api/notes/folders/update", s.withCORS(http.HandlerFunc(s.noteHandler.HandleFolderUpdate)))
 	mux.Handle("/api/notes/folders/delete", s.withCORS(http.HandlerFunc(s.noteHandler.HandleFolderDelete)))
@@ -197,7 +186,6 @@ func (s *Server) registerNoteRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/notes/categories", s.withCORS(http.HandlerFunc(s.noteHandler.HandleCategories)))
 }
 
-// History API
 func (s *Server) registerHistoryRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/history", s.withCORS(http.HandlerFunc(s.historyHandler.HandleStats)))
 	mux.Handle("/api/history/history", s.withCORS(http.HandlerFunc(s.historyHandler.HandleStatsHistory)))
@@ -209,18 +197,15 @@ func (s *Server) registerHistoryRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/history/changes", s.withCORS(http.HandlerFunc(s.historyHandler.HandleStatsChanges)))
 }
 
-// Settings API
 func (s *Server) registerSettingsRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/settings", s.withCORS(http.HandlerFunc(s.settingsHandler.HandleSettings)))
 	mux.Handle("/api/settings/update", s.withCORS(http.HandlerFunc(s.settingsHandler.HandleSettingsUpdate)))
 }
 
-// Chat API
 func (s *Server) registerChatRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/chat/project-files", s.withCORS(http.HandlerFunc(s.chatHandler.HandleProjectFiles)))
 }
 
-// Misc API
 func (s *Server) registerMiscRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/investor", s.withCORS(http.HandlerFunc(s.handleInvestor)))
 }
