@@ -34,7 +34,10 @@
 ```bash
 go install github.com/prodemmi/kodo@latest
 ```
-
+Just run kodo in your source code directory:
+```bash
+kodo
+```
 ## 🤝 Contributing
 
 1. Fork the project.
