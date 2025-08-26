@@ -22,6 +22,7 @@ func main() {
 
 	pflag.StringVarP(&config.Flags.Config, "config", "c", config.Flags.Config, "Path to config file")
 	pflag.BoolVarP(&config.Flags.Investor, "investor", "i", config.Flags.Investor, "Run in investor mode")
+	pflag.BoolVarP(&config.Flags.Silent, "silent", "s", config.Flags.Silent, "Silent the logger")
 	showHelp := pflag.BoolP("help", "h", false, "Show help message")
 	pflag.Parse()
 
@@ -30,7 +31,12 @@ func main() {
 		return
 	}
 
-	logger := services.NewLogger()
+	var logger *zap.Logger
+	if config.Flags.Silent {
+		logger = services.NewSilenceLogger()
+	} else {
+		logger = services.NewLogger()
+	}
 	defer logger.Sync()
 
 	// Initialize services

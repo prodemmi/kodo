@@ -51,11 +51,10 @@ func (pt *HistoryService) Initialize() error {
 !items.json
 		`
 		if err := os.WriteFile(gitignoreFile, []byte(strings.TrimSpace(gitignoreContent)), 0644); err != nil {
-			pt.logger.Warn("Failed to create .gitignore", zap.Error(err))
+			pt.logger.Error("Failed to create .gitignore", zap.Error(err))
 		}
 	}
 
-	pt.logger.Info("Project historyService initialized", zap.String("kodo_dir", pt.kodoDir))
 	return nil
 }
 
