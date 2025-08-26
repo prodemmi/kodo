@@ -1,8 +1,10 @@
 <div align="center">
-    <img src="./assets/logo-rounded.png" width="180" style="border-radius: 12px" />
+    <img src="./assets/logo.webp" width="180" style="border-radius: 12px" />
 </div>
 
-<p align="center" style="margin-top: 12px">
+<br/>
+
+<p align="center">
   <b>Agile Kanban & Notes for Developers</b>
 </p>
 
