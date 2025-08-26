@@ -14,10 +14,8 @@ import {
   useDeleteModalStore,
   useNoteStore,
 } from "../../../../../states/note.state";
-import { useState } from "react";
 import { useDeleteFolder, useDeleteNote } from "../../../../../hooks/use-notes";
 import { Note } from "../../../../../types/note";
-import { useQueryClient } from "@tanstack/react-query";
 
 export default function DeleteConfirmationModal() {
   const notes = useNoteStore((s) => s.notes);
@@ -32,8 +30,6 @@ export default function DeleteConfirmationModal() {
   const { mutate: deleteNote, isPending } = useDeleteNote();
   const { mutate: deleteFolder, isPending: isPendingFolder } =
     useDeleteFolder();
-
-  const [error, setError] = useState<string | null>(null);
 
   const onSubmit = () => {
     if (noteToDelete) {
@@ -71,7 +67,6 @@ export default function DeleteConfirmationModal() {
         opened={isDeleteModalOpen}
         onClose={() => {
           closeModal();
-          setError(null);
         }}
         title={`Delete ${entity}`}
         size="sm"
@@ -118,7 +113,6 @@ export default function DeleteConfirmationModal() {
               variant="outline"
               onClick={() => {
                 closeModal();
-                setError(null);
               }}
             >
               Cancel

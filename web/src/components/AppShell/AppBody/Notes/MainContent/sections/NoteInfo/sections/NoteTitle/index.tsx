@@ -10,7 +10,6 @@ export default function NoteTitle() {
   const [value, setValue] = useState(selectedNote?.title || "");
   const [focus, setFocus] = useState(false);
   const [error, setError] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const measureRef = useRef<HTMLSpanElement>(null);
   const { mutate, isPending } = useUpdateNote();
@@ -53,7 +52,6 @@ export default function NoteTitle() {
 
   const handleFocus = useCallback(() => {
     setFocus(true);
-    setIsEditing(true);
     setTimeout(() => inputRef.current?.select(), 0);
   }, []);
 
@@ -62,7 +60,6 @@ export default function NoteTitle() {
       return;
     }
     setFocus(false);
-    setIsEditing(false);
 
     // Update only if there are changes
     if (selectedNote && value.trim() !== originalTitle) {
@@ -87,13 +84,11 @@ export default function NoteTitle() {
     });
 
     setFocus(false);
-    setIsEditing(false);
   }, [selectedNote, value, originalTitle, mutate]);
 
   const handleCancel = useCallback(() => {
     setValue(originalTitle);
     setFocus(false);
-    setIsEditing(false);
   }, [originalTitle]);
 
   const handleKeyDown = useCallback(

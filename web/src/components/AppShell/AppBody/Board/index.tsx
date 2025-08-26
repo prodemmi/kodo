@@ -56,7 +56,6 @@ export default function Board() {
 
   const [columns, setColumns] = useState<Record<string, Column>>({});
   const [columnOrder, setColumnOrder] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
   const [openItemHistory, setOpenItemHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [drawerOpened, setDrawerOpened] = useState(false);
@@ -77,10 +76,7 @@ export default function Board() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
-
         if (!settings || !items) {
-          setLoading(false);
           return;
         }
 
@@ -108,8 +104,6 @@ export default function Board() {
         setColumnOrder(newColumnOrder);
       } catch (err) {
         setError("Failed to fetch items");
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -241,7 +235,7 @@ export default function Board() {
 
           return { previousItems };
         },
-        onError: (err, newItem, context: any) => {
+        onError: (_, __, context: any) => {
           // Rollback on error
           queryClient.setQueryData(["items"], context?.previousItems);
 

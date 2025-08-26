@@ -45,7 +45,7 @@ func (s *NoteHandler) HandleNotes(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"notes": notes,
 			"count": len(notes),
 		})
@@ -79,7 +79,7 @@ func (s *NoteHandler) HandleNotes(w http.ResponseWriter, r *http.Request) {
 		}
 
 		s.logger.Info("Note created with history tracking", zap.Int("id", note.ID), zap.String("title", note.Title))
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "success",
 			"note":   note,
 		})
@@ -135,7 +135,7 @@ func (s *NoteHandler) HandleNoteUpdate(w http.ResponseWriter, r *http.Request) {
 	s.logger.Info("Note updated with history tracking", zap.Int("id", note.ID), zap.String("title", note.Title))
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "success",
 		"note":   note,
 	})
@@ -176,7 +176,7 @@ func (s *NoteHandler) HandleNoteDelete(w http.ResponseWriter, r *http.Request) {
 	s.logger.Info("Note deleted with history tracking", zap.Int("id", deleteReq.ID))
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":  "success",
 		"message": "Note deleted successfully",
 	})
@@ -221,7 +221,7 @@ func (s *NoteHandler) HandleMoveNotes(w http.ResponseWriter, r *http.Request) {
 	s.logger.Info("Notes moved with history tracking", zap.Ints("noteIds", moveReq.NoteIds), zap.Any("targetFolderId", moveReq.TargetFolderId))
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":  "success",
 		"message": fmt.Sprintf("Moved %d notes", len(moveReq.NoteIds)),
 	})
@@ -254,7 +254,7 @@ func (s *NoteHandler) HandleExportNotes(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
 
-	json.NewEncoder(w).Encode(export)
+	_ = json.NewEncoder(w).Encode(export)
 }
 
 func (s *NoteHandler) HandleNoteTags(w http.ResponseWriter, r *http.Request) {
@@ -271,7 +271,7 @@ func (s *NoteHandler) HandleNoteTags(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"tags":  tags,
 		"count": len(tags),
 	})
@@ -338,7 +338,7 @@ func (s *NoteHandler) HandleNoteHistory(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"history": history,
 		"count":   len(history),
 		"filter":  filter,
@@ -359,7 +359,7 @@ func (s *NoteHandler) HandleNoteHistoryStats(w http.ResponseWriter, r *http.Requ
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(history)
+	_ = json.NewEncoder(w).Encode(history)
 }
 
 func (s *NoteHandler) HandleNoteWithHistory(w http.ResponseWriter, r *http.Request) {
@@ -414,7 +414,7 @@ func (s *NoteHandler) HandleNoteWithHistory(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"note":          noteWithHistory,
 		"history_count": len(history),
 	})
@@ -461,7 +461,7 @@ func (s *NoteHandler) HandleAuthorActivity(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(activity)
+	_ = json.NewEncoder(w).Encode(activity)
 }
 
 func (s *NoteHandler) HandleBranchActivity(w http.ResponseWriter, r *http.Request) {
@@ -504,7 +504,7 @@ func (s *NoteHandler) HandleBranchActivity(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(activity)
+	_ = json.NewEncoder(w).Encode(activity)
 }
 
 func (s *NoteHandler) HandleCleanupHistory(w http.ResponseWriter, r *http.Request) {
@@ -576,7 +576,7 @@ func (s *NoteHandler) HandleCleanupHistory(w http.ResponseWriter, r *http.Reques
 	s.logger.Info("History cleanup completed", zap.Int("removed_entries", removedCount), zap.Int("remaining_entries", len(filteredHistory)))
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":            "success",
 		"removed_entries":   removedCount,
 		"remaining_entries": len(filteredHistory),
@@ -609,28 +609,11 @@ func (s *NoteHandler) HandleNoteSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"notes": notes,
 		"count": len(notes),
 		"query": query,
 	})
-}
-
-func (s *NoteHandler) handleNoteStats(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	history, err := s.noteService.GetNoteStats()
-	if err != nil {
-		s.logger.Error("Failed to get note history", zap.Error(err))
-		http.Error(w, "Failed to get note history", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(history)
 }
 
 func (s *NoteHandler) HandleSyncNotes(w http.ResponseWriter, r *http.Request) {
@@ -646,10 +629,10 @@ func (s *NoteHandler) HandleSyncNotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.noteService.SaveNoteStorage(s.noteService)
+	_ = s.noteService.SaveNoteStorage(s.noteService)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(history)
+	_ = json.NewEncoder(w).Encode(history)
 }
 
 func (s *NoteHandler) HandleFolders(w http.ResponseWriter, r *http.Request) {
@@ -664,7 +647,7 @@ func (s *NoteHandler) HandleFolders(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"folders": folders,
 			"count":   len(folders),
 		})
@@ -692,7 +675,7 @@ func (s *NoteHandler) HandleFolders(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "success",
 			"folder": folder,
 		})
@@ -711,7 +694,7 @@ func (s *NoteHandler) HandleCategories(w http.ResponseWriter, r *http.Request) {
 	categories := s.noteService.GetCategories()
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"categories": categories,
 		"count":      len(categories),
 	})
@@ -752,7 +735,7 @@ func (s *NoteHandler) HandleFolderUpdate(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "success",
 		"folder": folder,
 	})
@@ -794,7 +777,7 @@ func (s *NoteHandler) HandleFolderDelete(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":  "success",
 		"message": "Folder deleted successfully",
 	})
@@ -814,7 +797,7 @@ func (s *NoteHandler) HandleFolderTree(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"tree":  tree,
 		"count": len(tree),
 	})

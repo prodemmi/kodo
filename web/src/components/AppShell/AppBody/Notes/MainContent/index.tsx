@@ -48,9 +48,6 @@ export default function MainContent() {
     ],
     content: selectedNote?.content || "",
     editable: true, // Enable editing to test mentions
-    onUpdate: ({ editor }) => {
-      // Handle content updates if needed
-    },
   });
 
   return (

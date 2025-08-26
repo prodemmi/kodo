@@ -44,7 +44,7 @@ export default function SortableTask({
   const { ref, width } = useElementSize();
   const cardRef = useMergedRef(setNodeRef, ref);
   const { mutate } = useUpdateItem();
-  const { data: settings, isError, isLoading } = useSettings();
+  const { data: settings } = useSettings();
 
   const style = {
     transform: CSS.Transform.toString(transform),

@@ -8,12 +8,10 @@ import {
   MenuDropdown,
   MenuTarget,
   Text,
-  UnstyledButton,
 } from "@mantine/core";
 import { useInViewport } from "@mantine/hooks";
 import {
   IconFile,
-  IconDots,
   IconFileText,
   IconCode,
   IconCopy,

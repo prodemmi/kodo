@@ -479,20 +479,12 @@ func (pt *HistoryService) generateItemStats(items []*entities.Item, settings *Se
 	for _, item := range items {
 
 		statusStr := string(item.Status)
-		if _, ok := byStatus[statusStr]; ok {
-			byStatus[statusStr]++
-		} else {
-			byStatus[statusStr] = 1
-		}
+		byStatus[statusStr]++
 
 		byType[string(item.Type)]++
 
 		priorityStr := string(item.Priority)
-		if _, ok := byPriority[priorityStr]; ok {
-			byPriority[priorityStr]++
-		} else {
-			byPriority[priorityStr] = 1
-		}
+		byPriority[priorityStr]++
 
 		taskItem := entities.TaskItem{
 			ID:       item.ID,
@@ -538,12 +530,8 @@ func (pt *HistoryService) GetProjectStats(settings *SettingsService) map[string]
 		if item.IsDone {
 			itemsByStatus[lastStatusID]++
 		} else {
-			statusID := string(item.ID)
-			if _, ok := itemsByStatus[statusID]; ok {
-				itemsByStatus[statusID]++
-			} else {
-				itemsByStatus[statusID] = 1
-			}
+			statusID := fmt.Sprint(item.ID)
+			itemsByStatus[statusID]++
 		}
 	}
 

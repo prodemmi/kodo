@@ -33,7 +33,7 @@ export default function App() {
   }, []);
 
   const theme = useMemo(
-    () => createTheme(workspace_settings.primary_color, isDark),
+    () => createTheme(workspace_settings.primary_color),
     [workspace_settings, isDark]
   );
 

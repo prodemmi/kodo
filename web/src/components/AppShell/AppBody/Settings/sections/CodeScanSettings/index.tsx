@@ -4,7 +4,6 @@ import {
   Title,
   Stack,
   Textarea,
-  Switch,
   Group,
   TextInput,
   LoadingOverlay,
@@ -32,15 +31,6 @@ export function CodeScanSettings() {
       setExcludeFiles(settings.code_scan_settings.exclude_files.join("\n"));
     }
   }, [isSuccess, settings]);
-
-  const handleSyncEnabled = (checked: boolean) => {
-    updateSettings({
-      code_scan_settings: {
-        ...settings!.code_scan_settings,
-        sync_enabled: checked,
-      },
-    });
-  };
 
   const handleGithubAuthChange = (key: string, value: string) => {
     updateSettings({

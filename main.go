@@ -37,7 +37,6 @@ func main() {
 	} else {
 		logger = services.NewLogger()
 	}
-	defer logger.Sync()
 
 	// Initialize services
 	settingsService := services.NewSettingsService(config, logger)

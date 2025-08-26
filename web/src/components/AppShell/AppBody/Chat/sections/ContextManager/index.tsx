@@ -31,7 +31,6 @@ import {
   IconCopy,
   IconX,
   IconBrain,
-  IconFolder,
   IconCodeDots,
   IconFileText,
   IconEye,

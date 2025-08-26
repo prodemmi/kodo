@@ -362,8 +362,7 @@ func (r *RemoteService) createNoteFromGitHubIssue(issue *github.Issue, result *S
 }
 
 func (r *RemoteService) needsSyncCheck(note *entities.Note, issue *github.Issue) (bool, string) {
-
-	issueUpdated := issue.GetUpdatedAt().Time.UTC()
+	issueUpdated := issue.GetUpdatedAt().UTC()
 	noteUpdated := note.UpdatedAt.UTC()
 
 	var lastSyncTime time.Time

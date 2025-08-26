@@ -121,7 +121,6 @@ export function useMoveNotes() {
 
   return useMutation({
     mutationFn: moveNotes,
-    onSuccess: (_, variables) => {},
   });
 }
 

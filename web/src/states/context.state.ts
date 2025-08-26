@@ -22,7 +22,7 @@ interface ContextState {
   toggleContexts: (ids: string[]) => void;
 }
 
-export const useContextStore = create<ContextState>((set, get) => ({
+export const useContextStore = create<ContextState>((set) => ({
   contexts: [],
   selectedContexts: [],
 
@@ -131,7 +131,7 @@ export const useContextStore = create<ContextState>((set, get) => ({
     })),
 
   toggleContexts: (ids: string[]) =>
-    set((state) => {
+    set(() => {
       return { selectedContexts: ids };
     }),
 }));

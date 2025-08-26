@@ -2,7 +2,6 @@ import {
   Container,
   Title,
   Stack,
-  TextInput,
   Button,
   Group,
   Alert,
@@ -10,9 +9,8 @@ import {
   Modal,
   Text,
   LoadingOverlay,
-  Code,
 } from "@mantine/core";
-import { IconArrowRight, IconCheck, IconPlus } from "@tabler/icons-react";
+import { IconArrowRight, IconCheck } from "@tabler/icons-react";
 import { useState } from "react";
 import { SortableColumn } from "../SortableColumn";
 import { PrioritySettings } from "./sections/PrioritySettings";
@@ -34,11 +32,6 @@ export function KanbanSettings() {
   const updateSettings = useUpdateSettings();
   // const [newColumnName, setNewColumnName] = useState("");
   const [deleteColumnId, setDeleteColumnId] = useState<string | null>(null);
-
-  // Only allow deleting non-main columns (index > 2)
-  const handleDeleteColumn = (id: string, index: number) => {
-    if (index > 2) setDeleteColumnId(id);
-  };
 
   const confirmDeleteColumn = () => {
     updateSettings({
@@ -120,11 +113,7 @@ export function KanbanSettings() {
                   ))}
                 </Group>
               </Alert>
-              <DndContext
-                onDragEnd={(event) => {
-                  /* implement drag end handler */
-                }}
-              >
+              <DndContext>
                 <SortableContext
                   items={settings.kanban_columns.map((col) => col.id)}
                   strategy={verticalListSortingStrategy}

@@ -1,5 +1,5 @@
 import { showNotification } from "@mantine/notifications";
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
 // Create axios instance
 const api = axios.create({
@@ -9,7 +9,7 @@ const api = axios.create({
 
 // Request interceptor
 api.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
+  (config: any) => {
     return config;
   },
   (error: AxiosError) => {
@@ -30,7 +30,7 @@ api.interceptors.response.use(
   (error: AxiosError) => {
     showNotification({
       title: "Error",
-      message: error.response?.data?.message || error.message,
+      message: (error.response?.data as any)?.message || error.message,
       color: "red",
     });
     return Promise.reject(error);

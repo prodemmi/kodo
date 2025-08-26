@@ -29,7 +29,7 @@ func (s *SettingHandler) HandleSettings(w http.ResponseWriter, r *http.Request) 
 	switch r.Method {
 	case "GET":
 		settings := s.settingsService.LoadSettings()
-		json.NewEncoder(w).Encode(settings)
+		_ = json.NewEncoder(w).Encode(settings)
 
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -69,7 +69,7 @@ func (s *SettingHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.Req
 	s.logger.Info("Settings updated successfully")
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":   "success",
 		"settings": updatedSettings,
 		"message":  "Settings updated successfully",

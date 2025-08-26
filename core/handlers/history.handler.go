@@ -44,7 +44,7 @@ func (s *ItemHandler) HandleItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(s.scannerService.GetItems())
+	_ = json.NewEncoder(w).Encode(s.scannerService.GetItems())
 }
 
 func (s *ItemHandler) HandleUpdateTodo(w http.ResponseWriter, r *http.Request) {
@@ -97,16 +97,16 @@ func (s *ItemHandler) HandleUpdateTodo(w http.ResponseWriter, r *http.Request) {
 	s.logger.Info("Successfully updated item status", zap.Int("id", targetItem.ID), zap.String("new_status", string(targetItem.Status)))
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "success",
 		"item":   targetItem,
 	})
 }
 
 func (s *ItemHandler) HandleRefresh(w http.ResponseWriter, r *http.Request) {
-	s.scannerService.Rescan()
+	_ = s.scannerService.Rescan()
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "success",
 		"count":  s.scannerService.GetItemsLength(),
 	})
@@ -134,7 +134,7 @@ func (s *ItemHandler) HandleOpenFile(w http.ResponseWriter, r *http.Request) {
 	opened := s.tryOpenInIDE(fullPath, req.Line)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "success",
 		"opened": opened,
 	})
@@ -159,7 +159,7 @@ func (s *ItemHandler) HandleGetContext(w http.ResponseWriter, r *http.Request) {
 	context := s.getCodeContext(req.File, req.Line)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(context)
+	_ = json.NewEncoder(w).Encode(context)
 }
 
 func (s *ItemHandler) getCodeContext(filePath string, itemLine int) map[string]interface{} {
@@ -172,7 +172,9 @@ func (s *ItemHandler) getCodeContext(filePath string, itemLine int) map[string]i
 			"error": "Could not open file",
 		}
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	var lines []string
 	scannerService := bufio.NewScanner(file)

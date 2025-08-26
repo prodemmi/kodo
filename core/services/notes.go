@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -68,7 +67,7 @@ func (s *NoteService) loadNoteStorage() (*NoteService, error) {
 		return storage, nil
 	}
 
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read notes file: %v", err)
 	}
@@ -92,7 +91,7 @@ func (s *NoteService) SaveNoteStorage(storage *NoteService) error {
 	}
 
 	filePath := s.getNotesFilePath()
-	if err := ioutil.WriteFile(filePath, data, 0644); err != nil {
+	if err := os.WriteFile(filePath, data, 0644); err != nil {
 		return fmt.Errorf("failed to write notes file: %v", err)
 	}
 
@@ -146,40 +145,6 @@ func (s *NoteService) getGitInfo() (string, string) {
 	return branch, commit
 }
 
-func (s *NoteService) createNote(title, content string, tags []string, category string, folderId *int) (*entities.Note, error) {
-	storage, err := s.loadNoteStorage()
-	if err != nil {
-		return nil, err
-	}
-
-	now := time.Now()
-	author := s.getGitAuthor()
-	branch, commit := s.getGitInfo()
-
-	note := entities.Note{
-		ID:        storage.NextID,
-		Title:     title,
-		Content:   content,
-		Author:    author,
-		CreatedAt: now,
-		UpdatedAt: now,
-		Tags:      tags,
-		Category:  category,
-		FolderID:  folderId,
-		GitBranch: &branch,
-		GitCommit: &commit,
-	}
-
-	storage.Notes = append(storage.Notes, note)
-	storage.NextID++
-
-	if err := s.SaveNoteStorage(storage); err != nil {
-		return nil, err
-	}
-
-	return &note, nil
-}
-
 func (s *NoteService) GetNotes(category, tag, folderId string) ([]entities.Note, error) {
 	storage, err := s.loadNoteStorage()
 	if err != nil {
@@ -225,64 +190,6 @@ func (s *NoteService) GetNotes(category, tag, folderId string) ([]entities.Note,
 	})
 
 	return filteredNotes, nil
-}
-
-func (s *NoteService) updateNote(id int, title, content string, tags []string, category string, folderId *int) (*entities.Note, error) {
-	storage, err := s.loadNoteStorage()
-	if err != nil {
-		return nil, err
-	}
-
-	noteIndex := -1
-	for i, note := range storage.Notes {
-		if note.ID == id {
-			noteIndex = i
-			break
-		}
-	}
-
-	if noteIndex == -1 {
-		return nil, errors.New("note not found")
-	}
-
-	branch, commit := s.getGitInfo()
-	storage.Notes[noteIndex].Title = title
-	storage.Notes[noteIndex].Content = content
-	storage.Notes[noteIndex].Tags = tags
-	storage.Notes[noteIndex].Category = category
-	storage.Notes[noteIndex].FolderID = folderId
-	storage.Notes[noteIndex].UpdatedAt = time.Now()
-	storage.Notes[noteIndex].GitBranch = &branch
-	storage.Notes[noteIndex].GitCommit = &commit
-
-	if err := s.SaveNoteStorage(storage); err != nil {
-		return nil, err
-	}
-
-	return &storage.Notes[noteIndex], nil
-}
-
-func (s *NoteService) deleteNote(id int) error {
-	storage, err := s.loadNoteStorage()
-	if err != nil {
-		return err
-	}
-
-	noteIndex := -1
-	for i, note := range storage.Notes {
-		if note.ID == id {
-			noteIndex = i
-			break
-		}
-	}
-
-	if noteIndex == -1 {
-		return errors.New("note not found")
-	}
-
-	storage.Notes = append(storage.Notes[:noteIndex], storage.Notes[noteIndex+1:]...)
-
-	return s.SaveNoteStorage(storage)
 }
 
 func (s *NoteService) CreateFolder(name string, parentId *int) (*entities.Folder, error) {
@@ -536,48 +443,6 @@ func (s *NoteService) buildFolderNode(folder entities.Folder, folderMap map[int]
 	}
 }
 
-func (s *NoteService) moveNotesToFolder(noteIds []int, targetFolderId *int) error {
-	storage, err := s.loadNoteStorage()
-	if err != nil {
-		return err
-	}
-
-	if targetFolderId != nil {
-		folderExists := false
-		for _, folder := range storage.Folders {
-			if folder.ID == *targetFolderId {
-				folderExists = true
-				break
-			}
-		}
-		if !folderExists {
-			return errors.New("target folder not found")
-		}
-	}
-
-	updatedCount := 0
-	branch, commit := s.getGitInfo()
-
-	for i := range storage.Notes {
-		for _, noteId := range noteIds {
-			if storage.Notes[i].ID == noteId {
-				storage.Notes[i].FolderID = targetFolderId
-				storage.Notes[i].UpdatedAt = time.Now()
-				storage.Notes[i].GitBranch = &branch
-				storage.Notes[i].GitCommit = &commit
-				updatedCount++
-				break
-			}
-		}
-	}
-
-	if updatedCount == 0 {
-		return errors.New("no notes found to move")
-	}
-
-	return s.SaveNoteStorage(storage)
-}
-
 func (s *NoteService) SearchNotes(query string, category string, folderId *int) ([]entities.Note, error) {
 	if query == "" {
 		return s.GetNotes(category, "", "")
@@ -715,7 +580,7 @@ func (s *NoteService) LoadEnhancedNoteStorage() (*entities.EnhancedNoteStorage, 
 		return storage, nil
 	}
 
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read notes file: %v", err)
 	}
@@ -752,7 +617,7 @@ func (s *NoteService) SaveEnhancedNoteStorage(storage *entities.EnhancedNoteStor
 	}
 
 	filePath := s.getNotesFilePath()
-	if err := ioutil.WriteFile(filePath, data, 0644); err != nil {
+	if err := os.WriteFile(filePath, data, 0644); err != nil {
 		return fmt.Errorf("failed to write notes file: %v", err)
 	}
 

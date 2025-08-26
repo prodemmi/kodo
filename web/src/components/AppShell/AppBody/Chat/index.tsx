@@ -40,7 +40,7 @@ import DirectoryItem from "./sections/DirectoryItem";
 import MessageBubble from "./sections/MessageBubble";
 
 // Mock API for sending message
-const mockSendMessage = async (content: string) => {
+const mockSendMessage = async () => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
@@ -107,7 +107,7 @@ export default function ProjectChat() {
     setMessages((prev) => [...prev, newMessage]);
     setInputValue("");
 
-    const assistantResponse = await mockSendMessage(inputValue);
+    const assistantResponse = await mockSendMessage();
     setMessages((prev) => [...prev, assistantResponse as Message]);
   };
 

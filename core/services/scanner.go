@@ -129,7 +129,9 @@ func (s *ScannerService) ScanTodos() {
 		if err != nil {
 			return nil
 		}
-		defer file.Close()
+		defer func() {
+			_ = file.Close()
+		}()
 
 		scannerService := bufio.NewScanner(file)
 		lineNum := 0
@@ -369,7 +371,9 @@ func (s *ScannerService) readFileLines(filename string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	var lines []string
 	scannerService := bufio.NewScanner(file)
@@ -384,7 +388,9 @@ func (s *ScannerService) writeFileLines(filename string, lines []string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	w := bufio.NewWriter(file)
 	for _, line := range lines {

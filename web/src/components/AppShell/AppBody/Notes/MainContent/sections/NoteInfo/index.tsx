@@ -47,7 +47,6 @@ export default function NoteInfo({ editor }: Props) {
   const setTempTags = useNoteStore((s) => s.setTempTags);
   const isEditingNote = useNoteStore((s) => s.isEditingNote);
   const updateNote = useNoteStore((s) => s.updateNote);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { mutate } = useUpdateNote();
 
@@ -186,7 +185,7 @@ export default function NoteInfo({ editor }: Props) {
                 >
                   Cancel
                 </Button>
-                <Button size="sm" onClick={onSubmit} loading={loading}>
+                <Button size="sm" onClick={onSubmit}>
                   Save
                 </Button>
               </Group>

@@ -8,8 +8,6 @@ import {
   Badge,
   Group,
   Timeline,
-  ActionIcon,
-  Tooltip,
   Paper,
   ScrollArea,
   Box,
@@ -18,7 +16,6 @@ import {
   useMantineTheme,
 } from "@mantine/core";
 import {
-  IconJson,
   IconClock,
   IconUser,
   IconGitBranch,

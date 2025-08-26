@@ -51,7 +51,6 @@ export function useUpdateItem() {
   return useMutation<UpdateItemResponse, Error, UpdateItemParams>({
     mutationKey: ["items"],
     mutationFn: ({ id, status }) => updateItem(id, status),
-
     onSuccess: ({ status }, variables) => {
       queryClient.setQueryData<Item[]>(["items"], (oldItems) =>
         oldItems?.map((item) =>

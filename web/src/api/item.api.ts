@@ -22,8 +22,8 @@ export const getItemContext = async (
 export const updateItem = async (
   id: number,
   status: string
-): Promise<OpenFileResponse> => {
-  const response = await api.put<OpenFileResponse>("/items/update", {
+): Promise<any> => {
+  const response = await api.put<any>("/items/update", {
     id,
     status,
   });

@@ -6,7 +6,6 @@ import {
   ActionIcon,
   Group,
   Menu,
-  LoadingOverlay,
   ScrollArea,
   Textarea,
 } from "@mantine/core";
@@ -41,15 +40,15 @@ import { useNotes, useFolders } from "../../../../../hooks/use-notes";
 import { useNoteStore } from "../../../../../states/note.state";
 
 interface StickyNote {
-  id: string;
+  id: number;
   title: string;
   content: string;
   color: string;
   position: { x: number; y: number };
   isPinned: boolean;
-  folderId?: string;
-  createdAt: string;
-  updatedAt: string;
+  folderId: number | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 function StickyNoteCard({
@@ -58,8 +57,8 @@ function StickyNoteCard({
   onDelete,
 }: {
   note: StickyNote;
-  onUpdate: (id: string, updates: Partial<StickyNote>) => void;
-  onDelete: (id: string) => void;
+  onUpdate: (id: number, updates: Partial<StickyNote>) => void;
+  onDelete: (id: number) => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(note.content);
@@ -86,7 +85,7 @@ function StickyNoteCard({
     onUpdate(note.id, {
       title: editTitle,
       content: editContent,
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     });
     setIsEditing(false);
   };
@@ -285,7 +284,7 @@ function StickyNoteCard({
 
 export default function NotesStickyView() {
   const [stickyNotes, setStickyNotes] = useState<StickyNote[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<number | null>(null);
 
   const {
     data: notesData,
@@ -340,8 +339,8 @@ export default function NotesStickyView() {
         },
         isPinned: false,
         folderId: note.folderId,
-        createdAt: note.createdAt || new Date().toISOString(),
-        updatedAt: note.updatedAt || new Date().toISOString(),
+        createdAt: note.createdAt || new Date(),
+        updatedAt: note.updatedAt || new Date(),
       }));
       setStickyNotes(convertedNotes);
     }
@@ -390,13 +389,13 @@ export default function NotesStickyView() {
     setActiveId(null);
   };
 
-  const handleUpdateNote = (id: string, updates: Partial<StickyNote>) => {
+  const handleUpdateNote = (id: number, updates: Partial<StickyNote>) => {
     setStickyNotes((prev) =>
       prev.map((note) => (note.id === id ? { ...note, ...updates } : note))
     );
   };
 
-  const handleDeleteNote = (id: string) => {
+  const handleDeleteNote = (id: number) => {
     setStickyNotes((prev) => prev.filter((note) => note.id !== id));
   };
 

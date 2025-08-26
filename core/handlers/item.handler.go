@@ -30,17 +30,18 @@ func NewHistoryHandler(logger *zap.Logger,
 func (s *HistoryHandler) HandleStats(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	if r.Method == "GET" {
+	switch r.Method {
+	case "GET":
 		history := s.historyService.GetProjectStats(s.settingsService)
-		json.NewEncoder(w).Encode(history)
-	} else if r.Method == "POST" {
-		s.scannerService.Rescan()
+		_ = json.NewEncoder(w).Encode(history)
+	case "POST":
+		_ = s.scannerService.Rescan()
 		history := s.historyService.GetProjectStats(s.settingsService)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"status":  "refreshed",
 			"history": history,
 		})
-	} else {
+	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
@@ -54,7 +55,7 @@ func (s *HistoryHandler) HandleStatsHistory(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 
 	history := s.historyService.GetBranchHistory()
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"history": history,
 		"count":   len(history),
 	})
@@ -69,7 +70,7 @@ func (s *HistoryHandler) HandleStatsCompare(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 
 	comparison := s.historyService.CompareWithPrevious(s.settingsService)
-	json.NewEncoder(w).Encode(comparison)
+	_ = json.NewEncoder(w).Encode(comparison)
 }
 
 func (s *HistoryHandler) HandleStatsCleanup(w http.ResponseWriter, r *http.Request) {
@@ -86,7 +87,7 @@ func (s *HistoryHandler) HandleStatsCleanup(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
+	_ = json.NewEncoder(w).Encode(map[string]string{
 		"status":  "success",
 		"message": "Old history cleaned up",
 	})
@@ -102,7 +103,7 @@ func (s *HistoryHandler) HandleStatsItems(w http.ResponseWriter, r *http.Request
 
 	historyService := s.historyService
 	analysis := historyService.GetTaskItemsAnalysis(s.settingsService)
-	json.NewEncoder(w).Encode(analysis)
+	_ = json.NewEncoder(w).Encode(analysis)
 }
 
 func (s *HistoryHandler) HandleStatsItemsByFile(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +116,7 @@ func (s *HistoryHandler) HandleStatsItemsByFile(w http.ResponseWriter, r *http.R
 
 	historyService := s.historyService
 	fileGroups := historyService.GetItemsByFile(s.settingsService)
-	json.NewEncoder(w).Encode(fileGroups)
+	_ = json.NewEncoder(w).Encode(fileGroups)
 }
 
 func (s *HistoryHandler) HandleStatsTrends(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +129,7 @@ func (s *HistoryHandler) HandleStatsTrends(w http.ResponseWriter, r *http.Reques
 
 	historyService := s.historyService
 	trends := historyService.GetItemTrends(s.settingsService)
-	json.NewEncoder(w).Encode(trends)
+	_ = json.NewEncoder(w).Encode(trends)
 }
 
 func (s *HistoryHandler) HandleStatsChanges(w http.ResponseWriter, r *http.Request) {
@@ -141,5 +142,5 @@ func (s *HistoryHandler) HandleStatsChanges(w http.ResponseWriter, r *http.Reque
 
 	historyService := s.historyService
 	changes := historyService.GetRecentItemChanges()
-	json.NewEncoder(w).Encode(changes)
+	_ = json.NewEncoder(w).Encode(changes)
 }

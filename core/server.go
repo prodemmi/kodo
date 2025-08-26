@@ -105,7 +105,7 @@ func (s *Server) serveStatic(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", s.detectContentType(path))
-	w.Write(data)
+	_, _ = w.Write(data)
 }
 
 func (s *Server) detectContentType(path string) string {
@@ -149,7 +149,7 @@ func (s *Server) detectContentType(path string) string {
 
 func (s *Server) handleInvestor(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]bool{
+	_ = json.NewEncoder(w).Encode(map[string]bool{
 		"investor": s.config.Flags.Investor,
 	})
 }
@@ -202,9 +202,9 @@ func (s *Server) registerSettingsRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/settings/update", s.withCORS(http.HandlerFunc(s.settingsHandler.HandleSettingsUpdate)))
 }
 
-func (s *Server) registerChatRoutes(mux *http.ServeMux) {
-	mux.Handle("/api/chat/project-files", s.withCORS(http.HandlerFunc(s.chatHandler.HandleProjectFiles)))
-}
+// func (s *Server) registerChatRoutes(mux *http.ServeMux) {
+// 	mux.Handle("/api/chat/project-files", s.withCORS(http.HandlerFunc(s.chatHandler.HandleProjectFiles)))
+// }
 
 func (s *Server) registerMiscRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/investor", s.withCORS(http.HandlerFunc(s.handleInvestor)))

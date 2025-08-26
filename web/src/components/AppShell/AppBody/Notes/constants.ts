@@ -21,6 +21,7 @@ export const mockNotes: Note[] = [
     folderId: 1,
     gitBranch: "feature/oauth2",
     gitCommit: "a1b2c3d",
+    pinned: false,
   },
   {
     id: 2,
@@ -35,6 +36,7 @@ export const mockNotes: Note[] = [
     folderId: 4,
     gitBranch: "main",
     gitCommit: "e4f5g6h",
+    pinned: false,
   },
   {
     id: 3,
@@ -49,6 +51,7 @@ export const mockNotes: Note[] = [
     folderId: 3,
     gitBranch: "main",
     gitCommit: "x9y8z7w",
+    pinned: false,
   },
 ];
 

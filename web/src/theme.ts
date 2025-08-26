@@ -1,26 +1,6 @@
-import {
-  createTheme as theme,
-  AppShell,
-  Card,
-  Paper,
-  Button,
-  ActionIcon,
-  Input,
-  TagsInput,
-  Select,
-  Table,
-  Badge,
-  Divider,
-  Modal,
-  Menu,
-  Tabs,
-  Notification,
-  Progress,
-  rem,
-  Switch,
-} from "@mantine/core";
+import { createTheme as theme, Button, rem } from "@mantine/core";
 
-export const createTheme = (primaryColor: string, isDark: boolean) => {
+export const createTheme = (primaryColor: string) => {
   return theme({
     // Primary colors - Using different shades for light/dark
     primaryColor,
