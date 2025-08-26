@@ -11,7 +11,6 @@ import {
   ExportNotesParams,
   NoteStats,
   FolderTree,
-  NoteHistoryStats,
   NoteHistoryResponse,
 } from "../types/note";
 import api from "../utils/api";
@@ -78,7 +77,7 @@ export const exportNotes = async (params?: ExportNotesParams) => {
 };
 
 export const getNoteStats = async () => {
-  const response = await api.get<NoteStats>(`/notes/stats`);
+  const response = await api.get<NoteStats>(`/notes/history`);
   return response.data;
 };
 
@@ -92,21 +91,21 @@ export const getNoteTags = async () => {
 // Folders
 export const getFolders = async () => {
   const response = await api.get<{ folders: Folder[]; count: number }>(
-    `/folders`
+    `/notes/folders`
   );
   return response.data;
 };
 
 export const getFolderTree = async () => {
   const response = await api.get<{ tree: FolderTree[]; count: number }>(
-    `/folders/tree`
+    `/notes/folders/tree`
   );
   return response.data;
 };
 
 export const createFolder = async (params: CreateFolderParams) => {
   const response = await api.post<{ status: string; folder: Folder }>(
-    `/folders`,
+    `/notes/folders`,
     params
   );
   return response.data;
@@ -114,7 +113,7 @@ export const createFolder = async (params: CreateFolderParams) => {
 
 export const updateFolder = async (params: UpdateFolderParams) => {
   const response = await api.put<{ status: string; folder: Folder }>(
-    `/folders/update`,
+    `/notes/folders/update`,
     params
   );
   return response.data;
@@ -122,7 +121,7 @@ export const updateFolder = async (params: UpdateFolderParams) => {
 
 export const deleteFolder = async (id: number) => {
   const response = await api.delete<{ status: string; message: string }>(
-    `/folders/delete`,
+    `/notes/folders/delete`,
     { data: { id } }
   );
   return response.data;
@@ -131,7 +130,7 @@ export const deleteFolder = async (id: number) => {
 // Categories
 export const getCategories = async () => {
   const response = await api.get<{ categories: Category[]; count: number }>(
-    `/categories`
+    `/notes/categories`
   );
   return response.data;
 };
@@ -139,6 +138,11 @@ export const getCategories = async () => {
 // Categories
 export const getNoteHistory = async (noteId: number) => {
   const response = await api.get<NoteHistoryResponse>(`/notes/history?noteId=${noteId}`);
+  return response.data;
+};
+
+export const syncNotes = async () => {
+  const response = await api.get<void>("/notes/sync");
   return response.data;
 };
 

@@ -101,5 +101,6 @@ export interface UpdateItemParams {
 }
 
 export interface UpdateItemResponse {
+  id: number;
   status: string;
 }

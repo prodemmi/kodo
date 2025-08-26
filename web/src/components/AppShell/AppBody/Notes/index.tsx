@@ -1,13 +1,4 @@
-import {
-  Container,
-  Box,
-  Stack,
-  Flex,
-  Group,
-  Divider,
-  LoadingOverlay,
-} from "@mantine/core";
-
+import { Flex, Divider } from "@mantine/core";
 import "@mantine/tiptap/styles.css";
 import CreateNoteModal from "./CreateNoteModal";
 import CreateFolderModal from "./CreateFolderModal";
@@ -58,51 +49,48 @@ export default function Notes() {
     foldersLoading,
   ]);
 
-  if (notesLoading || foldersLoading) {
-    return (
-      <LoadingOverlay zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
-    );
-  }
-
   return (
-    <>
-      <Flex
-        gap="0"
-        h="calc(100dvh - 52px)"
-        align="stretch"
-        justify="space-between"
-        direction={isSmall ? "column" : "row"}
-      >
-        <Flex align="stretch" justify="space-between" w="40%">
-          {/* Folders */}
-          <Folders />
+    notesData &&
+    foldersData && (
+      <>
+        <Flex
+          gap="0"
+          h="calc(100dvh - 52px)"
+          align="stretch"
+          justify="space-between"
+          direction={isSmall ? "column" : "row"}
+        >
+          <Flex align="stretch" justify="space-between" w="40%">
+            {/* Folders */}
+            <Folders />
 
-          <Divider
-            orientation={isSmall ? "horizontal" : "vertical"}
-            w={isSmall ? "100%" : undefined}
-          />
+            <Divider
+              orientation={isSmall ? "horizontal" : "vertical"}
+              w={isSmall ? "100%" : undefined}
+            />
 
-          {/* Notes List */}
-          <NoteList />
+            {/* Notes List */}
+            <NoteList />
 
-          {!isSmall && <Divider orientation="vertical" />}
+            {!isSmall && <Divider orientation="vertical" />}
+          </Flex>
+
+          {/* Main Content */}
+          <MainContent />
         </Flex>
 
-        {/* Main Content */}
-        <MainContent />
-      </Flex>
+        {/* Create Note Modal */}
+        <CreateNoteModal />
 
-      {/* Create Note Modal */}
-      <CreateNoteModal />
+        {/* Create Folder Modal */}
+        <CreateFolderModal />
 
-      {/* Create Folder Modal */}
-      <CreateFolderModal />
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal />
 
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal />
-
-      {/* Note History Modal */}
-      <HistoryDrawer />
-    </>
+        {/* Note History Modal */}
+        <HistoryDrawer />
+      </>
+    )
   );
 }

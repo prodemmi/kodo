@@ -1,4 +1,4 @@
-package core
+package entities
 
 import (
 	"os"
@@ -24,7 +24,7 @@ func nextID() string {
 	return id
 }
 
-func scanDirOneLevel(path string) ([]ProjectFile, error) {
+func ScanDirOneLevel(path string) ([]ProjectFile, error) {
 	var files []ProjectFile
 
 	entries, err := os.ReadDir(path)
@@ -63,7 +63,7 @@ func scanDirOneLevel(path string) ([]ProjectFile, error) {
 	return files, nil
 }
 
-func searchFilesRecursive(root string, search string) ([]ProjectFile, error) {
+func SearchFilesRecursive(root string, search string) ([]ProjectFile, error) {
 	ignoreDirs := map[string]struct{}{
 		"node_modules": {},
 		"vendor":       {},

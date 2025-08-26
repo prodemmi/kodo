@@ -44,7 +44,7 @@ import {
   useHistory,
   useRefreshStats,
   useTrends,
-} from "../../../../../../hooks/use-stats";
+} from "../../../../../../hooks/use-history";
 import { RoleGuard } from "../../../../../Investor";
 
 interface Props {
@@ -145,14 +145,14 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
               loading={refreshing}
               variant="light"
             >
-              Refresh Stats
+              Refresh History
             </Button>
             <Button
               leftSection={<IconTrash size={16} />}
               onClick={() => cleanupStats()}
               variant="light"
             >
-              Cleanup Old Stats
+              Cleanup Old History
             </Button>
           </Group>
         </RoleGuard.Consumer>
@@ -258,7 +258,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                 )}
               </Grid>
 
-              {/* Header Stats */}
+              {/* Header History */}
               {history?.count && (
                 <Card withBorder mb="md">
                   <Group justify="space-between">
@@ -338,8 +338,8 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                       >
                         {getFilteredHistory().map((snapshot, index) => {
                           const completionRate =
-                            snapshot.stats.total > 0
-                              ? (snapshot.stats.done / snapshot.stats.total) *
+                            snapshot.history.total > 0
+                              ? (snapshot.history.done / snapshot.history.total) *
                                 100
                               : 0;
 
@@ -394,22 +394,22 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                                   <Grid.Col span={6}>
                                     <Group gap="xs">
                                       <Badge color="gray" size="sm">
-                                        {snapshot.stats.total} total
+                                        {snapshot.history.total} total
                                       </Badge>
                                       <Badge color="green" size="sm">
-                                        {snapshot.stats.done} done
+                                        {snapshot.history.done} done
                                       </Badge>
                                       <Badge size="sm">
-                                        {snapshot.stats.in_progress} in progress
+                                        {snapshot.history.in_progress} in progress
                                       </Badge>
                                       <Badge color="orange" size="sm">
-                                        {snapshot.stats.todo} todo
+                                        {snapshot.history.todo} todo
                                       </Badge>
                                     </Group>
                                   </Grid.Col>
                                 </Grid>
 
-                                {Object.keys(snapshot.stats.by_type).length >
+                                {Object.keys(snapshot.history.by_type).length >
                                   0 && (
                                   <Accordion variant="contained">
                                     <Accordion.Item value="details">
@@ -424,7 +424,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                                       <Accordion.Panel>
                                         <Group gap="xs">
                                           {Object.entries(
-                                            snapshot.stats.by_type
+                                            snapshot.history.by_type
                                           ).map(([type, count]) => (
                                             <Badge
                                               key={type}
@@ -791,7 +791,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                               <Group justify="space-around">
                                 <Stack align="center">
                                   <Text size="xl" fw={700}>
-                                    {comparison.current.stats.total}
+                                    {comparison.current.history.total}
                                   </Text>
                                   <Text size="sm" c="dimmed">
                                     Total
@@ -799,7 +799,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                                 </Stack>
                                 <Stack align="center">
                                   <Text size="xl" fw={700} c="green">
-                                    {comparison.current.stats.done}
+                                    {comparison.current.history.done}
                                   </Text>
                                   <Text size="sm" c="dimmed">
                                     Done
@@ -807,7 +807,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                                 </Stack>
                                 <Stack align="center">
                                   <Text size="xl" fw={700}>
-                                    {comparison.current.stats.in_progress}
+                                    {comparison.current.history.in_progress}
                                   </Text>
                                   <Text size="sm" c="dimmed">
                                     In Progress
@@ -815,7 +815,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                                 </Stack>
                                 <Stack align="center">
                                   <Text size="xl" fw={700} c="orange">
-                                    {comparison.current.stats.todo}
+                                    {comparison.current.history.todo}
                                   </Text>
                                   <Text size="sm" c="dimmed">
                                     Todo
@@ -825,9 +825,9 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
 
                               <Progress
                                 value={
-                                  comparison.current.stats.total > 0
-                                    ? (comparison.current.stats.done /
-                                        comparison.current.stats.total) *
+                                  comparison.current.history.total > 0
+                                    ? (comparison.current.history.done /
+                                        comparison.current.history.total) *
                                       100
                                     : 0
                                 }
@@ -858,7 +858,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                               <Group justify="space-around">
                                 <Stack align="center">
                                   <Text size="xl" fw={700}>
-                                    {comparison.previous.stats.total}
+                                    {comparison.previous.history.total}
                                   </Text>
                                   <Text size="sm" c="dimmed">
                                     Total
@@ -866,7 +866,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                                 </Stack>
                                 <Stack align="center">
                                   <Text size="xl" fw={700} c="green">
-                                    {comparison.previous.stats.done}
+                                    {comparison.previous.history.done}
                                   </Text>
                                   <Text size="sm" c="dimmed">
                                     Done
@@ -874,7 +874,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                                 </Stack>
                                 <Stack align="center">
                                   <Text size="xl" fw={700}>
-                                    {comparison.previous.stats.in_progress}
+                                    {comparison.previous.history.in_progress}
                                   </Text>
                                   <Text size="sm" c="dimmed">
                                     In Progress
@@ -882,7 +882,7 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
                                 </Stack>
                                 <Stack align="center">
                                   <Text size="xl" fw={700} c="orange">
-                                    {comparison.previous.stats.todo}
+                                    {comparison.previous.history.todo}
                                   </Text>
                                   <Text size="sm" c="dimmed">
                                     Todo
@@ -892,9 +892,9 @@ export default function HistoryDrawer({ isOpen, onClose }: Props) {
 
                               <Progress
                                 value={
-                                  comparison.previous.stats.total > 0
-                                    ? (comparison.previous.stats.done /
-                                        comparison.previous.stats.total) *
+                                  comparison.previous.history.total > 0
+                                    ? (comparison.previous.history.done /
+                                        comparison.previous.history.total) *
                                       100
                                     : 0
                                 }

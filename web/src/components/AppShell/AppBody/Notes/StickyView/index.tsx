@@ -404,85 +404,77 @@ export default function NotesStickyView() {
     ? stickyNotes.find((note) => note.id === activeId)
     : null;
 
-  if (notesLoading || foldersLoading) {
-    return (
-      <LoadingOverlay
-        visible
-        zIndex={1000}
-        overlayProps={{ radius: "sm", blur: 2 }}
-        loaderProps={{ type: "dots", color: "var(--mantine-color-blue-6)" }}
-      />
-    );
-  }
-
   return (
-    <Container
-      fluid
-      p="lg"
-      style={{
-        height: "calc(100dvh - 60px)",
-        backgroundColor: "var(--mantine-color-gray-0)",
-        position: "relative",
-        overflow: "auto",
-      }}
-    >
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
+    notes &&
+    folders && (
+      <Container
+        fluid
+        p="lg"
+        style={{
+          height: "calc(100dvh - 60px)",
+          backgroundColor: "var(--mantine-color-gray-0)",
+          position: "relative",
+          overflow: "auto",
+        }}
       >
-        <SortableContext items={stickyNotes} strategy={rectSortingStrategy}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={stickyNotes} strategy={rectSortingStrategy}>
+            <Box
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                gap: "lg",
+                justifyContent: "start",
+                minHeight: "100%",
+                padding: "md",
+              }}
+            >
+              {stickyNotes.map((note) => (
+                <StickyNoteCard
+                  key={note.id}
+                  note={note}
+                  onUpdate={handleUpdateNote}
+                  onDelete={handleDeleteNote}
+                />
+              ))}
+            </Box>
+          </SortableContext>
+
+          <DragOverlay>
+            {activeNote && (
+              <StickyNoteCard
+                note={activeNote}
+                onUpdate={() => {}}
+                onDelete={() => {}}
+              />
+            )}
+          </DragOverlay>
+        </DndContext>
+
+        {stickyNotes.length === 0 && (
           <Box
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: "lg",
-              justifyContent: "start",
-              minHeight: "100%",
-              padding: "md",
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              textAlign: "center",
             }}
           >
-            {stickyNotes.map((note) => (
-              <StickyNoteCard
-                key={note.id}
-                note={note}
-                onUpdate={handleUpdateNote}
-                onDelete={handleDeleteNote}
-              />
-            ))}
+            <Text size="xl" fw={500} c="dimmed" mb="md">
+              No notes to display
+            </Text>
+            <Text size="sm" c="dimmed">
+              Create your first note to see it as a sticky note!
+            </Text>
           </Box>
-        </SortableContext>
-
-        <DragOverlay>
-          {activeNote && (
-            <StickyNoteCard
-              note={activeNote}
-              onUpdate={() => {}}
-              onDelete={() => {}}
-            />
-          )}
-        </DragOverlay>
-      </DndContext>
-
-      {stickyNotes.length === 0 && (
-        <Box
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            textAlign: "center",
-          }}
-        >
-          <Text size="xl" fw={500} c="dimmed" mb="md">
-            No notes to display
-          </Text>
-          <Text size="sm" c="dimmed">
-            Create your first note to see it as a sticky note!
-          </Text>
-        </Box>
-      )}
-    </Container>
+        )}
+      </Container>
+    )
   );
 }

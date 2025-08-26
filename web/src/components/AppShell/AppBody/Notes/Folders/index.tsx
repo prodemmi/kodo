@@ -6,7 +6,6 @@ import {
   UnstyledButton,
   Badge,
   ScrollArea,
-  LoadingOverlay,
   Title,
   Divider,
   Stack,
@@ -52,73 +51,75 @@ export default function Folders() {
     }
   }, [remoteFolderTree, isError, isLoading, setFolderTree]);
 
-  if (isLoading) return <LoadingOverlay />;
-
   return (
-    <ScrollArea h={isSmall ? undefined : "100%"} w="40%" p="sm" pt="md">
-      <Box h={isSmall ? undefined : "100%"}>
-        <Group justify="space-between" mb="sm">
-          <Title size="h6">Folders</Title>
-          <RoleGuard.Consumer>
-            <ActionIcon
-              variant="subtle"
-              size="sm"
-              onClick={() => setIsFolderModalOpen()}
-            >
-              <IconFolderPlus size={14} />
-            </ActionIcon>
-          </RoleGuard.Consumer>
-        </Group>
-
-        {/* Pinned Notes Section */}
-        {pinnedNotes.length > 0 && (
-          <>
-            <Group gap="xs" mb="xs">
-              <IconPinFilled size={16} />
-              <Text size="sm" fw={500}>
-                Pinned Notes
-              </Text>
-              <Badge size="xs">{pinnedNotes.length}</Badge>
-            </Group>
-
-            {pinnedNotes.map((note: Note) => (
-              <PinnedNoteItem key={note.id} note={note} />
-            ))}
-
-            <Divider my="md" />
-          </>
-        )}
-
-        {/* All Notes Button */}
-        <UnstyledButton
-          style={{ width: "100%" }}
-          onClick={() => selectFolder(null)}
-        >
-          <Group gap="xs">
-            <IconFileText
-              size={16}
-              color={
-                !selectedFolder ? `var(--mantine-color-${primaryColor}-4)` : "var(--mantine-color-gray-4)"
-              }
-            />
-            <Text size="sm" fw={400}>
-              All Notes
-            </Text>
-            <Badge size="xs" variant="light" color="gray">
-              {storeNotes.length}
-            </Badge>
+    remoteFolderTree && (
+      <ScrollArea h={isSmall ? undefined : "100%"} w="40%" p="sm" pt="md">
+        <Box h={isSmall ? undefined : "100%"}>
+          <Group justify="space-between" mb="sm">
+            <Title size="h6">Folders</Title>
+            <RoleGuard.Consumer>
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                onClick={() => setIsFolderModalOpen()}
+              >
+                <IconFolderPlus size={14} />
+              </ActionIcon>
+            </RoleGuard.Consumer>
           </Group>
-        </UnstyledButton>
 
-        {/* Folder Tree */}
-        <Stack>
-          {folderTree &&
-            folderTree.length > 0 &&
-            folderTree.map((folder: Folder) => (
-              <FolderItem key={folder.id} folder={folder} level={0} />
-            ))}
-        </Stack>
-      </Box>
-    </ScrollArea>
+          {/* Pinned Notes Section */}
+          {pinnedNotes.length > 0 && (
+            <>
+              <Group gap="xs" mb="xs">
+                <IconPinFilled size={16} />
+                <Text size="sm" fw={500}>
+                  Pinned Notes
+                </Text>
+                <Badge size="xs">{pinnedNotes.length}</Badge>
+              </Group>
+
+              {pinnedNotes.map((note: Note) => (
+                <PinnedNoteItem key={note.id} note={note} />
+              ))}
+
+              <Divider my="md" />
+            </>
+          )}
+
+          {/* All Notes Button */}
+          <UnstyledButton
+            style={{ width: "100%" }}
+            onClick={() => selectFolder(null)}
+          >
+            <Group gap="xs">
+              <IconFileText
+                size={16}
+                color={
+                  !selectedFolder
+                    ? `var(--mantine-color-${primaryColor}-4)`
+                    : "var(--mantine-color-gray-4)"
+                }
+              />
+              <Text size="sm" fw={400}>
+                All Notes
+              </Text>
+              <Badge size="xs" variant="light" color="gray">
+                {storeNotes.length}
+              </Badge>
+            </Group>
+          </UnstyledButton>
+
+          {/* Folder Tree */}
+          <Stack>
+            {folderTree &&
+              folderTree.length > 0 &&
+              folderTree.map((folder: Folder) => (
+                <FolderItem key={folder.id} folder={folder} level={0} />
+              ))}
+          </Stack>
+        </Box>
+      </ScrollArea>
+    )
   );
 }

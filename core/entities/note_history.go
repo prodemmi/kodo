@@ -1,4 +1,4 @@
-package core
+package entities
 
 import (
 	"time"
@@ -13,6 +13,7 @@ const (
 	ActionDeleted NoteHistoryAction = "deleted"
 	ActionMoved   NoteHistoryAction = "moved"
 	ActionTagged  NoteHistoryAction = "tagged"
+	ActionSynced  NoteHistoryAction = "synced" // New action for GitHub sync
 )
 
 // NoteHistoryEntry represents a single history entry for a note

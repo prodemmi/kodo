@@ -8,11 +8,13 @@ import {
   Group,
   TextInput,
   LoadingOverlay,
+  ActionIcon,
 } from "@mantine/core";
 import {
   useSettings,
   useUpdateSettings,
 } from "../../../../../../hooks/use-settings";
+import { IconEye, IconEyeOff } from "@tabler/icons-react";
 
 export function CodeScanSettings() {
   const { data: settings, isSuccess } = useSettings();
@@ -20,6 +22,7 @@ export function CodeScanSettings() {
 
   const [excludeDirs, setExcludeDirs] = useState("");
   const [excludeFiles, setExcludeFiles] = useState("");
+  const [showToken, setShowToken] = useState(false); // 👈 state برای show/hide
 
   useEffect(() => {
     if (isSuccess && settings) {
@@ -77,6 +80,8 @@ export function CodeScanSettings() {
             value={excludeDirs}
             onChange={(e) => setExcludeDirs(e.currentTarget.value)}
             onBlur={handleBlurDirs}
+            minRows={3}
+            maxRows={10}
           />
           <Textarea
             autosize
@@ -85,6 +90,8 @@ export function CodeScanSettings() {
             value={excludeFiles}
             onChange={(e) => setExcludeFiles(e.currentTarget.value)}
             onBlur={handleBlurFiles}
+            minRows={3}
+            maxRows={10}
           />
         </Group>
         <Switch
@@ -96,6 +103,15 @@ export function CodeScanSettings() {
           <TextInput
             label="GitHub Token"
             value={settings?.github_auth.token}
+            type={showToken ? "text" : "password"} // 👈 اینجا تغییر می‌کنه
+            rightSection={
+              <ActionIcon
+                variant="subtle"
+                onClick={() => setShowToken((prev) => !prev)}
+              >
+                {showToken ? <IconEyeOff /> : <IconEye />}
+              </ActionIcon>
+            }
             onChange={(e) =>
               handleGithubAuthChange("token", e.currentTarget.value)
             }

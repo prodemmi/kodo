@@ -1,4 +1,4 @@
-package core
+package services
 
 import (
 	"encoding/json"
@@ -12,17 +12,33 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/prodemmi/kodo/core/entities"
+	"go.uber.org/zap"
 )
 
 // Note storage structure
 type NoteStorage struct {
-	Notes   []Note   `json:"notes"`
-	Folders []Folder `json:"folders"`
-	NextID  int      `json:"next_id"`
+	Notes   []entities.Note   `json:"notes"`
+	Folders []entities.Folder `json:"folders"`
+	NextID  int               `json:"next_id"`
+
+	logger *zap.Logger
+	config *entities.Config
+}
+
+func NewNoteStorage(config *entities.Config, logger *zap.Logger) *NoteStorage {
+	return &NoteStorage{
+		Notes:   []entities.Note{},
+		Folders: []entities.Folder{},
+		NextID:  1,
+		logger:  logger,
+		config:  config,
+	}
 }
 
 // ensureNotesDir creates the notes directory if it doesn't exist
-func (s *Server) ensureNotesDir() error {
+func (s *NoteStorage) ensureNotesDir() error {
 	wd, _ := os.Getwd()
 	notesDir := filepath.Join(wd, s.config.Flags.Config)
 
@@ -34,13 +50,13 @@ func (s *Server) ensureNotesDir() error {
 }
 
 // getNotesFilePath returns the path to the notes storage file
-func (s *Server) getNotesFilePath() string {
+func (s *NoteStorage) getNotesFilePath() string {
 	wd, _ := os.Getwd()
 	return filepath.Join(wd, s.config.Flags.Config, "notes.json")
 }
 
 // loadNoteStorage loads the note storage from file
-func (s *Server) loadNoteStorage() (*NoteStorage, error) {
+func (s *NoteStorage) loadNoteStorage() (*NoteStorage, error) {
 	if err := s.ensureNotesDir(); err != nil {
 		return nil, err
 	}
@@ -50,8 +66,8 @@ func (s *Server) loadNoteStorage() (*NoteStorage, error) {
 	// If file doesn't exist, create empty storage
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		storage := &NoteStorage{
-			Notes:   []Note{},
-			Folders: []Folder{},
+			Notes:   []entities.Note{},
+			Folders: []entities.Folder{},
 			NextID:  1,
 		}
 		return storage, nil
@@ -71,7 +87,7 @@ func (s *Server) loadNoteStorage() (*NoteStorage, error) {
 }
 
 // saveNoteStorage saves the note storage to file
-func (s *Server) saveNoteStorage(storage *NoteStorage) error {
+func (s *NoteStorage) SaveNoteStorage(storage *NoteStorage) error {
 	if err := s.ensureNotesDir(); err != nil {
 		return err
 	}
@@ -90,7 +106,7 @@ func (s *Server) saveNoteStorage(storage *NoteStorage) error {
 }
 
 // getGitAuthor gets the git author name and email
-func (s *Server) getGitAuthor() string {
+func (s *NoteStorage) getGitAuthor() string {
 	cmd := exec.Command("git", "config", "--get", "user.name")
 	nameOutput, nameErr := cmd.Output()
 
@@ -119,7 +135,7 @@ func (s *Server) getGitAuthor() string {
 }
 
 // getGitInfo gets current git branch and commit
-func (s *Server) getGitInfo() (string, string) {
+func (s *NoteStorage) getGitInfo() (string, string) {
 	// Get branch
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	branchOutput, branchErr := cmd.Output()
@@ -140,7 +156,7 @@ func (s *Server) getGitInfo() (string, string) {
 }
 
 // createNote creates a new note
-func (s *Server) createNote(title, content string, tags []string, category string, folderId *int) (*Note, error) {
+func (s *NoteStorage) createNote(title, content string, tags []string, category string, folderId *int) (*entities.Note, error) {
 	storage, err := s.loadNoteStorage()
 	if err != nil {
 		return nil, err
@@ -150,7 +166,7 @@ func (s *Server) createNote(title, content string, tags []string, category strin
 	author := s.getGitAuthor()
 	branch, commit := s.getGitInfo()
 
-	note := Note{
+	note := entities.Note{
 		ID:        storage.NextID,
 		Title:     title,
 		Content:   content,
@@ -167,7 +183,7 @@ func (s *Server) createNote(title, content string, tags []string, category strin
 	storage.Notes = append(storage.Notes, note)
 	storage.NextID++
 
-	if err := s.saveNoteStorage(storage); err != nil {
+	if err := s.SaveNoteStorage(storage); err != nil {
 		return nil, err
 	}
 
@@ -175,13 +191,13 @@ func (s *Server) createNote(title, content string, tags []string, category strin
 }
 
 // getNotes retrieves notes with optional filtering
-func (s *Server) getNotes(category, tag, folderId string) ([]Note, error) {
+func (s *NoteStorage) GetNotes(category, tag, folderId string) ([]entities.Note, error) {
 	storage, err := s.loadNoteStorage()
 	if err != nil {
 		return nil, err
 	}
 
-	var filteredNotes []Note
+	var filteredNotes []entities.Note
 
 	for _, note := range storage.Notes {
 		// Filter by category
@@ -226,7 +242,7 @@ func (s *Server) getNotes(category, tag, folderId string) ([]Note, error) {
 }
 
 // updateNote updates an existing note
-func (s *Server) updateNote(id int, title, content string, tags []string, category string, folderId *int) (*Note, error) {
+func (s *NoteStorage) updateNote(id int, title, content string, tags []string, category string, folderId *int) (*entities.Note, error) {
 	storage, err := s.loadNoteStorage()
 	if err != nil {
 		return nil, err
@@ -256,7 +272,7 @@ func (s *Server) updateNote(id int, title, content string, tags []string, catego
 	storage.Notes[noteIndex].GitBranch = &branch
 	storage.Notes[noteIndex].GitCommit = &commit
 
-	if err := s.saveNoteStorage(storage); err != nil {
+	if err := s.SaveNoteStorage(storage); err != nil {
 		return nil, err
 	}
 
@@ -264,7 +280,7 @@ func (s *Server) updateNote(id int, title, content string, tags []string, catego
 }
 
 // deleteNote deletes a note by ID
-func (s *Server) deleteNote(id int) error {
+func (s *NoteStorage) deleteNote(id int) error {
 	storage, err := s.loadNoteStorage()
 	if err != nil {
 		return err
@@ -286,17 +302,17 @@ func (s *Server) deleteNote(id int) error {
 	// Remove the note from slice
 	storage.Notes = append(storage.Notes[:noteIndex], storage.Notes[noteIndex+1:]...)
 
-	return s.saveNoteStorage(storage)
+	return s.SaveNoteStorage(storage)
 }
 
 // createFolder creates a new folder
-func (s *Server) createFolder(name string, parentId *int) (*Folder, error) {
+func (s *NoteStorage) CreateFolder(name string, parentId *int) (*entities.Folder, error) {
 	storage, err := s.loadNoteStorage()
 	if err != nil {
 		return nil, err
 	}
 
-	folder := Folder{
+	folder := entities.Folder{
 		ID:       storage.NextID,
 		Name:     name,
 		ParentID: parentId,
@@ -306,7 +322,7 @@ func (s *Server) createFolder(name string, parentId *int) (*Folder, error) {
 	storage.Folders = append(storage.Folders, folder)
 	storage.NextID++
 
-	if err := s.saveNoteStorage(storage); err != nil {
+	if err := s.SaveNoteStorage(storage); err != nil {
 		return nil, err
 	}
 
@@ -314,7 +330,7 @@ func (s *Server) createFolder(name string, parentId *int) (*Folder, error) {
 }
 
 // getFolders retrieves all folders
-func (s *Server) getFolders() ([]Folder, error) {
+func (s *NoteStorage) GetFolders() ([]entities.Folder, error) {
 	storage, err := s.loadNoteStorage()
 	if err != nil {
 		return nil, err
@@ -329,8 +345,8 @@ func (s *Server) getFolders() ([]Folder, error) {
 }
 
 // getCategories returns predefined categories
-func (s *Server) getCategories() []Category {
-	return []Category{
+func (s *NoteStorage) GetCategories() []entities.Category {
+	return []entities.Category{
 		{Value: "general", Label: "General"},
 		{Value: "development", Label: "Development"},
 		{Value: "documentation", Label: "Documentation"},
@@ -345,19 +361,19 @@ func (s *Server) getCategories() []Category {
 }
 
 // getNoteStats provides statistics about notes
-func (s *Server) getNoteStats() (map[string]interface{}, error) {
+func (s *NoteStorage) GetNoteStats() (map[string]interface{}, error) {
 	storage, err := s.loadNoteStorage()
 	if err != nil {
 		return nil, err
 	}
 
-	stats := map[string]interface{}{
+	history := map[string]interface{}{
 		"total_notes":   len(storage.Notes),
 		"total_folders": len(storage.Folders),
 		"by_category":   make(map[string]int),
 		"by_author":     make(map[string]int),
 		"by_month":      make(map[string]int),
-		"recent_notes":  []Note{},
+		"recent_notes":  []entities.Note{},
 	}
 
 	// Calculate statistics
@@ -365,7 +381,7 @@ func (s *Server) getNoteStats() (map[string]interface{}, error) {
 	authorCount := make(map[string]int)
 	monthCount := make(map[string]int)
 
-	var recentNotes []Note
+	var recentNotes []entities.Note
 	cutoff := time.Now().AddDate(0, 0, -7) // Last 7 days
 
 	for _, note := range storage.Notes {
@@ -399,16 +415,16 @@ func (s *Server) getNoteStats() (map[string]interface{}, error) {
 		recentNotes = recentNotes[:10]
 	}
 
-	stats["by_category"] = categoryCount
-	stats["by_author"] = authorCount
-	stats["by_month"] = monthCount
-	stats["recent_notes"] = recentNotes
+	history["by_category"] = categoryCount
+	history["by_author"] = authorCount
+	history["by_month"] = monthCount
+	history["recent_notes"] = recentNotes
 
-	return stats, nil
+	return history, nil
 }
 
 // deleteFolderRecursive works in-memory (no reload/save inside)
-func (s *Server) deleteFolderRecursive(storage *NoteStorage, id int) error {
+func (s *NoteStorage) deleteFolderRecursive(storage *NoteStorage, id int) error {
 	// Find the folder
 	folderIndex := -1
 	for i, folder := range storage.Folders {
@@ -446,7 +462,7 @@ func (s *Server) deleteFolderRecursive(storage *NoteStorage, id int) error {
 }
 
 // updateFolder updates an existing folder
-func (s *Server) updateFolder(id int, name string, parentId *int, expanded *bool) (*Folder, error) {
+func (s *NoteStorage) UpdateFolder(id int, name string, parentId *int, expanded *bool) (*entities.Folder, error) {
 	storage, err := s.loadNoteStorage()
 	if err != nil {
 		return nil, err
@@ -474,7 +490,7 @@ func (s *Server) updateFolder(id int, name string, parentId *int, expanded *bool
 	}
 	storage.Folders[folderIndex].ParentID = parentId
 
-	if err := s.saveNoteStorage(storage); err != nil {
+	if err := s.SaveNoteStorage(storage); err != nil {
 		return nil, err
 	}
 
@@ -482,7 +498,7 @@ func (s *Server) updateFolder(id int, name string, parentId *int, expanded *bool
 }
 
 // deleteFolder deletes a folder by ID and all its notes and subfolders recursively
-func (s *Server) deleteFolder(id int) error {
+func (s *NoteStorage) DeleteFolder(id int) error {
 	storage, err := s.loadNoteStorage()
 	if err != nil {
 		return err
@@ -492,18 +508,18 @@ func (s *Server) deleteFolder(id int) error {
 		return err
 	}
 
-	return s.saveNoteStorage(storage)
+	return s.SaveNoteStorage(storage)
 }
 
 // getFolderTree returns folders organized as a tree structure
-func (s *Server) getFolderTree() ([]map[string]interface{}, error) {
+func (s *NoteStorage) GetFolderTree() ([]map[string]interface{}, error) {
 	storage, err := s.loadNoteStorage()
 	if err != nil {
 		return nil, err
 	}
 
 	// Create a map for quick folder lookup
-	folderMap := make(map[int]*Folder)
+	folderMap := make(map[int]*entities.Folder)
 	for i := range storage.Folders {
 		folderMap[storage.Folders[i].ID] = &storage.Folders[i]
 	}
@@ -527,7 +543,7 @@ func (s *Server) getFolderTree() ([]map[string]interface{}, error) {
 }
 
 // buildFolderNode recursively builds a folder node with its children and note count
-func (s *Server) buildFolderNode(folder Folder, folderMap map[int]*Folder, notes []Note) map[string]interface{} {
+func (s *NoteStorage) buildFolderNode(folder entities.Folder, folderMap map[int]*entities.Folder, notes []entities.Note) map[string]interface{} {
 	// Count notes in this folder
 	noteCount := 0
 	for _, note := range notes {
@@ -568,7 +584,7 @@ func (s *Server) buildFolderNode(folder Folder, folderMap map[int]*Folder, notes
 }
 
 // moveNotesToFolder moves notes from one folder to another
-func (s *Server) moveNotesToFolder(noteIds []int, targetFolderId *int) error {
+func (s *NoteStorage) moveNotesToFolder(noteIds []int, targetFolderId *int) error {
 	storage, err := s.loadNoteStorage()
 	if err != nil {
 		return err
@@ -609,13 +625,13 @@ func (s *Server) moveNotesToFolder(noteIds []int, targetFolderId *int) error {
 		return errors.New("no notes found to move")
 	}
 
-	return s.saveNoteStorage(storage)
+	return s.SaveNoteStorage(storage)
 }
 
 // searchNotes searches notes by title, content, or tags
-func (s *Server) searchNotes(query string, category string, folderId *int) ([]Note, error) {
+func (s *NoteStorage) SearchNotes(query string, category string, folderId *int) ([]entities.Note, error) {
 	if query == "" {
-		return s.getNotes(category, "", "")
+		return s.GetNotes(category, "", "")
 	}
 
 	storage, err := s.loadNoteStorage()
@@ -624,7 +640,7 @@ func (s *Server) searchNotes(query string, category string, folderId *int) ([]No
 	}
 
 	query = strings.ToLower(query)
-	var matchingNotes []Note
+	var matchingNotes []entities.Note
 
 	for _, note := range storage.Notes {
 		// Filter by category first
@@ -679,8 +695,8 @@ func (s *Server) searchNotes(query string, category string, folderId *int) ([]No
 }
 
 // exportNotes exports notes to JSON format
-func (s *Server) exportNotes(folderId *int, category string) (map[string]interface{}, error) {
-	var notes []Note
+func (s *NoteStorage) ExportNotes(folderId *int, category string) (map[string]interface{}, error) {
+	var notes []entities.Note
 	var err error
 
 	if folderId != nil || category != "" {
@@ -688,16 +704,16 @@ func (s *Server) exportNotes(folderId *int, category string) (map[string]interfa
 		if folderId != nil {
 			folderIdStr = strconv.Itoa(*folderId)
 		}
-		notes, err = s.getNotes(category, "", folderIdStr)
+		notes, err = s.GetNotes(category, "", folderIdStr)
 	} else {
-		notes, err = s.getNotes("", "", "")
+		notes, err = s.GetNotes("", "", "")
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	folders, err := s.getFolders()
+	folders, err := s.GetFolders()
 	if err != nil {
 		return nil, err
 	}
@@ -706,7 +722,7 @@ func (s *Server) exportNotes(folderId *int, category string) (map[string]interfa
 		"exported_at": time.Now(),
 		"notes":       notes,
 		"folders":     folders,
-		"categories":  s.getCategories(),
+		"categories":  s.GetCategories(),
 		"total":       len(notes),
 	}
 
@@ -714,7 +730,7 @@ func (s *Server) exportNotes(folderId *int, category string) (map[string]interfa
 }
 
 // getAllTags returns all unique tags used in notes
-func (s *Server) getAllTags() ([]string, error) {
+func (s *NoteStorage) GetAllTags() ([]string, error) {
 	storage, err := s.loadNoteStorage()
 	if err != nil {
 		return nil, err
@@ -740,8 +756,8 @@ func (s *Server) getAllTags() ([]string, error) {
 	return tags, nil
 }
 
-// loadEnhancedNoteStorage loads the enhanced note storage with history
-func (s *Server) loadEnhancedNoteStorage() (*EnhancedNoteStorage, error) {
+// LoadEnhancedNoteStorage loads the enhanced note storage with history
+func (s *NoteStorage) LoadEnhancedNoteStorage() (*entities.EnhancedNoteStorage, error) {
 	if err := s.ensureNotesDir(); err != nil {
 		return nil, err
 	}
@@ -750,10 +766,10 @@ func (s *Server) loadEnhancedNoteStorage() (*EnhancedNoteStorage, error) {
 
 	// If file doesn't exist, create empty storage
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		storage := &EnhancedNoteStorage{
-			Notes:         []Note{},
-			Folders:       []Folder{},
-			History:       []NoteHistoryEntry{},
+		storage := &entities.EnhancedNoteStorage{
+			Notes:         []entities.Note{},
+			Folders:       []entities.Folder{},
+			History:       []entities.NoteHistoryEntry{},
 			NextID:        1,
 			NextHistoryID: 1,
 		}
@@ -766,7 +782,7 @@ func (s *Server) loadEnhancedNoteStorage() (*EnhancedNoteStorage, error) {
 	}
 
 	// Try to unmarshal as enhanced storage first
-	var enhancedStorage EnhancedNoteStorage
+	var enhancedStorage entities.EnhancedNoteStorage
 	if err := json.Unmarshal(data, &enhancedStorage); err == nil && enhancedStorage.NextHistoryID > 0 {
 		return &enhancedStorage, nil
 	}
@@ -778,10 +794,10 @@ func (s *Server) loadEnhancedNoteStorage() (*EnhancedNoteStorage, error) {
 	}
 
 	// Migrate to enhanced format
-	enhancedStorage = EnhancedNoteStorage{
+	enhancedStorage = entities.EnhancedNoteStorage{
 		Notes:         oldStorage.Notes,
 		Folders:       oldStorage.Folders,
-		History:       []NoteHistoryEntry{},
+		History:       []entities.NoteHistoryEntry{},
 		NextID:        oldStorage.NextID,
 		NextHistoryID: 1,
 	}
@@ -790,7 +806,7 @@ func (s *Server) loadEnhancedNoteStorage() (*EnhancedNoteStorage, error) {
 }
 
 // saveEnhancedNoteStorage saves the enhanced note storage with history
-func (s *Server) saveEnhancedNoteStorage(storage *EnhancedNoteStorage) error {
+func (s *NoteStorage) SaveEnhancedNoteStorage(storage *entities.EnhancedNoteStorage) error {
 	if err := s.ensureNotesDir(); err != nil {
 		return err
 	}
@@ -809,11 +825,11 @@ func (s *Server) saveEnhancedNoteStorage(storage *EnhancedNoteStorage) error {
 }
 
 // addNoteHistoryEntry adds a new history entry
-func (s *Server) addNoteHistoryEntry(storage *EnhancedNoteStorage, noteID int, action NoteHistoryAction, changes map[string]interface{}, oldValue, newValue interface{}, message string) {
+func (s *NoteStorage) addNoteHistoryEntry(storage *entities.EnhancedNoteStorage, noteID int, action entities.NoteHistoryAction, changes map[string]interface{}, oldValue, newValue interface{}, message string) {
 	author := s.getGitAuthor()
 	branch, commit := s.getGitInfo()
 
-	entry := NoteHistoryEntry{
+	entry := entities.NoteHistoryEntry{
 		ID:        storage.NextHistoryID,
 		NoteID:    noteID,
 		Action:    action,
@@ -833,21 +849,25 @@ func (s *Server) addNoteHistoryEntry(storage *EnhancedNoteStorage, noteID int, a
 }
 
 // Enhanced note creation with history
-func (s *Server) createNoteWithHistory(title, content string, tags []string, category string, folderId *int) (*Note, error) {
-	storage, err := s.loadEnhancedNoteStorage()
+func (s *NoteStorage) CreateNoteWithHistory(title, content string, tags []string, category string, folderId *int, author *string) (*entities.Note, error) {
+	storage, err := s.LoadEnhancedNoteStorage()
 	if err != nil {
 		return nil, err
 	}
 
 	now := time.Now()
-	author := s.getGitAuthor()
+	if author == nil {
+		gitUser := s.getGitAuthor()
+		author = &gitUser
+	}
 	branch, commit := s.getGitInfo()
 
-	note := Note{
+	status := "open"
+	note := entities.Note{
 		ID:        storage.NextID,
 		Title:     title,
 		Content:   content,
-		Author:    author,
+		Author:    *author,
 		CreatedAt: now,
 		UpdatedAt: now,
 		Tags:      tags,
@@ -855,6 +875,8 @@ func (s *Server) createNoteWithHistory(title, content string, tags []string, cat
 		FolderID:  folderId,
 		GitBranch: &branch,
 		GitCommit: &commit,
+		Pinned:    false,
+		Status:    &status,
 	}
 
 	storage.Notes = append(storage.Notes, note)
@@ -867,9 +889,9 @@ func (s *Server) createNoteWithHistory(title, content string, tags []string, cat
 		"tags":      tags,
 		"folder_id": folderId,
 	}
-	s.addNoteHistoryEntry(storage, note.ID, ActionCreated, changes, nil, note, "Note created")
+	s.addNoteHistoryEntry(storage, note.ID, entities.ActionCreated, changes, nil, note, "Note created")
 
-	if err := s.saveEnhancedNoteStorage(storage); err != nil {
+	if err := s.SaveEnhancedNoteStorage(storage); err != nil {
 		return nil, err
 	}
 
@@ -877,8 +899,8 @@ func (s *Server) createNoteWithHistory(title, content string, tags []string, cat
 }
 
 // Enhanced note update with history
-func (s *Server) updateNoteWithHistory(id int, title, content string, tags []string, category string, pinned bool, folderId *int) (*Note, error) {
-	storage, err := s.loadEnhancedNoteStorage()
+func (s *NoteStorage) UpdateNoteWithHistory(id int, title, content string, tags []string, category string, pinned bool, folderId *int) (*entities.Note, error) {
+	storage, err := s.LoadEnhancedNoteStorage()
 	if err != nil {
 		return nil, err
 	}
@@ -933,10 +955,10 @@ func (s *Server) updateNoteWithHistory(id int, title, content string, tags []str
 
 	// Add history entry only if something changed
 	if len(changes) > 0 {
-		s.addNoteHistoryEntry(storage, id, ActionUpdated, changes, oldNote, storage.Notes[noteIndex], "Note updated")
+		s.addNoteHistoryEntry(storage, id, entities.ActionUpdated, changes, oldNote, storage.Notes[noteIndex], "Note updated")
 	}
 
-	if err := s.saveEnhancedNoteStorage(storage); err != nil {
+	if err := s.SaveEnhancedNoteStorage(storage); err != nil {
 		return nil, err
 	}
 
@@ -944,15 +966,15 @@ func (s *Server) updateNoteWithHistory(id int, title, content string, tags []str
 }
 
 // Enhanced note deletion with history
-func (s *Server) deleteNoteWithHistory(id int) error {
-	storage, err := s.loadEnhancedNoteStorage()
+func (s *NoteStorage) DeleteNoteWithHistory(id int) error {
+	storage, err := s.LoadEnhancedNoteStorage()
 	if err != nil {
 		return err
 	}
 
 	// Find and remove the note
 	noteIndex := -1
-	var deletedNote Note
+	var deletedNote entities.Note
 	for i, note := range storage.Notes {
 		if note.ID == id {
 			noteIndex = i
@@ -973,17 +995,17 @@ func (s *Server) deleteNoteWithHistory(id int) error {
 			"tags":     deletedNote.Tags,
 		},
 	}
-	s.addNoteHistoryEntry(storage, id, ActionDeleted, changes, deletedNote, nil, "Note deleted")
+	s.addNoteHistoryEntry(storage, id, entities.ActionDeleted, changes, deletedNote, nil, "Note deleted")
 
 	// Remove the note from slice
 	storage.Notes = append(storage.Notes[:noteIndex], storage.Notes[noteIndex+1:]...)
 
-	return s.saveEnhancedNoteStorage(storage)
+	return s.SaveEnhancedNoteStorage(storage)
 }
 
 // Enhanced note move with history
-func (s *Server) moveNotesToFolderWithHistory(noteIds []int, targetFolderId *int) error {
-	storage, err := s.loadEnhancedNoteStorage()
+func (s *NoteStorage) MoveNotesToFolderWithHistory(noteIds []int, targetFolderId *int) error {
+	storage, err := s.LoadEnhancedNoteStorage()
 	if err != nil {
 		return err
 	}
@@ -1023,7 +1045,7 @@ func (s *Server) moveNotesToFolderWithHistory(noteIds []int, targetFolderId *int
 						"to":   targetFolderId,
 					},
 				}
-				s.addNoteHistoryEntry(storage, noteId, ActionMoved, changes, oldFolderId, targetFolderId, "Note moved to different folder")
+				s.addNoteHistoryEntry(storage, noteId, entities.ActionMoved, changes, oldFolderId, targetFolderId, "Note moved to different folder")
 
 				updatedCount++
 				break
@@ -1035,17 +1057,17 @@ func (s *Server) moveNotesToFolderWithHistory(noteIds []int, targetFolderId *int
 		return fmt.Errorf("no notes found to move")
 	}
 
-	return s.saveEnhancedNoteStorage(storage)
+	return s.SaveEnhancedNoteStorage(storage)
 }
 
 // getNoteHistory retrieves history for a specific note or all notes
-func (s *Server) getNoteHistory(filter NoteHistoryFilter) ([]NoteHistoryEntry, error) {
-	storage, err := s.loadEnhancedNoteStorage()
+func (s *NoteStorage) GetNoteHistory(filter entities.NoteHistoryFilter) ([]entities.NoteHistoryEntry, error) {
+	storage, err := s.LoadEnhancedNoteStorage()
 	if err != nil {
 		return nil, err
 	}
 
-	var filteredHistory []NoteHistoryEntry
+	var filteredHistory []entities.NoteHistoryEntry
 
 	for _, entry := range storage.History {
 		// Apply filters
@@ -1079,7 +1101,7 @@ func (s *Server) getNoteHistory(filter NoteHistoryFilter) ([]NoteHistoryEntry, e
 	// Apply limit and offset
 	if filter.Offset > 0 {
 		if filter.Offset >= len(filteredHistory) {
-			return []NoteHistoryEntry{}, nil
+			return []entities.NoteHistoryEntry{}, nil
 		}
 		filteredHistory = filteredHistory[filter.Offset:]
 	}
@@ -1092,38 +1114,38 @@ func (s *Server) getNoteHistory(filter NoteHistoryFilter) ([]NoteHistoryEntry, e
 }
 
 // getNoteHistoryStats generates statistics about note history
-func (s *Server) getNoteHistoryStats() (*NoteHistoryStats, error) {
-	storage, err := s.loadEnhancedNoteStorage()
+func (s *NoteStorage) GetNoteHistoryStats() (*entities.NoteHistoryStats, error) {
+	storage, err := s.LoadEnhancedNoteStorage()
 	if err != nil {
 		return nil, err
 	}
 
-	stats := &NoteHistoryStats{
+	history := &entities.NoteHistoryStats{
 		TotalEntries: len(storage.History),
-		ByAction:     make(map[NoteHistoryAction]int),
+		ByAction:     make(map[entities.NoteHistoryAction]int),
 		ByAuthor:     make(map[string]int),
 		ByBranch:     make(map[string]int),
 		ByDay:        make(map[string]int),
 	}
 
 	// Count by various dimensions
-	noteActivity := make(map[int]*NoteActivitySummary)
+	noteActivity := make(map[int]*entities.NoteActivitySummary)
 
 	for _, entry := range storage.History {
 		// By action
-		stats.ByAction[entry.Action]++
+		history.ByAction[entry.Action]++
 
 		// By author
-		stats.ByAuthor[entry.Author]++
+		history.ByAuthor[entry.Author]++
 
 		// By branch
 		if entry.GitBranch != nil {
-			stats.ByBranch[*entry.GitBranch]++
+			history.ByBranch[*entry.GitBranch]++
 		}
 
 		// By day
 		day := entry.Timestamp.Format("2006-01-02")
-		stats.ByDay[day]++
+		history.ByDay[day]++
 
 		// Note activity
 		if activity, exists := noteActivity[entry.NoteID]; exists {
@@ -1152,7 +1174,7 @@ func (s *Server) getNoteHistoryStats() (*NoteHistoryStats, error) {
 				}
 			}
 
-			noteActivity[entry.NoteID] = &NoteActivitySummary{
+			noteActivity[entry.NoteID] = &entities.NoteActivitySummary{
 				NoteID:      entry.NoteID,
 				NoteTitle:   noteTitle,
 				ActionCount: 1,
@@ -1164,15 +1186,15 @@ func (s *Server) getNoteHistoryStats() (*NoteHistoryStats, error) {
 
 	// Convert note activity to slice and sort by activity count
 	for _, activity := range noteActivity {
-		stats.MostActiveNotes = append(stats.MostActiveNotes, *activity)
+		history.MostActiveNotes = append(history.MostActiveNotes, *activity)
 	}
-	sort.Slice(stats.MostActiveNotes, func(i, j int) bool {
-		return stats.MostActiveNotes[i].ActionCount > stats.MostActiveNotes[j].ActionCount
+	sort.Slice(history.MostActiveNotes, func(i, j int) bool {
+		return history.MostActiveNotes[i].ActionCount > history.MostActiveNotes[j].ActionCount
 	})
 
 	// Limit to top 10 most active notes
-	if len(stats.MostActiveNotes) > 10 {
-		stats.MostActiveNotes = stats.MostActiveNotes[:10]
+	if len(history.MostActiveNotes) > 10 {
+		history.MostActiveNotes = history.MostActiveNotes[:10]
 	}
 
 	// Get recent activity (last 20 entries)
@@ -1182,15 +1204,26 @@ func (s *Server) getNoteHistoryStats() (*NoteHistoryStats, error) {
 	}
 
 	// Sort history by timestamp descending
-	sortedHistory := make([]NoteHistoryEntry, len(storage.History))
+	sortedHistory := make([]entities.NoteHistoryEntry, len(storage.History))
 	copy(sortedHistory, storage.History)
 	sort.Slice(sortedHistory, func(i, j int) bool {
 		return sortedHistory[i].Timestamp.After(sortedHistory[j].Timestamp)
 	})
 
-	stats.RecentActivity = sortedHistory[:recentCount]
+	history.RecentActivity = sortedHistory[:recentCount]
 
-	return stats, nil
+	return history, nil
+}
+
+func (s *NoteStorage) getNoteByID(noteID int) *entities.Note {
+	notes, _ := s.GetNotes("", "", "")
+	for _, note := range notes {
+		if note.ID == noteID {
+			return &note
+		}
+	}
+
+	return nil
 }
 
 // Helper functions

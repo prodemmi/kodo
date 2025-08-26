@@ -1,4 +1,4 @@
-package core
+package services
 
 import (
 	"bufio"
@@ -13,49 +13,50 @@ import (
 	"time"
 
 	"github.com/bmatcuk/doublestar/v4"
+	"github.com/prodemmi/kodo/core/entities"
 	"github.com/stoewer/go-strcase"
 	"go.uber.org/zap"
 )
 
 const LargeFileSize = 1 * 1024 * 1024
 
-type Scanner struct {
-	Items  []*Item
+type ScannerService struct {
+	Items  []*entities.Item
 	todoID int
 
-	tracker  *ProjectTracker
-	settings *SettingsManager
+	itemHistoryService *ItemHistoryService
+	settings           *SettingsService
 }
 
-func NewScanner(config Config, settings *SettingsManager, tracker *ProjectTracker, logger *zap.Logger) *Scanner {
-	scanner := &Scanner{
-		tracker:  tracker,
-		settings: settings,
+func NewScannerService(config *entities.Config, settings *SettingsService, itemHistoryService *ItemHistoryService, logger *zap.Logger) *ScannerService {
+	scannerService := &ScannerService{
+		itemHistoryService: itemHistoryService,
+		settings:           settings,
 	}
-	return scanner
+	return scannerService
 }
 
-func (s *Scanner) GetItems() []*Item {
+func (s *ScannerService) GetItems() []*entities.Item {
 	return s.Items
 }
 
-func (s *Scanner) GetItemsLength() int {
+func (s *ScannerService) GetItemsLength() int {
 	return len(s.Items)
 }
 
-func (s *Scanner) Rescan() error {
+func (s *ScannerService) Rescan() error {
 	s.ScanTodos()
 
-	// Save stats after scanning
-	if err := s.tracker.SaveStats(s.GetItems(), s.settings); err != nil {
+	// Save history after scanning
+	if err := s.itemHistoryService.SaveStats(s.GetItems(), s.settings); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *Scanner) ScanTodos() {
-	s.Items = []*Item{}
+func (s *ScannerService) ScanTodos() {
+	s.Items = []*entities.Item{}
 	s.todoID = 0
 
 	wd, err := os.Getwd()
@@ -131,36 +132,36 @@ func (s *Scanner) ScanTodos() {
 		}
 		defer file.Close()
 
-		scanner := bufio.NewScanner(file)
+		scannerService := bufio.NewScanner(file)
 		lineNum := 0
-		for scanner.Scan() {
+		for scannerService.Scan() {
 			lineNum++
-			line := scanner.Text()
+			line := scannerService.Text()
 
 			if matches := itemPattern.FindStringSubmatch(line); len(matches) > 0 {
 				s.todoID++
-				itemType := ItemType(matches[2])
+				itemType := entities.ItemType(matches[2])
 				title := strings.TrimSpace(matches[3])
 				todoStartLine := lineNum
 
 				// Collect following description lines and check for status comments
 				var descriptions []string
-				var history []StatusHistory
-				currentStatus := ItemStatus(firstColumn.ID)
-				currentPriority := ItemPriority("LOW")
+				var history []entities.StatusHistory
+				currentStatus := entities.ItemStatus(firstColumn.ID)
+				currentPriority := entities.ItemPriority("LOW")
 
 				// Get current user for initial creation
 				currentUser := s.getCurrentUser()
 
-				for scanner.Scan() {
-					nextLine := scanner.Text()
+				for scannerService.Scan() {
+					nextLine := scannerService.Text()
 					lineNum++
 
 					// Check if this is a none start comment
 					if noneStartMatches := noneStartItemPattern.FindStringSubmatch(nextLine); len(noneStartMatches) > 0 {
 						if parsedTime, err := time.Parse("2006-01-02 15:04", noneStartMatches[3]); err == nil {
-							status := ItemStatus(strcase.SnakeCase(strings.TrimSpace(noneStartMatches[2])))
-							history = append(history, StatusHistory{
+							status := entities.ItemStatus(strcase.SnakeCase(strings.TrimSpace(noneStartMatches[2])))
+							history = append(history, entities.StatusHistory{
 								Status:    status,
 								Timestamp: parsedTime,
 								User:      strings.TrimSpace(noneStartMatches[4]),
@@ -207,7 +208,7 @@ func (s *Scanner) ScanTodos() {
 				relPath, _ := filepath.Rel(wd, path)
 
 				// Create new item with proper history
-				item := &Item{
+				item := &entities.Item{
 					ID:          s.todoID,
 					Type:        itemType,
 					Title:       title,
@@ -224,8 +225,8 @@ func (s *Scanner) ScanTodos() {
 
 				// If no history was found, add initial creation entry
 				if len(history) == 0 {
-					item.History = []StatusHistory{{
-						Status:    ItemStatus(firstColumn.ID),
+					item.History = []entities.StatusHistory{{
+						Status:    entities.ItemStatus(firstColumn.ID),
 						Timestamp: item.CreatedAt,
 						User:      currentUser,
 					}}
@@ -243,12 +244,12 @@ func (s *Scanner) ScanTodos() {
 	}
 }
 
-func (s *Scanner) UpdateItemStatus(item *Item, targetColumnID string) error {
+func (s *ScannerService) UpdateItemStatus(item *entities.Item, targetColumnID string) error {
 	currentUser := s.getCurrentUser()
 	settings := s.settings.LoadSettings()
 
 	// Find the target Kanban column
-	var targetColumn *KanbanColumn
+	var targetColumn *entities.KanbanColumn
 	assignablePatterns := make(map[string]interface{}) // patterns from AutoAssignPattern
 	statusColumns := make(map[string]interface{})      // columns without AutoAssignPattern
 
@@ -270,7 +271,7 @@ func (s *Scanner) UpdateItemStatus(item *Item, targetColumnID string) error {
 	}
 
 	// Update item status
-	item.Status = ItemStatus(targetColumn.Name)
+	item.Status = entities.ItemStatus(targetColumn.Name)
 
 	// Build new comment line
 	var newComment string
@@ -287,7 +288,7 @@ func (s *Scanner) UpdateItemStatus(item *Item, targetColumnID string) error {
 }
 
 // updateStatusCommentDynamic replaces old status lines dynamically
-func (s *Scanner) updateStatusCommentDynamic(item *Item, newComment string, assignablePatterns, statusColumns map[string]interface{}) error {
+func (s *ScannerService) updateStatusCommentDynamic(item *entities.Item, newComment string, assignablePatterns, statusColumns map[string]interface{}) error {
 	wd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to get working directory: %v", err)
@@ -350,7 +351,7 @@ func (s *Scanner) updateStatusCommentDynamic(item *Item, newComment string, assi
 }
 
 // getCurrentUser gets the current user from git config or fallback
-func (s *Scanner) getCurrentUser() string {
+func (s *ScannerService) getCurrentUser() string {
 	if user, err := getGitUserName(); err == nil && user != "" {
 		return user
 	}
@@ -365,7 +366,7 @@ func (s *Scanner) getCurrentUser() string {
 }
 
 // Helper method to check if a line is a comment
-func (s *Scanner) isCommentLine(line, prefix string) bool {
+func (s *ScannerService) isCommentLine(line, prefix string) bool {
 	line = strings.TrimSpace(line)
 	if line == "" {
 		return false
@@ -382,7 +383,7 @@ func (s *Scanner) isCommentLine(line, prefix string) bool {
 }
 
 // Helper method to read file lines
-func (s *Scanner) readFileLines(filename string) ([]string, error) {
+func (s *ScannerService) readFileLines(filename string) ([]string, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -390,15 +391,15 @@ func (s *Scanner) readFileLines(filename string) ([]string, error) {
 	defer file.Close()
 
 	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+	scannerService := bufio.NewScanner(file)
+	for scannerService.Scan() {
+		lines = append(lines, scannerService.Text())
 	}
-	return lines, scanner.Err()
+	return lines, scannerService.Err()
 }
 
 // Helper method to write file lines
-func (s *Scanner) writeFileLines(filename string, lines []string) error {
+func (s *ScannerService) writeFileLines(filename string, lines []string) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -415,7 +416,7 @@ func (s *Scanner) writeFileLines(filename string, lines []string) error {
 }
 
 // Helper method to get comment prefix
-func (s *Scanner) getCommentPrefix(filename string) string {
+func (s *ScannerService) getCommentPrefix(filename string) string {
 	ext := strings.ToLower(filepath.Ext(filename))
 	switch ext {
 	case ".go", ".js", ".ts", ".java", ".c", ".cpp", ".cs", ".swift", ".jsx", ".tsx", ".rs", ".kt", ".scala":
@@ -443,8 +444,8 @@ func getGitUserName() (string, error) {
 // Additional utility methods for the Scanner
 
 // GetItemsByType returns items filtered by type
-func (s *Scanner) GetItemsByType(itemType ItemType) []*Item {
-	var filtered []*Item
+func (s *ScannerService) GetItemsByType(itemType entities.ItemType) []*entities.Item {
+	var filtered []*entities.Item
 	for _, item := range s.Items {
 		if item.Type == itemType {
 			filtered = append(filtered, item)
@@ -454,8 +455,8 @@ func (s *Scanner) GetItemsByType(itemType ItemType) []*Item {
 }
 
 // GetItemsByStatus returns items filtered by status
-func (s *Scanner) GetItemsByStatus(status ItemStatus) []*Item {
-	var filtered []*Item
+func (s *ScannerService) GetItemsByStatus(status entities.ItemStatus) []*entities.Item {
+	var filtered []*entities.Item
 	for _, item := range s.Items {
 		if item.Status == status {
 			filtered = append(filtered, item)
@@ -465,8 +466,8 @@ func (s *Scanner) GetItemsByStatus(status ItemStatus) []*Item {
 }
 
 // GetItemsByPriority returns items filtered by priority
-func (s *Scanner) GetItemsByPriority(priority ItemPriority) []*Item {
-	var filtered []*Item
+func (s *ScannerService) GetItemsByPriority(priority entities.ItemPriority) []*entities.Item {
+	var filtered []*entities.Item
 	for _, item := range s.Items {
 		if item.Priority == priority {
 			filtered = append(filtered, item)
@@ -476,8 +477,8 @@ func (s *Scanner) GetItemsByPriority(priority ItemPriority) []*Item {
 }
 
 // GetItemsByCategory returns items grouped by category
-func (s *Scanner) GetItemsByCategory() map[string][]*Item {
-	categories := make(map[string][]*Item)
+func (s *ScannerService) GetItemsByCategory() map[string][]*entities.Item {
+	categories := make(map[string][]*entities.Item)
 	for _, item := range s.Items {
 		category := string(item.Type)
 		categories[category] = append(categories[category], item)
@@ -485,7 +486,7 @@ func (s *Scanner) GetItemsByCategory() map[string][]*Item {
 	return categories
 }
 
-func (s *Scanner) UpdateOldStatuses(oldSettings, newSettings *Settings) error {
+func (s *ScannerService) UpdateOldStatuses(oldSettings, newSettings *entities.Settings) error {
 	// Build map of old ID -> old Name
 	oldIds := make(map[int]string)
 	for i, col := range oldSettings.KanbanColumns {
@@ -517,7 +518,7 @@ func (s *Scanner) UpdateOldStatuses(oldSettings, newSettings *Settings) error {
 	// Walk over all items and update their status if it matches an old name
 	for _, item := range s.Items {
 		if newName, ok := renamed[string(item.Status)]; ok {
-			item.Status = ItemStatus(newName)
+			item.Status = entities.ItemStatus(newName)
 
 			// also patch history if needed
 			for i, h := range item.History {
@@ -528,5 +529,5 @@ func (s *Scanner) UpdateOldStatuses(oldSettings, newSettings *Settings) error {
 		}
 	}
 
-	return s.tracker.SaveStats(s.GetItems(), s.settings)
+	return s.itemHistoryService.SaveStats(s.GetItems(), s.settings)
 }

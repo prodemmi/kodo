@@ -112,7 +112,7 @@ export default function NoteInfo({ editor }: Props) {
   };
 
   const formatDate = (date: any) => {
-    return new Intl.DateTimeFormat("en-US", {
+    return date && new Intl.DateTimeFormat("en-US", {
       month: "short",
       day: "numeric",
       hour: "2-digit",

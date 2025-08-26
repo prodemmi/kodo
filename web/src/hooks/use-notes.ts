@@ -1,18 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Note,
-  Folder,
-  Category,
-  CreateNoteParams,
-  UpdateNoteParams,
-  CreateFolderParams,
-  UpdateFolderParams,
-  NoteSearchParams,
-  MoveNotesParams,
-  ExportNotesParams,
-  NoteStats,
-  FolderTree,
-} from "../types/note";
+import { Note, NoteSearchParams } from "../types/note";
 import {
   getNotes,
   createNote,
@@ -30,6 +17,7 @@ import {
   deleteFolder,
   getCategories,
   getNoteHistory,
+  syncNotes,
 } from "../api/notes.api";
 import { useNoteStore } from "../states/note.state";
 
@@ -58,7 +46,7 @@ export function useSearchNotes(
 
 export function useNoteStats() {
   return useQuery({
-    queryKey: ["notes", "stats"],
+    queryKey: ["notes", "history"],
     queryFn: getNoteStats,
   });
 }
@@ -98,7 +86,7 @@ export function useCreateNote() {
       );
 
       // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ["notes", "stats"] });
+      queryClient.invalidateQueries({ queryKey: ["notes", "history"] });
       queryClient.invalidateQueries({ queryKey: ["notes", "tags"] });
     },
   });
@@ -229,9 +217,21 @@ export function useCategories() {
   });
 }
 
-export function useNoteHistory(noteId: number) {
+export function useNoteHistory(noteId?: number) {
   return useQuery({
     queryKey: ["notes", "history", noteId],
-    queryFn: () => getNoteHistory(noteId),
+    queryFn: () => getNoteHistory(noteId!),
+    enabled: !!noteId,
+  });
+}
+
+export function useSyncNotes() {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: syncNotes,
+    onSuccess: () => {
+      client.removeQueries({ queryKey: ["notes"] });
+    },
   });
 }

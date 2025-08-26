@@ -168,6 +168,12 @@ export const createTheme = (primaryColor: string, isDark: boolean) => {
     },
 
     // Component extensions using colorSchema variable
-    components: {},
+    components: {
+      Button: Button.extend({
+        defaultProps: {
+          size: "xs",
+        },
+      }),
+    },
   });
 };

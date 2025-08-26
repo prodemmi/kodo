@@ -129,7 +129,7 @@ export default function NoteList() {
   };
 
   const formatDate = (date: any) => {
-    return new Intl.DateTimeFormat("en-US", {
+    return date && new Intl.DateTimeFormat("en-US", {
       month: "short",
       day: "numeric",
       hour: "2-digit",
@@ -229,7 +229,7 @@ export default function NoteList() {
                 cursor: "pointer",
                 border:
                   selectedNote?.id === note.id
-                    ? `1px solid ${colors[primaryColor][5]}`
+                    ? `1px solid ${primaryColor === "dark" ? colors[primaryColor][3] : colors[primaryColor][5]}`
                     : `1px solid ${colors.dark[5]}`,
               }}
               onClick={() => {

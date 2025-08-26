@@ -7,6 +7,9 @@ import (
 	"github.com/common-nighthawk/go-figure"
 	"github.com/fatih/color"
 	"github.com/prodemmi/kodo/core"
+	"github.com/prodemmi/kodo/core/entities"
+	"github.com/prodemmi/kodo/core/handlers"
+	"github.com/prodemmi/kodo/core/services"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
 )
@@ -34,7 +37,7 @@ func printHelp() {
 }
 
 func main() {
-	config := core.NewDefaultConfig()
+	config := entities.NewDefaultConfig()
 
 	pflag.StringVarP(&config.Flags.Config, "config", "c", config.Flags.Config, "Path to config file")
 	pflag.BoolVarP(&config.Flags.Investor, "investor", "i", config.Flags.Investor, "Run in investor mode")
@@ -49,14 +52,32 @@ func main() {
 
 	var logger *zap.Logger
 	if true {
-		logger = core.NewSilenceLogger()
+		logger = services.NewSilenceLogger()
 	} else {
-		logger = core.NewLogger()
+		logger = services.NewLogger()
 	}
 
-	settingsManager := core.NewSettingsManager(config, logger)
-	tracker := core.NewProjectTracker(config, logger)
-	scanner := core.NewScanner(config, settingsManager, tracker, logger)
-	server := core.NewServer(config, logger, tracker, staticFiles, scanner)
-	server.StartServer()
+	settingsManager := services.NewSettingsService(config, logger)
+	noteStorage := services.NewNoteStorage(config, logger)
+	itemHistoryService := services.NewProjectTracker(config, logger)
+	scannerService := services.NewScannerService(config, settingsManager, itemHistoryService, logger)
+	remoteManager := services.NewRemoteManager(logger, settingsManager, noteStorage)
+
+	noteHandler := handlers.NewNoteHandler(logger, noteStorage, remoteManager)
+	historyHandler := handlers.NewHistoryHandler(logger, scannerService, itemHistoryService, settingsManager)
+	chatHandler := handlers.NewChatHandler(logger)
+	settingsHandler := handlers.NewSettingHandler(logger)
+	itemHandler := handlers.NewItemHandler(logger, scannerService, itemHistoryService, settingsManager)
+
+	server := core.NewServer(config,
+		logger,
+		noteHandler,
+		historyHandler,
+		chatHandler,
+		settingsHandler,
+		itemHandler,
+		staticFiles,
+		scannerService)
+
+	server.Start()
 }

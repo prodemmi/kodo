@@ -15,8 +15,6 @@ import { useSettingsState } from "./states/settings.state";
 export default function App() {
   const [isDark, setIsDark] = useState(true);
   const workspace_settings = useSettingsState((s) => s.workspace_settings);
-  console.log('workspace_settings ===>', workspace_settings);
-  
 
   useEffect(() => {
     const html = document.documentElement;

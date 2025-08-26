@@ -116,7 +116,6 @@ export default function ItemDetailDrawer({
       const codeElements = document.querySelectorAll(
         "code.mantine-CodeHighlight-code .line"
       );
-      console.log("codeElements ===>", codeElements);
 
       codeElements.forEach((element) => {
         element.classList.remove("highlighted-line");

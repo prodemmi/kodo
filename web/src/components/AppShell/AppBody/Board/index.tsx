@@ -47,13 +47,11 @@ export default function Board() {
   const {
     data: items,
     isSuccess: isSuccessItems,
-    isLoading: isLoadingItems,
     error: itemsError,
   } = useItems();
   const {
     data: settings,
     isSuccess: isSuccessSettings,
-    isLoading: isLoadingSettings,
     error: settingsError,
   } = useSettings();
 
@@ -225,7 +223,7 @@ export default function Board() {
     mutate(
       { id: itemId, status },
       {
-        onMutate: async (newItem) => {
+        onSuccess: async (newItem) => {
           // Cancel any outgoing refetches
           await queryClient.cancelQueries({ queryKey: ["items"] });
 
@@ -244,7 +242,7 @@ export default function Board() {
 
           return { previousItems };
         },
-        onError: (err, newItem, context) => {
+        onError: (err, newItem, context: any) => {
           // Rollback on error
           queryClient.setQueryData(["items"], context?.previousItems);
 
@@ -294,17 +292,6 @@ export default function Board() {
     );
   }, []);
 
-  // Loading states
-  if (isLoadingItems || isLoadingSettings || loading) {
-    return (
-      <LoadingOverlay
-        visible
-        zIndex={1000}
-        overlayProps={{ radius: "sm", blur: 2 }}
-      />
-    );
-  }
-
   // Error states
   const combinedError = error || itemsError || settingsError;
   if (combinedError) {
@@ -319,113 +306,111 @@ export default function Board() {
     );
   }
 
-  // Success check
-  if (!isSuccessItems || !isSuccessSettings || !settings) {
-    return <LoadingOverlay visible />;
-  }
-
   return (
-    <>
-      <Container size="xl" py="lg">
-        <Group justify="space-between" align="center" w="100%">
-          <Title order={2} mb="md">
-            Kanban Board
-          </Title>
-          <Button
-            leftSection={<IconHistory size={16} />}
-            onClick={() => setOpenItemHistory(true)}
-          >
-            History
-          </Button>
-        </Group>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <Group align="start" gap="lg">
-            {columnOrder.map((columnId) => {
-              const column = columns[columnId];
-              if (!column) return null;
-
-              return (
-                <Paper
-                  shadow="sm"
-                  p="md"
-                  style={{
-                    width: 300,
-                    borderRadius: 8,
-                  }}
-                  withBorder
-                  key={columnId}
-                >
-                  <DroppableColumn
-                    color={column.color!}
-                    columnId={columnId}
-                    header={columnHeader(column)}
-                  >
-                    <SortableContext
-                      items={column.tasks.map((item) => item.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      <div style={{ minHeight: 300 }}>
-                        {column.tasks.map((item) => (
-                          <SortableTask
-                            key={item.id}
-                            item={item}
-                            onItemClick={handleItemClick}
-                          />
-                        ))}
-                        {column.tasks.length === 0 && (
-                          <div
-                            style={{
-                              height: 200,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              color: "#adb5bd",
-                              fontSize: "14px",
-                              borderRadius: 8,
-                            }}
-                          >
-                            Drop items here
-                          </div>
-                        )}
-                      </div>
-                    </SortableContext>
-                  </DroppableColumn>
-                </Paper>
-              );
-            })}
+    items &&
+    settings && (
+      <>
+        <Container size="xl" py="lg">
+          <Group justify="space-between" align="center" w="100%">
+            <Title order={2} mb="md">
+              Kanban Board
+            </Title>
+            <Button
+              leftSection={<IconHistory size={16} />}
+              onClick={() => setOpenItemHistory(true)}
+            >
+              History
+            </Button>
           </Group>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <Group align="start" gap="lg">
+              {columnOrder.map((columnId) => {
+                const column = columns[columnId];
+                if (!column) return null;
 
-          <DragOverlay>
-            {activeItem ? (
-              <div
-                style={{
-                  transform: "rotate(5deg)",
-                  opacity: 0.9,
-                  transition: "all 0.4s ease",
-                }}
-              >
-                <SortableTask item={activeItem} onItemClick={() => {}} />
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
-      </Container>
-      <ItemDetailDrawer
-        drawerOpened={drawerOpened}
-        selectedItem={selectedItem}
-        setDrawerOpened={setDrawerOpened}
-      />
-      <HistoryDrawer
-        isOpen={openItemHistory}
-        onClose={() => {
-          setOpenItemHistory(false);
-        }}
-      />
-    </>
+                return (
+                  <Paper
+                    shadow="sm"
+                    p="md"
+                    style={{
+                      width: 300,
+                      borderRadius: 8,
+                    }}
+                    withBorder
+                    key={columnId}
+                  >
+                    <DroppableColumn
+                      color={column.color!}
+                      columnId={columnId}
+                      header={columnHeader(column)}
+                    >
+                      <SortableContext
+                        items={column.tasks.map((item) => item.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div style={{ minHeight: 300 }}>
+                          {column.tasks.map((item) => (
+                            <SortableTask
+                              key={item.id}
+                              item={item}
+                              onItemClick={handleItemClick}
+                            />
+                          ))}
+                          {column.tasks.length === 0 && (
+                            <div
+                              style={{
+                                height: 200,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "#adb5bd",
+                                fontSize: "14px",
+                                borderRadius: 8,
+                              }}
+                            >
+                              Drop items here
+                            </div>
+                          )}
+                        </div>
+                      </SortableContext>
+                    </DroppableColumn>
+                  </Paper>
+                );
+              })}
+            </Group>
+
+            <DragOverlay>
+              {activeItem ? (
+                <div
+                  style={{
+                    transform: "rotate(5deg)",
+                    opacity: 0.9,
+                    transition: "all 0.4s ease",
+                  }}
+                >
+                  <SortableTask item={activeItem} onItemClick={() => {}} />
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        </Container>
+        <ItemDetailDrawer
+          drawerOpened={drawerOpened}
+          selectedItem={selectedItem}
+          setDrawerOpened={setDrawerOpened}
+        />
+        <HistoryDrawer
+          isOpen={openItemHistory}
+          onClose={() => {
+            setOpenItemHistory(false);
+          }}
+        />
+      </>
+    )
   );
 }

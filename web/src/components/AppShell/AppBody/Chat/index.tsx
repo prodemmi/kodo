@@ -80,7 +80,6 @@ export default function ProjectChat() {
       label: ctx.name,
     }));
   }, [contexts]);
-  console.log("contextOptionsData ===>", contextOptionsData);
 
   useEffect(() => {
     if (selectedFiles) {

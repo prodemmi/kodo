@@ -7,11 +7,11 @@ import {
   loadComparison,
   refreshStats,
   cleanupStats,
-} from "../api/stats.api";
+} from "../api/history.api";
 
 export function useHistory(enabled: boolean) {
   return useQuery<History, Error>({
-    queryKey: ["stats", "history"],
+    queryKey: ["history", "history"],
     queryFn: loadHistory,
     enabled,
   });
@@ -19,7 +19,7 @@ export function useHistory(enabled: boolean) {
 
 export function useTrends(enabled: boolean) {
   return useQuery<TrendData, Error>({
-    queryKey: ["stats", "trends"],
+    queryKey: ["history", "trends"],
     queryFn: loadTrends,
     enabled,
   });
@@ -27,7 +27,7 @@ export function useTrends(enabled: boolean) {
 
 export function useChanges(enabled: boolean) {
   return useQuery<RecentChanges, Error>({
-    queryKey: ["stats", "changes"],
+    queryKey: ["history", "changes"],
     queryFn: loadChanges,
     enabled,
   });
@@ -35,7 +35,7 @@ export function useChanges(enabled: boolean) {
 
 export function useComparison(enabled: boolean) {
   return useQuery<Compare, Error>({
-    queryKey: ["stats", "comparison"],
+    queryKey: ["history", "comparison"],
     queryFn: loadComparison,
     enabled,
   });
@@ -47,7 +47,7 @@ export function useRefreshStats() {
     mutationFn: refreshStats,
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      queryClient.invalidateQueries({ queryKey: ["history"] });
     },
   });
 }
@@ -57,7 +57,7 @@ export function useCleanupStats() {
   return useMutation<{ success: boolean }, Error>({
     mutationFn: cleanupStats,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      queryClient.invalidateQueries({ queryKey: ["history"] });
     },
   });
 }

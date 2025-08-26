@@ -6,7 +6,7 @@ export interface BranchSnapshot {
   commit_short: string;
   commit_message: string;
   timestamp: string;
-  stats: {
+  history: {
     total: number;
     todo: number;
     in_progress: number;

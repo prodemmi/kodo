@@ -1,4 +1,4 @@
-package core
+package services
 
 import (
 	"encoding/json"
@@ -7,65 +7,24 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/prodemmi/kodo/core/entities"
 	"go.uber.org/zap"
 )
 
-// Settings represents the application settings structure
-type Settings struct {
-	// Kanban Settings
-	KanbanColumns    []KanbanColumn   `json:"kanban_columns"`
-	PriorityPatterns PriorityPatterns `json:"priority_patterns"`
-
-	// Code Scan Settings
-	CodeScanSettings CodeScanConfig `json:"code_scan_settings"`
-	GithubAuth       GithubAuth     `json:"github_auth"`
-
-	// Metadata
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-// KanbanColumn represents a kanban board column
-type KanbanColumn struct {
-	ID                string  `json:"id"`
-	Name              string  `json:"name"`
-	Color             string  `json:"color"`
-	AutoAssignPattern *string `json:"auto_assign_pattern,omitempty"`
-}
-
-// PriorityPatterns represents priority patterns for task detection
-type PriorityPatterns struct {
-	Low    string `json:"low"`
-	Medium string `json:"medium"`
-	High   string `json:"high"`
-}
-
-// CodeScanConfig represents code scanning settings
-type CodeScanConfig struct {
-	ExcludeDirectories []string `json:"exclude_directories"`
-	ExcludeFiles       []string `json:"exclude_files"`
-	SyncEnabled        bool     `json:"sync_enabled"`
-}
-
-// GithubAuth represents GitHub authentication settings
-type GithubAuth struct {
-	Token string `json:"token"`
-}
-
-// SettingsManager handles settings persistence and management
-type SettingsManager struct {
-	config       Config
+// SettingsService handles settings persistence and management
+type SettingsService struct {
+	config       *entities.Config
 	logger       *zap.Logger
 	projectDir   string
 	settingsFile string
 }
 
-// NewSettingsManager creates a new settings manager
-func NewSettingsManager(config Config, logger *zap.Logger) *SettingsManager {
+// NewSettingsService creates a new settings manager
+func NewSettingsService(config *entities.Config, logger *zap.Logger) *SettingsService {
 	wd, _ := os.Getwd()
 	projectDir := wd
 
-	return &SettingsManager{
+	return &SettingsService{
 		config:       config,
 		logger:       logger,
 		projectDir:   projectDir,
@@ -74,20 +33,20 @@ func NewSettingsManager(config Config, logger *zap.Logger) *SettingsManager {
 }
 
 // GetDefaultSettings returns the default application settings
-func (sm *SettingsManager) GetDefaultSettings() *Settings {
+func (sm *SettingsService) GetDefaultSettings() *entities.Settings {
 	defaultAutoAssignPattern := "TODO|FIXME"
-	return &Settings{
-		KanbanColumns: []KanbanColumn{
+	return &entities.Settings{
+		KanbanColumns: []entities.KanbanColumn{
 			{ID: "todo", Name: "TODO", Color: "dark", AutoAssignPattern: &defaultAutoAssignPattern},
 			{ID: "in_progress", Name: "IN PROGRESS", Color: "blue"},
 			{ID: "done", Name: "DONE", Color: "green"},
 		},
-		PriorityPatterns: PriorityPatterns{
+		PriorityPatterns: entities.PriorityPatterns{
 			Low:    "LOW",
 			Medium: "MEDIUM",
 			High:   "HIGH",
 		},
-		CodeScanSettings: CodeScanConfig{
+		CodeScanSettings: entities.CodeScanConfig{
 			ExcludeDirectories: []string{
 				"node_modules",
 				".git",
@@ -134,7 +93,7 @@ func (sm *SettingsManager) GetDefaultSettings() *Settings {
 
 			SyncEnabled: false,
 		},
-		GithubAuth: GithubAuth{
+		GithubAuth: entities.GithubAuth{
 			Token: "",
 		},
 		CreatedAt: time.Now(),
@@ -143,7 +102,7 @@ func (sm *SettingsManager) GetDefaultSettings() *Settings {
 }
 
 // LoadSettings loads settings from file or returns defaults
-func (sm *SettingsManager) LoadSettings() *Settings {
+func (sm *SettingsService) LoadSettings() *entities.Settings {
 	data, err := os.ReadFile(sm.settingsFile)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -154,7 +113,7 @@ func (sm *SettingsManager) LoadSettings() *Settings {
 		return sm.GetDefaultSettings()
 	}
 
-	var settings Settings
+	var settings entities.Settings
 	if err := json.Unmarshal(data, &settings); err != nil {
 		sm.logger.Error("Failed to unmarshal settings", zap.Error(err))
 		return sm.GetDefaultSettings()
@@ -167,7 +126,7 @@ func (sm *SettingsManager) LoadSettings() *Settings {
 }
 
 // SaveSettings saves settings to file
-func (sm *SettingsManager) SaveSettings(settings *Settings) error {
+func (sm *SettingsService) SaveSettings(settings *entities.Settings) error {
 	// Validate settings before saving
 	settings = sm.validateSettings(settings)
 	settings.UpdatedAt = time.Now()
@@ -195,7 +154,7 @@ func (sm *SettingsManager) SaveSettings(settings *Settings) error {
 }
 
 // validateSettings ensures settings are valid and complete
-func (sm *SettingsManager) validateSettings(settings *Settings) *Settings {
+func (sm *SettingsService) validateSettings(settings *entities.Settings) *entities.Settings {
 	// Ensure we have at least the basic kanban columns
 	if len(settings.KanbanColumns) == 0 {
 		settings.KanbanColumns = sm.GetDefaultSettings().KanbanColumns
@@ -215,17 +174,17 @@ func (sm *SettingsManager) validateSettings(settings *Settings) *Settings {
 }
 
 // UpdatePartialSettings updates only the provided fields in settings
-func (sm *SettingsManager) UpdatePartialSettings(updates map[string]interface{}) (*Settings, error) {
+func (sm *SettingsService) UpdatePartialSettings(updates map[string]interface{}) (*entities.Settings, error) {
 	// Load current settings
 	settings := sm.LoadSettings()
 
 	// Apply updates
 	if kanbanColumns, ok := updates["kanban_columns"]; ok {
 		if columnsData, ok := kanbanColumns.([]interface{}); ok {
-			var columns []KanbanColumn
+			var columns []entities.KanbanColumn
 			for _, col := range columnsData {
 				if colMap, ok := col.(map[string]interface{}); ok {
-					column := KanbanColumn{}
+					column := entities.KanbanColumn{}
 					if id, ok := colMap["id"].(string); ok {
 						column.ID = id
 					}
@@ -302,7 +261,7 @@ func (sm *SettingsManager) UpdatePartialSettings(updates map[string]interface{})
 }
 
 // GetSettingsSummary returns a summary of current settings
-func (sm *SettingsManager) GetSettingsSummary() map[string]interface{} {
+func (sm *SettingsService) GetSettingsSummary() map[string]interface{} {
 	settings := sm.LoadSettings()
 
 	return map[string]interface{}{
@@ -314,14 +273,4 @@ func (sm *SettingsManager) GetSettingsSummary() map[string]interface{} {
 		"created_at":           settings.CreatedAt,
 		"updated_at":           settings.UpdatedAt,
 	}
-}
-
-// Helper method to check if slice contains string
-func (sm *SettingsManager) contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
 }

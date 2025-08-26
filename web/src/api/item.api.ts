@@ -15,7 +15,7 @@ export const getItemContext = async (
   file: string,
   line: number
 ): Promise<ItemContext> => {
-  const response = await api.post<ItemContext>("/get-context", { file, line });
+  const response = await api.post<ItemContext>("/items/get-context", { file, line });
   return response.data;
 };
 
@@ -34,7 +34,7 @@ export const openFile = async (
   file: string,
   line: number
 ): Promise<OpenFileResponse> => {
-  const response = await api.post<OpenFileResponse>("/open-file", {
+  const response = await api.post<OpenFileResponse>("/items/open-file", {
     file,
     line,
   });

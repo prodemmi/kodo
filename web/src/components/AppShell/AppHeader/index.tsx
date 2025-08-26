@@ -6,23 +6,28 @@ import {
   Flex,
   Box,
   useMantineTheme,
+  Group,
 } from "@mantine/core";
 import { useAppState } from "../../../states/app.state";
-import { IconSettings } from "@tabler/icons-react";
+import { IconRefresh, IconSettings } from "@tabler/icons-react";
 import { RoleGuard } from "../../Investor";
 import { useCallback } from "react";
 import packageJson from "../../../../package.json";
+import { useSettings } from "../../../hooks/use-settings";
+import { useSyncNotes } from "../../../hooks/use-notes";
 
 type Props = {};
 
 export default function AppHeader({}: Props) {
+  const { data: settings } = useSettings();
+  const { mutate: syncNotes, isPending: isLoadingSyncNotes } = useSyncNotes();
   const { activeTab, setActiveTab } = useAppState((state) => state);
   const { primaryColor, colors } = useMantineTheme();
 
   const buttonBg = useCallback(
     (tab: number) => {
-      if (activeTab === tab) return colors[primaryColor][5];
-      return colors[primaryColor][4];
+      if (activeTab === tab) return colors[primaryColor][6];
+      return colors[primaryColor][8];
     },
     [activeTab, primaryColor]
   );
@@ -59,15 +64,29 @@ export default function AppHeader({}: Props) {
           </RoleGuard.Consumer>
         </ButtonGroup>
 
-        <RoleGuard.Investor>
-          <Box bg="red" color="white" px="xs" py="3">
-            <Text size="xs">View Only</Text>
-          </Box>
-        </RoleGuard.Investor>
+        <Group align="center" justify="flex-end" gap="sm">
+          {settings &&
+            settings.code_scan_settings.sync_enabled &&
+            activeTab === 1 && (
+              <Button
+                onClick={() => syncNotes()}
+                loading={isLoadingSyncNotes}
+                rightSection={<IconRefresh size={18} />}
+              >
+                Sync Notes
+              </Button>
+            )}
 
-        <Box px="xs" py="3">
-          <Text size="xs">V{packageJson.version}</Text>
-        </Box>
+          <RoleGuard.Investor>
+            <Box bg="red" color="white" px="xs" py="3">
+              <Text size="xs">View Only</Text>
+            </Box>
+          </RoleGuard.Investor>
+
+          <Box px="xs" py="3">
+            <Text size="xs">V{packageJson.version}</Text>
+          </Box>
+        </Group>
       </Flex>
     </AppShell.Header>
   );

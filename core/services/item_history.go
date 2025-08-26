@@ -1,4 +1,4 @@
-package core
+package services
 
 import (
 	"encoding/json"
@@ -10,85 +10,35 @@ import (
 	"strings"
 	"time"
 
+	"github.com/prodemmi/kodo/core/entities"
 	"go.uber.org/zap"
 )
 
-// ProjectStats represents the overall project statistics
-type ProjectStats struct {
-	ProjectPath    string           `json:"project_path"`
-	LastScanAt     time.Time        `json:"last_scan_at"`
-	GitBranch      string           `json:"git_branch"`
-	GitCommit      string           `json:"git_commit"`
-	GitCommitShort string           `json:"git_commit_short"`
-	TotalItems     int              `json:"total_items"`
-	ItemsByStatus  map[string]int   `json:"items_by_status"`
-	ItemsByType    map[string]int   `json:"items_by_type"`
-	ItemsByFile    map[string]int   `json:"items_by_file"`
-	CurrentItems   []TaskItem       `json:"current_items"`
-	BranchHistory  []BranchSnapshot `json:"branch_history,omitempty"`
-	CreatedAt      time.Time        `json:"created_at"`
-	UpdatedAt      time.Time        `json:"updated_at"`
-}
-
-// BranchSnapshot represents stats at a specific git state
-type BranchSnapshot struct {
-	Branch        string    `json:"branch"`
-	Commit        string    `json:"commit"`
-	CommitShort   string    `json:"commit_short"`
-	CommitMessage string    `json:"commit_message"`
-	Timestamp     time.Time `json:"timestamp"`
-	Stats         ItemStats `json:"stats"`
-}
-
-// ItemStats represents count statistics and detailed items
-type ItemStats struct {
-	Total      int            `json:"total"`
-	ByStatus   map[string]int `json:"by_status"`
-	ByType     map[string]int `json:"by_type"`
-	ByPriority map[string]int `json:"by_priority"`
-	Items      []TaskItem     `json:"items"`
-}
-
-// TaskItem represents a simplified version of Item for stats tracking
-type TaskItem struct {
-	ID       int          `json:"id"`
-	Type     ItemType     `json:"type"`
-	Title    string       `json:"title"`
-	File     string       `json:"file"`
-	Line     int          `json:"line"`
-	Status   ItemStatus   `json:"status"`
-	Priority ItemPriority `json:"priority"`
-	IsDone   bool         `json:"is_done"`
-	DoneAt   *time.Time   `json:"done_at"`
-	DoneBy   *string      `json:"done_by"`
-	Hash     string       `json:"hash"` // For tracking item identity across commits
-}
-
-// ProjectTracker handles project statistics and persistence
-type ProjectTracker struct {
-	config      Config
+// ItemHistoryService handles project statistics and persistence
+type ItemHistoryService struct {
+	config      *entities.Config
 	logger      *zap.Logger
 	kodoDir     string
 	statsFile   string
 	historyFile string
 }
 
-// NewProjectTracker creates a new project tracker
-func NewProjectTracker(config Config, logger *zap.Logger) *ProjectTracker {
+// NewProjectTracker creates a new project itemHistoryService
+func NewProjectTracker(config *entities.Config, logger *zap.Logger) *ItemHistoryService {
 	wd, _ := os.Getwd()
 	kodoDir := filepath.Join(wd, config.Flags.Config)
 
-	return &ProjectTracker{
+	return &ItemHistoryService{
 		config:      config,
 		logger:      logger,
 		kodoDir:     kodoDir,
-		statsFile:   filepath.Join(kodoDir, "project_stats.json"),
+		statsFile:   filepath.Join(kodoDir, "items_history.json"),
 		historyFile: filepath.Join(kodoDir, "branch_history.json"),
 	}
 }
 
-// Initialize creates the .kodo directory and loads existing stats
-func (pt *ProjectTracker) Initialize() error {
+// Initialize creates the .kodo directory and loads existing history
+func (pt *ItemHistoryService) Initialize() error {
 	// Create .kodo directory if it doesn't exist
 	if err := os.MkdirAll(pt.kodoDir, 0755); err != nil {
 		return fmt.Errorf("failed to create .kodo directory: %v", err)
@@ -101,8 +51,8 @@ func (pt *ProjectTracker) Initialize() error {
 *.tmp
 *.log
 
-# Keep the stats but ignore temporary data
-!project_stats.json
+# Keep the history but ignore temporary data
+!items_history.json
 !branch_history.json
 `
 		if err := os.WriteFile(gitignoreFile, []byte(gitignoreContent), 0644); err != nil {
@@ -110,12 +60,12 @@ func (pt *ProjectTracker) Initialize() error {
 		}
 	}
 
-	pt.logger.Info("Project tracker initialized", zap.String("kodo_dir", pt.kodoDir))
+	pt.logger.Info("Project itemHistoryService initialized", zap.String("kodo_dir", pt.kodoDir))
 	return nil
 }
 
 // generateItemHash creates a unique hash for tracking item identity across commits
-func (pt *ProjectTracker) generateItemHash(item *Item) string {
+func (pt *ItemHistoryService) generateItemHash(item *entities.Item) string {
 	// Create hash based on file, line, type, and title (content that shouldn't change)
 	content := fmt.Sprintf("%s:%d:%s:%s", item.File, item.Line, item.Type, item.Title)
 	// Simple hash - in production you might want to use crypto/sha256
@@ -127,42 +77,42 @@ func (pt *ProjectTracker) generateItemHash(item *Item) string {
 }
 
 // GetTaskItemsAnalysis provides detailed analysis of task items dynamically based on settings
-func (pt *ProjectTracker) GetTaskItemsAnalysis(settings *SettingsManager) map[string]interface{} {
-	stats := pt.LoadStats()
-	if stats == nil {
+func (pt *ItemHistoryService) GetTaskItemsAnalysis(settings *SettingsService) map[string]interface{} {
+	history := pt.LoadStats()
+	if history == nil {
 		return map[string]interface{}{
-			"error": "No stats available",
+			"error": "No history available",
 		}
 	}
 
 	currentSettings := settings.LoadSettings()
 
 	// Prepare dynamic priority key
-	highPriorityKey := ItemPriority(currentSettings.PriorityPatterns.High)
+	highPriorityKey := entities.ItemPriority(currentSettings.PriorityPatterns.High)
 
 	analysis := map[string]interface{}{
-		"total_items":     len(stats.CurrentItems),
-		"items_by_file":   make(map[string][]TaskItem),
-		"items_by_type":   make(map[string][]TaskItem),
-		"items_by_status": make(map[string][]TaskItem),
-		"high_priority":   []TaskItem{},
-		"recent_changes":  pt.getRecentItemChanges(),
+		"total_items":     len(history.CurrentItems),
+		"items_by_file":   make(map[string][]entities.TaskItem),
+		"items_by_type":   make(map[string][]entities.TaskItem),
+		"items_by_status": make(map[string][]entities.TaskItem),
+		"high_priority":   []entities.TaskItem{},
+		"recent_changes":  pt.GetRecentItemChanges(),
 	}
 
-	itemsByFile := analysis["items_by_file"].(map[string][]TaskItem)
-	itemsByType := analysis["items_by_type"].(map[string][]TaskItem)
-	itemsByStatus := analysis["items_by_status"].(map[string][]TaskItem)
-	highPriority := analysis["high_priority"].([]TaskItem)
+	itemsByFile := analysis["items_by_file"].(map[string][]entities.TaskItem)
+	itemsByType := analysis["items_by_type"].(map[string][]entities.TaskItem)
+	itemsByStatus := analysis["items_by_status"].(map[string][]entities.TaskItem)
+	highPriority := analysis["high_priority"].([]entities.TaskItem)
 
 	// Build dynamic status keys from KanbanColumns
-	statusKeys := make(map[ItemStatus]string)
+	statusKeys := make(map[entities.ItemStatus]string)
 	for _, col := range currentSettings.KanbanColumns {
-		key := ItemStatus(strings.ToUpper(col.Name))
+		key := entities.ItemStatus(strings.ToUpper(col.Name))
 		statusKeys[key] = strings.ToLower(strings.ReplaceAll(col.Name, " ", "_"))
 	}
 
 	// Iterate items and group dynamically
-	for _, item := range stats.CurrentItems {
+	for _, item := range history.CurrentItems {
 		// Group by file
 		itemsByFile[item.File] = append(itemsByFile[item.File], item)
 
@@ -191,7 +141,7 @@ func (pt *ProjectTracker) GetTaskItemsAnalysis(settings *SettingsManager) map[st
 }
 
 // getRecentItemChanges compares current items with previous snapshot
-func (pt *ProjectTracker) getRecentItemChanges() map[string]interface{} {
+func (pt *ItemHistoryService) GetRecentItemChanges() map[string]interface{} {
 	history := pt.GetBranchHistory()
 	if len(history) < 2 {
 		return map[string]interface{}{
@@ -203,19 +153,19 @@ func (pt *ProjectTracker) getRecentItemChanges() map[string]interface{} {
 	previous := history[len(history)-2]
 
 	// Create maps for easier lookup
-	currentItems := make(map[string]TaskItem)
-	previousItems := make(map[string]TaskItem)
+	currentItems := make(map[string]entities.TaskItem)
+	previousItems := make(map[string]entities.TaskItem)
 
-	for _, item := range current.Stats.Items {
+	for _, item := range current.History.Items {
 		currentItems[item.Hash] = item
 	}
 
-	for _, item := range previous.Stats.Items {
+	for _, item := range previous.History.Items {
 		previousItems[item.Hash] = item
 	}
 
-	var added []TaskItem
-	var removed []TaskItem
+	var added []entities.TaskItem
+	var removed []entities.TaskItem
 	var statusChanged []map[string]interface{}
 
 	// Find added items
@@ -255,29 +205,29 @@ func (pt *ProjectTracker) getRecentItemChanges() map[string]interface{} {
 }
 
 // GetItemsByFile returns items grouped by file with additional metadata
-func (pt *ProjectTracker) GetItemsByFile(settings *SettingsManager) map[string]interface{} {
-	stats := pt.LoadStats()
-	if stats == nil {
+func (pt *ItemHistoryService) GetItemsByFile(settings *SettingsService) map[string]interface{} {
+	history := pt.LoadStats()
+	if history == nil {
 		return map[string]interface{}{
-			"error": "No stats available",
+			"error": "No history available",
 		}
 	}
 
 	currentSettings := settings.LoadSettings()
 
 	// Prepare dynamic status keys from KanbanColumns
-	statusKeys := make(map[ItemStatus]string)
+	statusKeys := make(map[entities.ItemStatus]string)
 	for _, col := range currentSettings.KanbanColumns {
-		key := ItemStatus(strings.ToUpper(col.Name))
+		key := entities.ItemStatus(strings.ToUpper(col.Name))
 		statusKeys[key] = strings.ToLower(strings.ReplaceAll(col.Name, " ", "_"))
 	}
 
 	// Prepare dynamic high priority key
-	highPriorityKey := ItemPriority(currentSettings.PriorityPatterns.High)
+	highPriorityKey := entities.ItemPriority(currentSettings.PriorityPatterns.High)
 
 	fileGroups := make(map[string]map[string]interface{})
 
-	for _, item := range stats.CurrentItems {
+	for _, item := range history.CurrentItems {
 		if _, exists := fileGroups[item.File]; !exists {
 			// Initialize dynamic status counts
 			statusCounts := map[string]int{}
@@ -286,7 +236,7 @@ func (pt *ProjectTracker) GetItemsByFile(settings *SettingsManager) map[string]i
 			}
 
 			fileGroups[item.File] = map[string]interface{}{
-				"items":         []TaskItem{},
+				"items":         []entities.TaskItem{},
 				"total":         0,
 				"high_priority": 0,
 				"status_counts": statusCounts, // dynamic status counters
@@ -296,7 +246,7 @@ func (pt *ProjectTracker) GetItemsByFile(settings *SettingsManager) map[string]i
 		group := fileGroups[item.File]
 
 		// Append item
-		group["items"] = append(group["items"].([]TaskItem), item)
+		group["items"] = append(group["items"].([]entities.TaskItem), item)
 		group["total"] = group["total"].(int) + 1
 
 		// Update dynamic status count
@@ -318,7 +268,7 @@ func (pt *ProjectTracker) GetItemsByFile(settings *SettingsManager) map[string]i
 }
 
 // GetItemTrends analyzes trends over time
-func (pt *ProjectTracker) GetItemTrends(settings *SettingsManager) map[string]interface{} {
+func (pt *ItemHistoryService) GetItemTrends(settings *SettingsService) map[string]interface{} {
 	history := pt.GetBranchHistory()
 	if len(history) < 2 {
 		return map[string]interface{}{
@@ -352,12 +302,12 @@ func (pt *ProjectTracker) GetItemTrends(settings *SettingsManager) map[string]in
 			"timestamp": snapshot.Timestamp,
 			"commit":    snapshot.CommitShort,
 			"branch":    snapshot.Branch,
-			"total":     snapshot.Stats.Total,
+			"total":     snapshot.History.Total,
 		}
 
 		for statusID, name := range statusKeys {
 			count := 0
-			for _, item := range snapshot.Stats.Items {
+			for _, item := range snapshot.History.Items {
 				if string(item.Status) == statusID {
 					count++
 				} else if statusID == doneColumnID && item.IsDone {
@@ -370,15 +320,15 @@ func (pt *ProjectTracker) GetItemTrends(settings *SettingsManager) map[string]in
 		trends["timeline"] = append(trends["timeline"].([]map[string]interface{}), timelineEntry)
 
 		doneCount := 0
-		for _, item := range snapshot.Stats.Items {
+		for _, item := range snapshot.History.Items {
 			if item.IsDone {
 				doneCount++
 			}
 		}
 
 		completionRate := 0.0
-		if snapshot.Stats.Total > 0 {
-			completionRate = float64(doneCount) / float64(snapshot.Stats.Total) * 100
+		if snapshot.History.Total > 0 {
+			completionRate = float64(doneCount) / float64(snapshot.History.Total) * 100
 		}
 
 		trends["completion_rate"] = append(trends["completion_rate"].([]map[string]interface{}), map[string]interface{}{
@@ -388,7 +338,7 @@ func (pt *ProjectTracker) GetItemTrends(settings *SettingsManager) map[string]in
 		})
 
 		// Track type trends
-		for itemType, count := range snapshot.Stats.ByType {
+		for itemType, count := range snapshot.History.ByType {
 			if trends["type_trends"].(map[string][]map[string]interface{})[itemType] == nil {
 				trends["type_trends"].(map[string][]map[string]interface{})[itemType] = []map[string]interface{}{}
 			}
@@ -409,101 +359,101 @@ func (pt *ProjectTracker) GetItemTrends(settings *SettingsManager) map[string]in
 }
 
 // SaveStats saves current project statistics
-func (pt *ProjectTracker) SaveStats(items []*Item, settings *SettingsManager) error {
+func (pt *ItemHistoryService) SaveStats(items []*entities.Item, settings *SettingsService) error {
 	if err := pt.Initialize(); err != nil {
 		return err
 	}
 
-	stats, err := pt.generateStats(items)
+	history, err := pt.generateStats(items)
 	if err != nil {
-		return fmt.Errorf("failed to generate stats: %v", err)
+		return fmt.Errorf("failed to generate history: %v", err)
 	}
 
-	// Load existing stats to preserve history
+	// Load existing history to preserve history
 	existingStats := pt.LoadStats()
 	if existingStats != nil {
-		stats.CreatedAt = existingStats.CreatedAt
-		stats.BranchHistory = existingStats.BranchHistory
+		history.CreatedAt = existingStats.CreatedAt
+		history.BranchHistory = existingStats.BranchHistory
 	} else {
-		stats.CreatedAt = time.Now()
+		history.CreatedAt = time.Now()
 	}
 
 	// Update the branch history if we're on a different commit
-	if existingStats == nil || existingStats.GitCommit != stats.GitCommit {
-		snapshot := BranchSnapshot{
-			Branch:        stats.GitBranch,
-			Commit:        stats.GitCommit,
-			CommitShort:   stats.GitCommitShort,
-			CommitMessage: pt.getCommitMessage(stats.GitCommit),
+	if existingStats == nil || existingStats.GitCommit != history.GitCommit {
+		snapshot := entities.BranchSnapshot{
+			Branch:        history.GitBranch,
+			Commit:        history.GitCommit,
+			CommitShort:   history.GitCommitShort,
+			CommitMessage: pt.getCommitMessage(history.GitCommit),
 			Timestamp:     time.Now(),
-			Stats:         pt.generateItemStats(items, settings),
+			History:       pt.generateItemStats(items, settings),
 		}
 
-		stats.BranchHistory = append(stats.BranchHistory, snapshot)
+		history.BranchHistory = append(history.BranchHistory, snapshot)
 
 		// Keep only last 50 snapshots to prevent file from growing too large
-		if len(stats.BranchHistory) > 50 {
-			stats.BranchHistory = stats.BranchHistory[len(stats.BranchHistory)-50:]
+		if len(history.BranchHistory) > 50 {
+			history.BranchHistory = history.BranchHistory[len(history.BranchHistory)-50:]
 		}
 	}
 
-	stats.UpdatedAt = time.Now()
+	history.UpdatedAt = time.Now()
 
 	// Save to file
-	data, err := json.MarshalIndent(stats, "", "  ")
+	data, err := json.MarshalIndent(history, "", "  ")
 	if err != nil {
-		return fmt.Errorf("failed to marshal stats: %v", err)
+		return fmt.Errorf("failed to marshal history: %v", err)
 	}
 
 	if err := os.WriteFile(pt.statsFile, data, 0644); err != nil {
-		return fmt.Errorf("failed to write stats file: %v", err)
+		return fmt.Errorf("failed to write history file: %v", err)
 	}
 
-	pt.logger.Info("Project stats saved",
+	pt.logger.Info("Project history saved",
 		zap.String("file", pt.statsFile),
-		zap.Int("total_items", stats.TotalItems),
-		zap.String("branch", stats.GitBranch),
-		zap.String("commit", stats.GitCommitShort))
+		zap.Int("total_items", history.TotalItems),
+		zap.String("branch", history.GitBranch),
+		zap.String("commit", history.GitCommitShort))
 
 	return nil
 }
 
 // LoadStats loads project statistics from file
-func (pt *ProjectTracker) LoadStats() *ProjectStats {
+func (pt *ItemHistoryService) LoadStats() *entities.ItemsHistory {
 	data, err := os.ReadFile(pt.statsFile)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			pt.logger.Warn("Failed to read stats file", zap.Error(err))
+			pt.logger.Warn("Failed to read history file", zap.Error(err))
 		}
 		return nil
 	}
 
-	var stats ProjectStats
-	if err := json.Unmarshal(data, &stats); err != nil {
-		pt.logger.Error("Failed to unmarshal stats", zap.Error(err))
+	var history entities.ItemsHistory
+	if err := json.Unmarshal(data, &history); err != nil {
+		pt.logger.Error("Failed to unmarshal history", zap.Error(err))
 		return nil
 	}
 
-	return &stats
+	return &history
 }
 
 // generateStats creates current project statistics
-func (pt *ProjectTracker) generateStats(items []*Item) (*ProjectStats, error) {
+func (pt *ItemHistoryService) generateStats(items []*entities.Item) (*entities.ItemsHistory, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
 
 	// Get git information
-	gitBranch := pt.getGitBranch()
-	gitCommit := pt.getGitCommit()
-	gitCommitShort := pt.getGitCommitShort()
+	gitBranch := pt.GetGitBranch()
+	gitCommit := pt.GetGitCommit()
+	gitCommitShort := pt.GetGitCommitShort()
 
 	// Generate item statistics
 	itemsByStatus := make(map[string]int)
 	itemsByType := make(map[string]int)
 	itemsByFile := make(map[string]int)
-	var taskItems []TaskItem
+	var taskItems []entities.TaskItem
 
 	for _, item := range items {
 		// Count by status
@@ -516,7 +466,7 @@ func (pt *ProjectTracker) generateStats(items []*Item) (*ProjectStats, error) {
 		itemsByFile[item.File]++
 
 		// Create TaskItem for detailed tracking
-		taskItem := TaskItem{
+		taskItem := entities.TaskItem{
 			ID:       item.ID,
 			Type:     item.Type,
 			Title:    item.Title,
@@ -532,7 +482,7 @@ func (pt *ProjectTracker) generateStats(items []*Item) (*ProjectStats, error) {
 		taskItems = append(taskItems, taskItem)
 	}
 
-	return &ProjectStats{
+	return &entities.ItemsHistory{
 		ProjectPath:    wd,
 		LastScanAt:     time.Now(),
 		GitBranch:      gitBranch,
@@ -547,24 +497,24 @@ func (pt *ProjectTracker) generateStats(items []*Item) (*ProjectStats, error) {
 }
 
 // generateItemStats creates ItemStats for history tracking
-func (pt *ProjectTracker) generateItemStats(items []*Item, settings *SettingsManager) ItemStats {
+func (pt *ItemHistoryService) generateItemStats(items []*entities.Item, settings *SettingsService) entities.ItemStats {
 	currentSettings := settings.LoadSettings()
 
 	// Prepare dynamic status keys from KanbanColumns
-	statusKeys := make(map[ItemStatus]struct{})
+	statusKeys := make(map[entities.ItemStatus]struct{})
 	for _, col := range currentSettings.KanbanColumns {
-		statusKeys[ItemStatus(col.Name)] = struct{}{}
+		statusKeys[entities.ItemStatus(col.Name)] = struct{}{}
 	}
 
 	byStatus := make(map[string]int)
 	byPriority := make(map[string]int)
 	byType := make(map[string]int)
 
-	stats := ItemStats{
+	history := entities.ItemStats{
 		Total:      len(items),
 		ByType:     byType,
 		ByPriority: byPriority,
-		Items:      make([]TaskItem, 0, len(items)),
+		Items:      make([]entities.TaskItem, 0, len(items)),
 	}
 
 	for _, item := range items {
@@ -588,7 +538,7 @@ func (pt *ProjectTracker) generateItemStats(items []*Item, settings *SettingsMan
 		}
 
 		// Add detailed TaskItem
-		taskItem := TaskItem{
+		taskItem := entities.TaskItem{
 			ID:       item.ID,
 			Type:     item.Type,
 			Title:    item.Title,
@@ -601,21 +551,21 @@ func (pt *ProjectTracker) generateItemStats(items []*Item, settings *SettingsMan
 			DoneAt:   item.DoneAt,
 			DoneBy:   item.DoneBy,
 		}
-		stats.Items = append(stats.Items, taskItem)
+		history.Items = append(history.Items, taskItem)
 	}
 
-	stats.ByStatus = byStatus
-	stats.ByPriority = byPriority
+	history.ByStatus = byStatus
+	history.ByPriority = byPriority
 
-	return stats
+	return history
 }
 
-// GetProjectStats returns a summary of current stats
-func (pt *ProjectTracker) GetProjectStats(settings *SettingsManager) map[string]interface{} {
-	stats := pt.LoadStats()
-	if stats == nil {
+// GetProjectStats returns a summary of current history
+func (pt *ItemHistoryService) GetProjectStats(settings *SettingsService) map[string]interface{} {
+	history := pt.LoadStats()
+	if history == nil {
 		return map[string]interface{}{
-			"error": "No stats available",
+			"error": "No history available",
 		}
 	}
 
@@ -626,10 +576,10 @@ func (pt *ProjectTracker) GetProjectStats(settings *SettingsManager) map[string]
 		itemsByStatus[col.ID] = 0
 	}
 
-	total := stats.TotalItems
+	total := history.TotalItems
 	lastStatusID := currentSettings.KanbanColumns[len(currentSettings.KanbanColumns)-1].ID
 
-	for _, item := range stats.CurrentItems {
+	for _, item := range history.CurrentItems {
 		if item.IsDone {
 			itemsByStatus[lastStatusID]++
 		} else {
@@ -648,29 +598,29 @@ func (pt *ProjectTracker) GetProjectStats(settings *SettingsManager) map[string]
 	}
 
 	return map[string]interface{}{
-		"project_path":     stats.ProjectPath,
-		"last_scan":        stats.LastScanAt,
-		"git_branch":       stats.GitBranch,
-		"git_commit_short": stats.GitCommitShort,
+		"project_path":     history.ProjectPath,
+		"last_scan":        history.LastScanAt,
+		"git_branch":       history.GitBranch,
+		"git_commit_short": history.GitCommitShort,
 		"total_items":      total,
 		"items_by_status":  itemsByStatus,
 		"progress_percent": progressPercent,
-		"items_by_type":    stats.ItemsByType,
-		"items_by_file":    stats.ItemsByFile,
-		"history_count":    len(stats.BranchHistory),
-		"created_at":       stats.CreatedAt,
-		"updated_at":       stats.UpdatedAt,
+		"items_by_type":    history.ItemsByType,
+		"items_by_file":    history.ItemsByFile,
+		"history_count":    len(history.BranchHistory),
+		"created_at":       history.CreatedAt,
+		"updated_at":       history.UpdatedAt,
 	}
 }
 
 // GetBranchHistory returns the branch history
-func (pt *ProjectTracker) GetBranchHistory() []BranchSnapshot {
-	stats := pt.LoadStats()
-	if stats == nil {
+func (pt *ItemHistoryService) GetBranchHistory() []entities.BranchSnapshot {
+	history := pt.LoadStats()
+	if history == nil {
 		return nil
 	}
 
-	slices.SortFunc(stats.BranchHistory, func(a, b BranchSnapshot) int {
+	slices.SortFunc(history.BranchHistory, func(a, b entities.BranchSnapshot) int {
 		if a.Timestamp.Before(b.Timestamp) {
 			return 1
 		}
@@ -680,11 +630,11 @@ func (pt *ProjectTracker) GetBranchHistory() []BranchSnapshot {
 		return 0
 	})
 
-	return stats.BranchHistory
+	return history.BranchHistory
 }
 
 // Git helper methods
-func (pt *ProjectTracker) getGitBranch() string {
+func (pt *ItemHistoryService) GetGitBranch() string {
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	output, err := cmd.Output()
 	if err != nil {
@@ -694,7 +644,7 @@ func (pt *ProjectTracker) getGitBranch() string {
 	return strings.TrimSpace(string(output))
 }
 
-func (pt *ProjectTracker) getGitCommit() string {
+func (pt *ItemHistoryService) GetGitCommit() string {
 	cmd := exec.Command("git", "rev-parse", "HEAD")
 	output, err := cmd.Output()
 	if err != nil {
@@ -704,7 +654,7 @@ func (pt *ProjectTracker) getGitCommit() string {
 	return strings.TrimSpace(string(output))
 }
 
-func (pt *ProjectTracker) getGitCommitShort() string {
+func (pt *ItemHistoryService) GetGitCommitShort() string {
 	cmd := exec.Command("git", "rev-parse", "--short", "HEAD")
 	output, err := cmd.Output()
 	if err != nil {
@@ -714,7 +664,7 @@ func (pt *ProjectTracker) getGitCommitShort() string {
 	return strings.TrimSpace(string(output))
 }
 
-func (pt *ProjectTracker) getCommitMessage(commit string) string {
+func (pt *ItemHistoryService) getCommitMessage(commit string) string {
 	if commit == "unknown" || commit == "" {
 		return ""
 	}
@@ -734,8 +684,8 @@ func (pt *ProjectTracker) getCommitMessage(commit string) string {
 	return message
 }
 
-// CompareWithPreviousCommit compares current stats with previous commit
-func (pt *ProjectTracker) CompareWithPreviousCommit(settings *SettingsManager) map[string]interface{} {
+// CompareWithPreviousCommit compares current history with previous commit
+func (pt *ItemHistoryService) CompareWithPreviousCommit(settings *SettingsService) map[string]interface{} {
 	history := pt.GetBranchHistory()
 	if len(history) < 2 {
 		return map[string]interface{}{
@@ -761,7 +711,7 @@ func (pt *ProjectTracker) CompareWithPreviousCommit(settings *SettingsManager) m
 		currentCount := 0
 		previousCount := 0
 
-		for _, item := range current.Stats.Items {
+		for _, item := range current.History.Items {
 			if string(item.Status) == col.ID {
 				currentCount++
 			} else if col.ID == doneColumnID && item.IsDone {
@@ -769,7 +719,7 @@ func (pt *ProjectTracker) CompareWithPreviousCommit(settings *SettingsManager) m
 			}
 		}
 
-		for _, item := range previous.Stats.Items {
+		for _, item := range previous.History.Items {
 			if string(item.Status) == col.ID {
 				previousCount++
 			} else if col.ID == doneColumnID && item.IsDone {
@@ -785,39 +735,39 @@ func (pt *ProjectTracker) CompareWithPreviousCommit(settings *SettingsManager) m
 			"commit":    current.CommitShort,
 			"branch":    current.Branch,
 			"timestamp": current.Timestamp,
-			"stats":     current.Stats,
+			"history":   current.History,
 		},
 		"previous": map[string]interface{}{
 			"commit":    previous.CommitShort,
 			"branch":    previous.Branch,
 			"timestamp": previous.Timestamp,
-			"stats":     previous.Stats,
+			"history":   previous.History,
 		},
 		"changes": changes,
 	}
 }
 
 // CleanupOldStats removes old statistics (keeps last 30 days)
-func (pt *ProjectTracker) CleanupOldStats() error {
-	stats := pt.LoadStats()
-	if stats == nil {
+func (pt *ItemHistoryService) CleanupOldStats() error {
+	history := pt.LoadStats()
+	if history == nil {
 		return nil
 	}
 
 	cutoff := time.Now().AddDate(0, 0, -30) // 30 days ago
-	var filteredHistory []BranchSnapshot
+	var filteredHistory []entities.BranchSnapshot
 
-	for _, snapshot := range stats.BranchHistory {
+	for _, snapshot := range history.BranchHistory {
 		if snapshot.Timestamp.After(cutoff) {
 			filteredHistory = append(filteredHistory, snapshot)
 		}
 	}
 
-	if len(filteredHistory) != len(stats.BranchHistory) {
-		stats.BranchHistory = filteredHistory
-		stats.UpdatedAt = time.Now()
+	if len(filteredHistory) != len(history.BranchHistory) {
+		history.BranchHistory = filteredHistory
+		history.UpdatedAt = time.Now()
 
-		data, err := json.MarshalIndent(stats, "", "  ")
+		data, err := json.MarshalIndent(history, "", "  ")
 		if err != nil {
 			return err
 		}
@@ -826,14 +776,14 @@ func (pt *ProjectTracker) CleanupOldStats() error {
 			return err
 		}
 
-		pt.logger.Info("Cleaned up old stats",
-			zap.Int("removed", len(stats.BranchHistory)-len(filteredHistory)),
+		pt.logger.Info("Cleaned up old history",
+			zap.Int("removed", len(history.BranchHistory)-len(filteredHistory)),
 			zap.Int("remaining", len(filteredHistory)))
 	}
 
 	return nil
 }
 
-func (s *ProjectTracker) CompareWithPrevious(settings *SettingsManager) map[string]interface{} {
+func (s *ItemHistoryService) CompareWithPrevious(settings *SettingsService) map[string]interface{} {
 	return s.CompareWithPreviousCommit(settings)
 }

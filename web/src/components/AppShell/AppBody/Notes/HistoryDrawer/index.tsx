@@ -193,7 +193,7 @@ export default function HistoryDrawer() {
 
           {!isLoading && history && history.count > 0 && (
             <Box py="md">
-              {/* Summary Stats */}
+              {/* Summary History */}
               <Paper p="md" withBorder radius="md" mb="lg">
                 <Group justify="space-between">
                   <Group gap="lg">

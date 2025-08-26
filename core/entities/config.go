@@ -1,4 +1,4 @@
-package core
+package entities
 
 type Config struct {
 	Flags Flags
@@ -9,8 +9,8 @@ type Flags struct {
 	Investor bool
 }
 
-func NewDefaultConfig() Config {
-	return Config{
+func NewDefaultConfig() *Config {
+	return &Config{
 		Flags: Flags{
 			Config:   "./.kodo",
 			Investor: false,
