@@ -17,14 +17,14 @@ import (
 type RemoteService struct {
 	logger      *zap.Logger
 	settings    *SettingsService
-	noteStorage *NoteService
+	noteService *NoteService
 }
 
-func NewRemoteManager(logger *zap.Logger, settings *SettingsService, noteStorage *NoteService) *RemoteService {
+func NewRemoteManager(logger *zap.Logger, settings *SettingsService, noteService *NoteService) *RemoteService {
 	return &RemoteService{
 		logger:      logger,
 		settings:    settings,
-		noteStorage: noteStorage,
+		noteService: noteService,
 	}
 }
 
@@ -75,7 +75,7 @@ func (r *RemoteService) SyncIssuesWithNotes() (*SyncResult, error) {
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
 
-	localNotes, err := r.noteStorage.GetNotes("", "", "")
+	localNotes, err := r.noteService.GetNotes("", "", "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to load local notes: %v", err)
 	}
@@ -190,7 +190,7 @@ func (r *RemoteService) syncExistingPairs(ctx context.Context, client *github.Cl
 
 			note.GitHubIssueNumber = nil
 			note.GitHubIssueURL = nil
-			_, err := r.noteStorage.UpdateNoteWithHistory(note.ID, note.Title, note.Content, note.Tags, note.Category, note.Pinned, note.FolderID)
+			_, err := r.noteService.UpdateNoteWithHistory(note.ID, note.Title, note.Content, note.Tags, note.Category, note.Pinned, note.FolderID)
 			if err != nil {
 				result.Errors = append(result.Errors, fmt.Errorf("failed to update note %d: %v", note.ID, err))
 			} else {
@@ -328,7 +328,7 @@ func (r *RemoteService) createNoteFromGitHubIssue(issue *github.Issue, result *S
 	now := time.Now().UTC()
 	status := issue.GetState()
 
-	createdNote, err := r.noteStorage.CreateNoteWithHistory(
+	createdNote, err := r.noteService.CreateNoteWithHistory(
 		issue.GetTitle(),
 		content,
 		tags,
@@ -340,7 +340,7 @@ func (r *RemoteService) createNoteFromGitHubIssue(issue *github.Issue, result *S
 		return fmt.Errorf("failed to create note from issue #%d: %v", issueNumber, err)
 	}
 
-	note := r.noteStorage.getNoteByID(createdNote.ID)
+	note := r.noteService.getNoteByID(createdNote.ID)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve created note: %v", err)
 	}
@@ -350,7 +350,7 @@ func (r *RemoteService) createNoteFromGitHubIssue(issue *github.Issue, result *S
 	note.GitHubLastSync = &now
 	note.Status = &status
 
-	_, err = r.noteStorage.UpdateNoteWithHistory(
+	_, err = r.noteService.UpdateNoteWithHistory(
 		note.ID, note.Title, note.Content, note.Tags, note.Category, note.Pinned, note.FolderID,
 	)
 	if err != nil {
@@ -433,7 +433,7 @@ func (r *RemoteService) updateIssueFromNote(ctx context.Context, client *github.
 	note.GitHubLastSync = &now
 	note.GitHubIssueURL = updatedIssue.HTMLURL
 
-	_, err = r.noteStorage.UpdateNoteWithHistory(note.ID, note.Title, note.Content, note.Tags, note.Category, note.Pinned, note.FolderID)
+	_, err = r.noteService.UpdateNoteWithHistory(note.ID, note.Title, note.Content, note.Tags, note.Category, note.Pinned, note.FolderID)
 	if err != nil {
 		return fmt.Errorf("failed to update note sync info: %v", err)
 	}
@@ -463,7 +463,7 @@ func (r *RemoteService) updateNoteFromIssue(issue *github.Issue, note *entities.
 	note.Tags = tags
 	note.Category = category
 
-	_, err := r.noteStorage.UpdateNoteWithHistory(note.ID, issue.GetTitle(), content, tags, category, note.Pinned, note.FolderID)
+	_, err := r.noteService.UpdateNoteWithHistory(note.ID, issue.GetTitle(), content, tags, category, note.Pinned, note.FolderID)
 	if err != nil {
 		return fmt.Errorf("failed to update note from issue: %v", err)
 	}
@@ -522,7 +522,7 @@ func (r *RemoteService) linkNoteToIssue(note *entities.Note, issue *github.Issue
 	status := issue.GetState()
 	note.Status = &status
 
-	_, err := r.noteStorage.UpdateNoteWithHistory(
+	_, err := r.noteService.UpdateNoteWithHistory(
 		note.ID, note.Title, note.Content, note.Tags, note.Category, note.Pinned, note.FolderID,
 	)
 	return err

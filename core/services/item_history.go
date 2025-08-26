@@ -15,11 +15,10 @@ import (
 )
 
 type HistoryService struct {
-	config      *entities.Config
-	logger      *zap.Logger
-	kodoDir     string
-	statsFile   string
-	historyFile string
+	config    *entities.Config
+	logger    *zap.Logger
+	kodoDir   string
+	statsFile string
 }
 
 func NewHistoryService(config *entities.Config, logger *zap.Logger) *HistoryService {
@@ -27,11 +26,10 @@ func NewHistoryService(config *entities.Config, logger *zap.Logger) *HistoryServ
 	kodoDir := filepath.Join(wd, config.Flags.Config)
 
 	return &HistoryService{
-		config:      config,
-		logger:      logger,
-		kodoDir:     kodoDir,
-		statsFile:   filepath.Join(kodoDir, "items_history.json"),
-		historyFile: filepath.Join(kodoDir, "branch_history.json"),
+		config:    config,
+		logger:    logger,
+		kodoDir:   kodoDir,
+		statsFile: filepath.Join(kodoDir, "items.json"),
 	}
 }
 
@@ -43,20 +41,21 @@ func (pt *HistoryService) Initialize() error {
 
 	gitignoreFile := filepath.Join(pt.kodoDir, ".gitignore")
 	if _, err := os.Stat(gitignoreFile); os.IsNotExist(err) {
-		gitignoreContent := `# Kodo temporary files
+		gitignoreContent := `
+# Kodo temporary files
 *.tmp
 *.log
 
 # Keep the history but ignore temporary data
-!items_history.json
-!branch_history.json
-`
-		if err := os.WriteFile(gitignoreFile, []byte(gitignoreContent), 0644); err != nil {
+!notes.json
+!items.json
+		`
+		if err := os.WriteFile(gitignoreFile, []byte(strings.TrimSpace(gitignoreContent)), 0644); err != nil {
 			pt.logger.Warn("Failed to create .gitignore", zap.Error(err))
 		}
 	}
 
-	pt.logger.Info("Project itemHistoryService initialized", zap.String("kodo_dir", pt.kodoDir))
+	pt.logger.Info("Project historyService initialized", zap.String("kodo_dir", pt.kodoDir))
 	return nil
 }
 

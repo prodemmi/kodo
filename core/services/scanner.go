@@ -24,14 +24,14 @@ type ScannerService struct {
 	Items  []*entities.Item
 	todoID int
 
-	itemHistoryService *HistoryService
-	settings           *SettingsService
+	historyService *HistoryService
+	settings       *SettingsService
 }
 
-func NewScannerService(config *entities.Config, settings *SettingsService, itemHistoryService *HistoryService, logger *zap.Logger) *ScannerService {
+func NewScannerService(config *entities.Config, settings *SettingsService, historyService *HistoryService, logger *zap.Logger) *ScannerService {
 	scannerService := &ScannerService{
-		itemHistoryService: itemHistoryService,
-		settings:           settings,
+		historyService: historyService,
+		settings:       settings,
 	}
 	return scannerService
 }
@@ -47,7 +47,7 @@ func (s *ScannerService) GetItemsLength() int {
 func (s *ScannerService) Rescan() error {
 	s.ScanTodos()
 
-	if err := s.itemHistoryService.SaveStats(s.GetItems(), s.settings); err != nil {
+	if err := s.historyService.SaveStats(s.GetItems(), s.settings); err != nil {
 		return err
 	}
 
@@ -113,8 +113,9 @@ func (s *ScannerService) ScanTodos() {
 			return nil
 		} else {
 			for _, excludeFilePattern := range settings.CodeScanSettings.ExcludeFiles {
-				relPath, _ := filepath.Rel(wd, path)
-				matched, err := doublestar.Match(excludeFilePattern, relPath)
+				slashedPath := filepath.ToSlash(path)
+				slashedExcludeFilePattern := filepath.ToSlash(excludeFilePattern)
+				matched, err := doublestar.PathMatch(slashedExcludeFilePattern, slashedPath)
 				if err != nil {
 					return err
 				}
@@ -477,10 +478,6 @@ func (s *ScannerService) UpdateOldStatuses(oldSettings, newSettings *entities.Se
 		}
 	}
 
-	fmt.Println("oldIds", oldIds)
-	fmt.Println("newIds", newIds)
-	fmt.Println("renamed", renamed)
-
 	if len(renamed) == 0 {
 		return nil
 	}
@@ -497,5 +494,5 @@ func (s *ScannerService) UpdateOldStatuses(oldSettings, newSettings *entities.Se
 		}
 	}
 
-	return s.itemHistoryService.SaveStats(s.GetItems(), s.settings)
+	return s.historyService.SaveStats(s.GetItems(), s.settings)
 }

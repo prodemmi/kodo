@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import {
   DndContext,
   closestCenter,
@@ -22,7 +22,6 @@ import {
   Container,
   Paper,
   Alert,
-  LoadingOverlay,
   Button,
 } from "@mantine/core";
 import { IconAlertCircle, IconHistory } from "@tabler/icons-react";
@@ -344,41 +343,43 @@ export default function Board() {
                     withBorder
                     key={columnId}
                   >
-                    <DroppableColumn
-                      color={column.color!}
-                      columnId={columnId}
-                      header={columnHeader(column)}
-                    >
-                      <SortableContext
-                        items={column.tasks.map((item) => item.id)}
-                        strategy={verticalListSortingStrategy}
+                    <Suspense>
+                      <DroppableColumn
+                        color={column.color!}
+                        columnId={columnId}
+                        header={columnHeader(column)}
                       >
-                        <div style={{ minHeight: 300 }}>
-                          {column.tasks.map((item) => (
-                            <SortableTask
-                              key={item.id}
-                              item={item}
-                              onItemClick={handleItemClick}
-                            />
-                          ))}
-                          {column.tasks.length === 0 && (
-                            <div
-                              style={{
-                                height: 200,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: "#adb5bd",
-                                fontSize: "14px",
-                                borderRadius: 8,
-                              }}
-                            >
-                              Drop items here
-                            </div>
-                          )}
-                        </div>
-                      </SortableContext>
-                    </DroppableColumn>
+                        <SortableContext
+                          items={column.tasks.map((item) => item.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <div style={{ minHeight: 300 }}>
+                            {column.tasks.map((item) => (
+                              <SortableTask
+                                key={item.id}
+                                item={item}
+                                onItemClick={handleItemClick}
+                              />
+                            ))}
+                            {column.tasks.length === 0 && (
+                              <div
+                                style={{
+                                  height: 200,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  color: "#adb5bd",
+                                  fontSize: "14px",
+                                  borderRadius: 8,
+                                }}
+                              >
+                                Drop items here
+                              </div>
+                            )}
+                          </div>
+                        </SortableContext>
+                      </DroppableColumn>
+                    </Suspense>
                   </Paper>
                 );
               })}
@@ -404,12 +405,14 @@ export default function Board() {
           selectedItem={selectedItem}
           setDrawerOpened={setDrawerOpened}
         />
-        <HistoryDrawer
-          isOpen={openItemHistory}
-          onClose={() => {
-            setOpenItemHistory(false);
-          }}
-        />
+        <Suspense>
+          <HistoryDrawer
+            isOpen={openItemHistory}
+            onClose={() => {
+              setOpenItemHistory(false);
+            }}
+          />
+        </Suspense>
       </>
     )
   );

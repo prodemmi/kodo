@@ -16,21 +16,21 @@ import (
 )
 
 type ItemHandler struct {
-	logger             *zap.Logger
-	scannerService     *services.ScannerService
-	itemHistoryService *services.HistoryService
-	settingsService    *services.SettingsService
+	logger          *zap.Logger
+	scannerService  *services.ScannerService
+	historyService  *services.HistoryService
+	settingsService *services.SettingsService
 }
 
 func NewItemHandler(logger *zap.Logger,
 	scannerService *services.ScannerService,
-	itemHistoryService *services.HistoryService,
+	historyService *services.HistoryService,
 	settingsService *services.SettingsService) *ItemHandler {
 	return &ItemHandler{
-		logger:             logger,
-		scannerService:     scannerService,
-		itemHistoryService: itemHistoryService,
-		settingsService:    settingsService,
+		logger:          logger,
+		scannerService:  scannerService,
+		historyService:  historyService,
+		settingsService: settingsService,
 	}
 }
 
@@ -90,7 +90,7 @@ func (s *ItemHandler) HandleUpdateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.itemHistoryService.SaveStats(s.scannerService.GetItems(), s.settingsService); err != nil {
+	if err := s.historyService.SaveStats(s.scannerService.GetItems(), s.settingsService); err != nil {
 		s.logger.Warn("Failed to save history after item update", zap.Error(err))
 	}
 

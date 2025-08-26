@@ -30,6 +30,29 @@ func NewSettingsService(config *entities.Config, logger *zap.Logger) *SettingsSe
 	}
 }
 
+func (sm *SettingsService) Initialize() error {
+	_, err := os.ReadDir(sm.config.Flags.Config)
+	if err != nil {
+		if os.IsNotExist(err) {
+			if mkErr := os.Mkdir(sm.config.Flags.Config, 0755); mkErr != nil {
+				return mkErr
+			}
+		} else {
+			return err
+		}
+	}
+
+	_, err = os.ReadFile(sm.settingsFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return sm.SaveSettings(sm.GetDefaultSettings())
+		}
+		return err
+	}
+
+	return nil
+}
+
 func (sm *SettingsService) GetDefaultSettings() *entities.Settings {
 	defaultAutoAssignPattern := "TODO|FIXME"
 	return &entities.Settings{
@@ -121,7 +144,6 @@ func (sm *SettingsService) LoadSettings() *entities.Settings {
 }
 
 func (sm *SettingsService) SaveSettings(settings *entities.Settings) error {
-
 	settings = sm.validateSettings(settings)
 	settings.UpdatedAt = time.Now()
 

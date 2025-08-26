@@ -147,4 +147,4 @@ export const syncNotes = async () => {
 };
 
 // TODO: implement note pin in backend
-// IN PROGRESS 2025-08-25 15:06 by prodemmi
+// IN PROGRESS 2025-08-26 10:23 by prodemmi

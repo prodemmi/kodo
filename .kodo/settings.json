@@ -1,0 +1,75 @@
+{
+  "kanban_columns": [
+    {
+      "id": "todo",
+      "name": "TODO",
+      "color": "dark",
+      "auto_assign_pattern": "TODO|FIXME"
+    },
+    {
+      "id": "in_progress",
+      "name": "IN PROGRESS",
+      "color": "blue"
+    },
+    {
+      "id": "done",
+      "name": "DONE",
+      "color": "green"
+    }
+  ],
+  "priority_patterns": {
+    "low": "LOW",
+    "medium": "MEDIUM",
+    "high": "HIGH"
+  },
+  "code_scan_settings": {
+    "exclude_directories": [
+      "node_modules",
+      ".git",
+      ".idea",
+      ".vscode",
+      ".cache",
+      ".next",
+      "dist",
+      "build",
+      "out",
+      "public",
+      "vendor",
+      "target",
+      "tmp",
+      "logs",
+      "coverage"
+    ],
+    "exclude_files": [
+      "*.min.js",
+      "*.min.css",
+      "*.bundle.js",
+      "*.png",
+      "*.jpg",
+      "*.jpeg",
+      "*.gif",
+      "*.webp",
+      "*.svg",
+      "*.ico",
+      "*.map",
+      "*.lock",
+      "package-lock.json",
+      "yarn.lock",
+      "pnpm-lock.yaml",
+      ".gitignore",
+      ".dockerignore",
+      "README.md",
+      "LICENSE",
+      "*.env",
+      "*.local",
+      "*.log",
+      "*.db"
+    ],
+    "sync_enabled": false
+  },
+  "github_auth": {
+    "token": ""
+  },
+  "created_at": "2025-08-26T10:15:46.797400216Z",
+  "updated_at": "2025-08-26T11:25:55.198626917Z"
+}

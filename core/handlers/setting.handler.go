@@ -14,9 +14,12 @@ type SettingHandler struct {
 	scannerService  *services.ScannerService
 }
 
-func NewSettingHandler(logger *zap.Logger) *SettingHandler {
+func NewSettingHandler(logger *zap.Logger, settingsService *services.SettingsService,
+	scannerService *services.ScannerService) *SettingHandler {
 	return &SettingHandler{
-		logger: logger,
+		logger:          logger,
+		settingsService: settingsService,
+		scannerService:  scannerService,
 	}
 }
 

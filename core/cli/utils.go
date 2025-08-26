@@ -67,3 +67,21 @@ func GetLocalIP() string {
 	}
 	return "127.0.0.1"
 }
+
+func PrintHelp() {
+	banner := figure.NewFigure("KODO ", "slant", true)
+	color.Cyan(banner.String())
+	fmt.Println()
+
+	fmt.Println(color.YellowString("A source-code kanban and note app"))
+	fmt.Println(color.GreenString("--------------------------------------------------"))
+	fmt.Println(color.WhiteString("Usage:"))
+	fmt.Println(color.WhiteString("  kodo [flags]"))
+	fmt.Println()
+	fmt.Println(color.WhiteString("Available Flags:"))
+	fmt.Println(color.WhiteString("  -c, --config <path>     Path to config file (default .kodo)"))
+	fmt.Println(color.WhiteString("  -i, --investor          Run in investor mode (default false)"))
+	fmt.Println(color.WhiteString("  -h, --help              Show this help message"))
+	fmt.Println(color.GreenString("--------------------------------------------------"))
+	fmt.Println()
+}
