@@ -94,11 +94,12 @@ export function CodeScanSettings() {
             maxRows={10}
           />
         </Group>
-        <Switch
+        {/* TODO: Implement bidirectional note sync */}
+        {/* <Switch
           label="Sync issues to GitHub"
           checked={settings?.code_scan_settings.sync_enabled}
           onChange={(e) => handleSyncEnabled(e.currentTarget.checked)}
-        />
+        /> */}
         {settings?.code_scan_settings.sync_enabled && (
           <TextInput
             label="GitHub Token"

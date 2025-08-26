@@ -37,6 +37,7 @@ export default function CreateNoteModal() {
   // folder store
   const folders = useNoteStore((s) => s.folders);
   const allTags = useNoteStore((s) => s.tags);
+  const selectNote = useNoteStore((s) => s.selectNote);
   const selectedFolder = useNoteStore((s) => s.selectedFolder);
 
   const onSubmit = () => {
@@ -56,7 +57,8 @@ export default function CreateNoteModal() {
     };
 
     mutate(notePayload, {
-      onSuccess() {
+      onSuccess(data) {
+        selectNote(data.note)
         resetForm();
         closeModal();
       },
