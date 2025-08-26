@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="./assets/logo.png" width="140" style="border-radius: 12px" />
+    <img src="./assets/logo-rounded.png" width="180" style="border-radius: 12px" />
 </div>
 
 <p align="center" style="margin-top: 12px">
@@ -8,7 +8,7 @@
 
 **Kodo** is a modern, source-code-focused Kanban board and notes app for your source-code. It streamlines software project management for technical teams by combining task tracking, code scanning, note saving, and a customizable workspace.
 
-## ✨ Features
+## Features
 
 - **Kanban Board:**  
   Organize tasks into customizable columns, drag and drop cards, set priorities, and visualize workflow from "Todo" to "Done".
@@ -22,7 +22,7 @@
 - **Workspace Customization:**  
   Personalize your board with themes, colors, and...
 
-## 📦 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Go
