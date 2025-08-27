@@ -6,7 +6,7 @@
 
 <h1 align="center">Agile Kanban & Notes for Developers</h1>
 
-**Kodo** is a modern, source-code-focused Kanban board and notes app for your source-code. It streamlines software project management for technical teams by combining task tracking, code scanning, note saving, and a customizable workspace.
+**Kodo** is a modern, source-code-focused Kanban board and notes app for your source code. It streamlines software project management for technical teams by combining task tracking, code scanning, note saving, and a customizable workspace.
 
 ## Features
 
