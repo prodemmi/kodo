@@ -3,7 +3,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 
 // Create axios instance
 const api = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: `${window.location.origin}/api`,
   timeout: 10000,
 });
 

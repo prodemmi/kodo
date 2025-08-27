@@ -116,7 +116,6 @@ export function useDeleteNote() {
 
 export function useMoveNotes() {
   // TODO: implement in zustand and sync with onSuccess fn
-  // test description
   // HIGH
 
   return useMutation({

@@ -1,9 +1,9 @@
 {
-  "project_path": "/mnt/projects/Projects/Programming/KodoBoard",
-  "last_scan_at": "2025-08-26T11:55:46.606249796Z",
+  "project_path": "/mnt/projects/Projects/Programming/kodo",
+  "last_scan_at": "2025-08-27T14:11:48.872461442Z",
   "git_branch": "main",
-  "git_commit": "f7dffa9b71130d0e611007a60866a6d90a288efb",
-  "git_commit_short": "f7dffa9",
+  "git_commit": "1b85463c61f885c6f5fde2cfad59f3be479ead0b",
+  "git_commit_short": "1b85463",
   "total_items": 3,
   "items_by_status": {
     "in_progress": 1,
@@ -22,7 +22,7 @@
     {
       "id": 1,
       "type": "FIXME",
-      "title": "test fixme",
+      "title": "Migrate theme state to Zustand",
       "file": "web/src/App.tsx",
       "line": 11,
       "status": "todo",
@@ -30,7 +30,7 @@
       "is_done": false,
       "done_at": null,
       "done_by": null,
-      "hash": "-6072d3424a8f25ae"
+      "hash": "67e64801aa652c4"
     },
     {
       "id": 2,
@@ -185,8 +185,71 @@
           }
         ]
       }
+    },
+    {
+      "branch": "main",
+      "commit": "1b85463c61f885c6f5fde2cfad59f3be479ead0b",
+      "commit_short": "1b85463",
+      "commit_message": "add dist",
+      "timestamp": "2025-08-27T13:50:52.435699724Z",
+      "history": {
+        "total": 3,
+        "by_status": {
+          "in_progress": 1,
+          "todo": 2
+        },
+        "by_type": {
+          "FIXME": 1,
+          "TODO": 2
+        },
+        "by_priority": {
+          "HIGH": 1,
+          "LOW": 2
+        },
+        "items": [
+          {
+            "id": 1,
+            "type": "FIXME",
+            "title": "test fixme",
+            "file": "web/src/App.tsx",
+            "line": 11,
+            "status": "todo",
+            "priority": "LOW",
+            "is_done": false,
+            "done_at": null,
+            "done_by": null,
+            "hash": "-6072d3424a8f25ae"
+          },
+          {
+            "id": 2,
+            "type": "TODO",
+            "title": "implement note pin in backend",
+            "file": "web/src/api/notes.api.ts",
+            "line": 149,
+            "status": "in_progress",
+            "priority": "LOW",
+            "is_done": false,
+            "done_at": null,
+            "done_by": null,
+            "hash": "-6182e3e37fe4bbfc"
+          },
+          {
+            "id": 3,
+            "type": "TODO",
+            "title": "implement in zustand and sync with onSuccess fn",
+            "file": "web/src/hooks/use-notes.ts",
+            "line": 118,
+            "status": "todo",
+            "priority": "HIGH",
+            "is_done": false,
+            "done_at": null,
+            "done_by": null,
+            "hash": "5bc25b88e7aaef76"
+          }
+        ]
+      }
     }
   ],
   "created_at": "2025-08-26T10:18:05.743622518Z",
-  "updated_at": "2025-08-26T11:55:46.606474156Z"
+  "updated_at": "2025-08-27T14:11:48.872908825Z"
 }

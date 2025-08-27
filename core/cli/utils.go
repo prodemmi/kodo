@@ -79,6 +79,7 @@ func PrintHelp() {
 	fmt.Println(color.WhiteString("  kodo [flags]"))
 	fmt.Println()
 	fmt.Println(color.WhiteString("Available Flags:"))
+	fmt.Println(color.WhiteString("  -p, --port <port>       Change the app’s port (default 3519)"))
 	fmt.Println(color.WhiteString("  -c, --config <path>     Path to config file (default .kodo)"))
 	fmt.Println(color.WhiteString("  -i, --investor          Run in investor mode (default false)"))
 	fmt.Println(color.WhiteString("  -h, --help              Show this help message"))

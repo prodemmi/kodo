@@ -38,6 +38,11 @@ Just run kodo in your source code directory:
 ```bash
 kodo
 ```
+
+<div align="center">
+    <img src="./assets/screenshot.png" />
+</div>
+
 ## 🤝 Contributing
 
 1. Fork the project.

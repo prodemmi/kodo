@@ -116,8 +116,9 @@ export default function HistoryDrawer() {
   };
 
   const showJson = () => {
+    const origin = window.location.origin;
     window.open(
-      `http://localhost:8080/api/notes/history?noteId=${noteId}`,
+      `${origin}/api/notes/history?noteId=${noteId}`,
       "_blank"
     );
   };

@@ -20,10 +20,12 @@ var staticFiles embed.FS
 func main() {
 	config := entities.NewDefaultConfig()
 
+	pflag.IntVarP(&config.Flags.Port, "port", "p", config.Flags.Port, "Change the port to open the app")
 	pflag.StringVarP(&config.Flags.Config, "config", "c", config.Flags.Config, "Path to config file")
 	pflag.BoolVarP(&config.Flags.Investor, "investor", "i", config.Flags.Investor, "Run in investor mode")
 	pflag.BoolVarP(&config.Flags.Silent, "silent", "s", config.Flags.Silent, "Silent the logger")
 	showHelp := pflag.BoolP("help", "h", false, "Show help message")
+
 	pflag.Parse()
 
 	if *showHelp {

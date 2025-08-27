@@ -8,10 +8,8 @@ import { Notifications } from "@mantine/notifications";
 import { useEffect, useMemo, useState } from "react";
 import { useSettingsState } from "./states/settings.state";
 
-// FIXME: test fixme
-// this is test fixme description1
-// this is test fixme description2
-// this is test fixme description3
+// FIXME: Migrate theme state to Zustand
+// the app.state.ts is suitable
 export default function App() {
   const [isDark, setIsDark] = useState(true);
   const workspace_settings = useSettingsState((s) => s.workspace_settings);

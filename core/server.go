@@ -63,7 +63,7 @@ func (s *Server) Start() {
 	s.registerSettingsRoutes(mux)
 	s.registerMiscRoutes(mux)
 
-	port := 8080
+	port := s.config.Flags.Port
 	url := fmt.Sprintf("http://%s:%d", cli.GetLocalIP(), port)
 	cli.ShowServerInfo(url, s.config)
 
