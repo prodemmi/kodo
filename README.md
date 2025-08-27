@@ -4,9 +4,7 @@
 
 <br/>
 
-<p align="center">
-  <b>Agile Kanban & Notes for Developers</b>
-</p>
+<h1 align="center">Agile Kanban & Notes for Developers</h1>
 
 **Kodo** is a modern, source-code-focused Kanban board and notes app for your source-code. It streamlines software project management for technical teams by combining task tracking, code scanning, note saving, and a customizable workspace.
 
@@ -39,21 +37,19 @@ Just run kodo in your source code directory:
 kodo
 ```
 
+Open the [http://localhost:3519](http://localhost:3519) in the browser:
+
 <div align="center">
     <img src="./assets/screenshot.png" />
 </div>
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the project.
 2. Create your feature branch (`git checkout -b feature/my-feature`).
 3. Commit your changes (`git commit -am 'Add feature'`).
 4. Push to the branch (`git push origin feature/my-feature`).
 5. Open a Pull Request.
-
-## 📝 License
-
-This project is open-source and available under the [MIT License](LICENSE).
 
 ---
 
