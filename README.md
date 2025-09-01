@@ -2,11 +2,12 @@
     <img src="./assets/logo.webp" width="180" style="border-radius: 12px" />
     <div align="center">
       <img src="https://img.shields.io/github/go-mod/go-version/prodemmi/kodo" alt="">
-      <img src="https://img.shields.io/badge/Go-go.dev-%230e90e8?link=https%3A%2F%2Fpkg.go.dev%2Fgithub.com%2Fprodemmi%2Fkodo">
-  </div>
+        <a href="https%3A%2F%2Fpkg.go.dev%2Fgithub.com%2Fprodemmi%2Fkodo" target="_blank">
+          <img src="https://img.shields.io/badge/Go-go.dev-%230e90e8">
+        </a>
+    </div>
 </div>
-
-<h1 align="center">Agile Kanban & Notes for Developers</h1>
+<h2 align="center">Agile Kanban & Notes for Developers</h2>
 
 **Kodo** is a modern, source-code-focused Kanban board and notes app for your source code. It streamlines software project management for technical teams by combining task tracking, code scanning, note saving, and a customizable workspace.
 
